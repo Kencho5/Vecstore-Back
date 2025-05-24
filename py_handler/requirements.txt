@@ -1,0 +1,7 @@
+torch
+torchvision
+Pillow
+Flask
+requests
+psutil
+git+https://github.com/openai/CLIP.git
