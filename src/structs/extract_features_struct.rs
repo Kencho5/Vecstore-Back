@@ -7,16 +7,15 @@ pub struct ExtractFeaturesPayload {
 
 #[derive(Serialize)]
 pub struct ExtractFeaturesBody {
-    pub vector: String,
+    pub time: u64,
 }
 
 impl ExtractFeaturesBody {
-    pub fn new(vector: String) -> Self {
-        Self { vector }
+    pub fn new(time: u64) -> Self {
+        Self { time }
     }
 }
 
-#[derive(Debug)]
 pub enum ExtractFeaturesError {
     Unforseen,
 }
