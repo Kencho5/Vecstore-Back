@@ -4,7 +4,7 @@ WORKDIR /app
 COPY . .
 RUN cargo build --release
 
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 
 WORKDIR /app
 COPY --from=builder /app/target/release/vecstore-extractor /app/app
