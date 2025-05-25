@@ -1,14 +1,16 @@
-FROM rust:1.83 as builder
+FROM lukemathwalker/cargo-chef:latest-rust-1.83 AS chef
 WORKDIR /app
 
-COPY Cargo.toml Cargo.lock ./
+FROM chef AS planner
+COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
 
-RUN mkdir src && echo "fn main() {}" > src/main.rs
-
-RUN cargo build --release && rm -rf src/
-
-COPY src/ src/
-
+FROM chef AS builder
+COPY --from=planner /app/recipe.json recipe.json
+# Build dependencies - this is the caching Docker layer!
+RUN cargo chef cook --release --recipe-path recipe.json
+# Up to this point, if your dependencies don't change, all layers should be cached
+COPY . .
 RUN cargo build --release
 
 FROM debian:bookworm-slim
