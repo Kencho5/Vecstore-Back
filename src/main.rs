@@ -14,7 +14,7 @@ async fn main() {
         .init();
 
     let (model, clip_config) = load_model().unwrap();
-    let qdrant_client = Qdrant::from_url("db.vecstore.app").build().unwrap();
+    let qdrant_client = Arc::new(Qdrant::from_url("db.vecstore.app").build().unwrap());
 
     let state = AppState {
         model,

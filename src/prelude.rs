@@ -18,3 +18,4 @@ pub use std::time::Instant;
 pub use tower_http::cors::CorsLayer;
 pub extern crate image_base64;
 pub use crate::utils::load_model::*;
+pub use std::sync::Arc;
