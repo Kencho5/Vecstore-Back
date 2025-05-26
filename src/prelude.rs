@@ -11,7 +11,10 @@ pub use axum::{
 pub use candle_core::{DType, Device, Tensor};
 pub use candle_nn::VarBuilder;
 pub use candle_transformers::models::clip;
-pub use qdrant_client::Qdrant;
+pub use qdrant_client::{
+    qdrant::{CreateCollectionBuilder, VectorParamsBuilder},
+    Qdrant,
+};
 pub use serde::{Deserialize, Serialize};
 pub use serde_json::json;
 pub use std::time::Instant;
