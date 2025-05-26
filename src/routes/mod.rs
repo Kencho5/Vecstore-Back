@@ -1,1 +1,1 @@
-pub mod extract_features;
+pub mod insert_image;

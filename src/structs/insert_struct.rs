@@ -1,29 +1,29 @@
 use crate::prelude::*;
 
 #[derive(Deserialize, Serialize)]
-pub struct ExtractFeaturesPayload {
+pub struct InsertImagePayload {
     pub image: String,
 }
 
 #[derive(Serialize)]
-pub struct ExtractFeaturesBody {
+pub struct InsertImageBody {
     pub time: u64,
 }
 
-impl ExtractFeaturesBody {
+impl InsertImageBody {
     pub fn new(time: u64) -> Self {
         Self { time }
     }
 }
 
-pub enum ExtractFeaturesError {
+pub enum InsertImageError {
     Unforseen,
 }
 
-impl IntoResponse for ExtractFeaturesError {
+impl IntoResponse for InsertImageError {
     fn into_response(self) -> Response {
         let (status, error_message) = match self {
-            ExtractFeaturesError::Unforseen => {
+            InsertImageError::Unforseen => {
                 (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error")
             }
         };
