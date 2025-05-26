@@ -7,9 +7,9 @@ RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef AS builder
 COPY --from=planner /app/recipe.json recipe.json
-# Build dependencies - this is the caching Docker layer!
+
 RUN cargo chef cook --release --recipe-path recipe.json
-# Up to this point, if your dependencies don't change, all layers should be cached
+
 COPY . .
 RUN cargo build --release
 
@@ -19,6 +19,6 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY --from=builder /app/target/release/vecstore-extractor /app/app
+COPY --from=builder /app/target/release/vecstore /app/app
 
 CMD ["./app"]
