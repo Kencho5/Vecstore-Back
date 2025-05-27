@@ -9,25 +9,11 @@ use tracing::Level;
 
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::fmt()
-        .with_max_level(Level::DEBUG)
-        .init();
+    tracing_subscriber::fmt().with_max_level(Level::INFO).init();
 
     let (model, clip_config) = load_model().unwrap();
-    let qdrant_client = Arc::new(Qdrant::from_url("db.vecstore.app").build().unwrap());
 
-    qdrant_client
-        .create_collection(
-            CreateCollectionBuilder::new("images")
-                .vectors_config(VectorParamsBuilder::new(4, Distance::Dot)),
-        )
-        .await;
-
-    let state = AppState {
-        model,
-        clip_config,
-        qdrant_client,
-    };
+    let state = AppState { model, clip_config };
 
     let app = register_routes::create_router()
         .layer(

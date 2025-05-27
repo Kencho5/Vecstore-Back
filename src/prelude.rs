@@ -11,14 +11,9 @@ pub use axum::{
 pub use candle_core::{DType, Device, Tensor};
 pub use candle_nn::VarBuilder;
 pub use candle_transformers::models::clip;
-pub use qdrant_client::{
-    qdrant::{CreateCollectionBuilder, VectorParamsBuilder},
-    Qdrant,
-};
 pub use serde::{Deserialize, Serialize};
 pub use serde_json::json;
 pub use std::time::Instant;
 pub use tower_http::cors::CorsLayer;
 pub extern crate image_base64;
 pub use crate::utils::load_model::*;
-pub use std::sync::Arc;

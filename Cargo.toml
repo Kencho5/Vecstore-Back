@@ -14,7 +14,6 @@ http = "1.1.0"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3" }
 image-base64 = "0.1.0"
-qdrant-client = "1.14.0"
 
 # ML
 candle-core = "0.9.1"
