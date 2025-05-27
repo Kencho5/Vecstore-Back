@@ -8,7 +8,17 @@ pub async fn insert_image_handler(
     let total_start = Instant::now();
     println!("Handler started");
 
-    let _image_vector = extract_image_features(&state, payload.image).await?;
+    let resp = state
+        .http_client
+        .get("https://db.vecstore.app/collections")
+        .send()
+        .await
+        .map_err(|_| InsertImageError::Unforseen)?
+        .json::<serde_json::Value>()
+        .await;
+    println!("{:?}", resp);
+
+    //let _image_vector = extract_image_features(&state, payload.image).await?;
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;
     println!("Total handler time: {}ms", total_time_ms);

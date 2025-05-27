@@ -12,8 +12,13 @@ async fn main() {
     tracing_subscriber::fmt().with_max_level(Level::INFO).init();
 
     let (model, clip_config) = load_model().unwrap();
+    let http_client = load_http_client();
 
-    let state = AppState { model, clip_config };
+    let state = AppState {
+        model,
+        clip_config,
+        http_client,
+    };
 
     let app = register_routes::create_router()
         .layer(
