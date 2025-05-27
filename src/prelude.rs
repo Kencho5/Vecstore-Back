@@ -22,3 +22,4 @@ pub use crate::utils::load_model::*;
 pub use dotenv::dotenv;
 pub use http::HeaderMap;
 pub use std::env;
+pub use uuid::Uuid;
