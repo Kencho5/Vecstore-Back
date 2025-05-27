@@ -19,4 +19,6 @@ pub use tower_http::cors::CorsLayer;
 pub extern crate image_base64;
 pub use crate::utils::load_http_client::*;
 pub use crate::utils::load_model::*;
+pub use dotenv::dotenv;
 pub use http::HeaderMap;
+pub use std::env;

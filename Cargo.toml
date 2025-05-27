@@ -14,6 +14,7 @@ http = "1.1.0"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3" }
 reqwest = { version = "0.12.15", features = ["json"]}
+dotenv = "0.15.0"
 
 # ML
 candle-core = "0.9.1"
