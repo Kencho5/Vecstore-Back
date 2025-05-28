@@ -9,10 +9,12 @@ pub async fn insert_image_handler(
     println!("Handler started");
 
     let image_vectors = extract_image_features(&state, payload.image).await?;
+
     insert_vectors(state.pinecone, image_vectors, payload.filename).await?;
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;
     println!("Total handler time: {}ms", total_time_ms);
+
     Ok(Json(InsertImageBody::new(total_time_ms)))
 }
 
@@ -55,7 +57,7 @@ async fn insert_vectors(
     filename: String,
 ) -> Result<(), InsertImageError> {
     let mut index = pinecone
-        .index(&env::var("PINECONE_INDEX").expect("Qdrant api key not found"))
+        .index(&env::var("PINECONE_INDEX").expect("Pinecone index not found"))
         .await
         .map_err(|_| InsertImageError::DatabaseConnection)?;
 

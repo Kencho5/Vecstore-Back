@@ -9,4 +9,5 @@ fn pages() -> Router<AppState> {
     Router::new()
         .route("/insert", post(insert_image::insert_image_handler))
         .route("/search", post(search_image::search_image_handler))
+        .route("/health", get(health::health_handler))
 }

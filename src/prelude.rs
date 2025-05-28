@@ -5,7 +5,7 @@ pub use axum::{
     extract::State,
     http::{HeaderValue, Method, StatusCode},
     response::{IntoResponse, Response},
-    routing::post,
+    routing::{get, post},
     Json, Router,
 };
 pub use candle_core::{DType, Device, Tensor};
