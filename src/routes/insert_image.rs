@@ -9,7 +9,7 @@ pub async fn insert_image_handler(
     println!("Handler started");
 
     let image_vectors = extract_image_features(&state, payload.image).await?;
-    insert_vectors(state.http_client, image_vectors, payload.filename).await?;
+    insert_vectors(state.pinecone, image_vectors, payload.filename).await?;
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;
     println!("Total handler time: {}ms", total_time_ms);
@@ -50,36 +50,34 @@ async fn extract_image_features(
 }
 
 async fn insert_vectors(
-    client: Client,
+    pinecone: PineconeClient,
     vectors: Vec<f32>,
     filename: String,
 ) -> Result<(), InsertImageError> {
-    let body = json!({
-        "points": [
-            {
-                "id": Uuid::new_v4().to_string(),
-                "vector": vectors,
-                "payload": { "filename": filename }
-            },
-        ]
-    });
-
-    let response = client
-        .put("https://db.vecstore.app/collections/images/points")
-        .json(&body)
-        .send()
+    let mut index = pinecone
+        .index(&env::var("PINECONE_INDEX").expect("Qdrant api key not found"))
         .await
         .map_err(|_| InsertImageError::DatabaseConnection)?;
 
-    if !response.status().is_success() {
-        return Err(InsertImageError::DatabaseInsert);
-    }
+    let mut fields = BTreeMap::new();
+    let filename_value = Value {
+        kind: Some(Kind::StringValue(filename)),
+    };
+    fields.insert("filename".to_string(), filename_value);
 
-    let json: serde_json::Value = response
-        .json()
+    let metadata = Metadata { fields };
+
+    let vectors = [Vector {
+        id: Uuid::new_v4().to_string(),
+        values: vectors,
+        sparse_values: None,
+        metadata: Some(metadata),
+    }];
+
+    index
+        .upsert(&vectors, &"kencho".into())
         .await
-        .map_err(|_| InsertImageError::DatabaseResponse)?;
+        .map_err(|_| InsertImageError::DatabaseInsert)?;
 
-    println!("{}", json);
     Ok(())
 }

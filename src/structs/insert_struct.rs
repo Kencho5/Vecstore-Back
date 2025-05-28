@@ -6,6 +6,11 @@ pub struct InsertImagePayload {
     pub filename: String,
 }
 
+#[derive(Deserialize, Serialize)]
+pub struct SearchImagePayload {
+    pub text: String,
+}
+
 #[derive(Serialize)]
 pub struct InsertImageBody {
     pub time: u64,
@@ -23,7 +28,6 @@ pub enum InsertImageError {
     ModelInference,
     DatabaseConnection,
     DatabaseInsert,
-    DatabaseResponse,
     Unforseen,
 }
 
@@ -43,10 +47,6 @@ impl IntoResponse for InsertImageError {
             InsertImageError::DatabaseInsert => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "Failed to insert into database",
-            ),
-            InsertImageError::DatabaseResponse => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Invalid database response",
             ),
             InsertImageError::Unforseen => {
                 (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error")

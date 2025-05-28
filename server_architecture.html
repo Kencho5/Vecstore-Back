@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Server Architecture Diagram</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-50 p-8">
+    <div class="max-w-7xl mx-auto">
+      <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">
+        Server Architecture
+      </h1>
+
+      <!-- Main Container -->
+      <div class="bg-white rounded-lg shadow-lg p-8">
+        <!-- Client Layer -->
+        <div class="text-center mb-6">
+          <div class="inline-block bg-blue-100 rounded-lg p-4 shadow-md">
+            <div class="flex items-center space-x-2">
+              <svg
+                class="w-8 h-8 text-blue-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                ></path>
+              </svg>
+              <span class="text-lg font-semibold text-blue-800"
+                >Client Applications</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Connection Arrow -->
+        <div class="flex justify-center mb-6">
+          <svg
+            class="w-8 h-8 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 14l-7 7m0 0l-7-7m7 7V3"
+            ></path>
+          </svg>
+        </div>
+
+        <!-- Application Load Balancer -->
+        <div class="flex justify-center mb-8">
+          <div
+            class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg p-6 shadow-lg text-white w-full max-w-2xl"
+          >
+            <div class="text-center">
+              <div class="flex items-center justify-center mb-2">
+                <svg
+                  class="w-8 h-8 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
+                  ></path>
+                </svg>
+                <h3 class="text-xl font-bold">Application Load Balancer</h3>
+              </div>
+              <div class="text-sm opacity-90">
+                Routes traffic based on URL paths
+              </div>
+            </div>
+
+            <!-- Routing Rules -->
+            <div class="mt-4 grid grid-cols-3 gap-4 text-sm">
+              <div class="bg-white/20 rounded p-2 text-center">
+                <div class="font-medium">/api/vectors/*</div>
+                <div class="text-xs">→ Qdrant</div>
+              </div>
+              <div class="bg-white/20 rounded p-2 text-center">
+                <div class="font-medium">/api/*</div>
+                <div class="text-xs">→ Backend</div>
+              </div>
+              <div class="bg-white/20 rounded p-2 text-center">
+                <div class="font-medium">/images/*</div>
+                <div class="text-xs">→ Image Processing</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Routing Lines -->
+        <div class="flex justify-center mb-6">
+          <svg class="w-full max-w-4xl h-16" viewBox="0 0 800 60">
+            <!-- Lines from ALB to services -->
+            <line
+              x1="400"
+              y1="0"
+              x2="133"
+              y2="50"
+              stroke="#9CA3AF"
+              stroke-width="2"
+            />
+            <line
+              x1="400"
+              y1="0"
+              x2="400"
+              y2="50"
+              stroke="#9CA3AF"
+              stroke-width="2"
+            />
+            <line
+              x1="400"
+              y1="0"
+              x2="667"
+              y2="50"
+              stroke="#9CA3AF"
+              stroke-width="2"
+            />
+          </svg>
+        </div>
+
+        <!-- Services Layer -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <!-- Qdrant Database Service -->
+          <div
+            class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 shadow-md"
+          >
+            <h3
+              class="text-lg font-bold text-purple-800 mb-4 flex items-center"
+            >
+              <svg
+                class="w-6 h-6 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"
+                ></path>
+              </svg>
+              Qdrant Database
+            </h3>
+
+            <!-- Target Group -->
+            <div class="bg-purple-200/50 rounded p-2 mb-3 text-center">
+              <div class="text-xs font-medium text-purple-700">
+                Target Group
+              </div>
+            </div>
+
+            <!-- Auto Scaling Group -->
+            <div class="bg-purple-200 rounded p-3">
+              <div class="text-sm font-medium text-purple-700 mb-2">
+                Auto Scaling Group
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div class="bg-white rounded p-2 text-center">
+                  <div class="text-xs text-gray-600">EC2</div>
+                </div>
+                <div class="bg-white rounded p-2 text-center">
+                  <div class="text-xs text-gray-600">EC2</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Backend Service -->
+          <div
+            class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6 shadow-md"
+          >
+            <h3 class="text-lg font-bold text-green-800 mb-4 flex items-center">
+              <svg
+                class="w-6 h-6 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"
+                ></path>
+              </svg>
+              Backend Service
+            </h3>
+
+            <!-- Target Group -->
+            <div class="bg-green-200/50 rounded p-2 mb-3 text-center">
+              <div class="text-xs font-medium text-green-700">Target Group</div>
+            </div>
+
+            <!-- Auto Scaling Group -->
+            <div class="bg-green-200 rounded p-3">
+              <div class="text-sm font-medium text-green-700 mb-2">
+                Auto Scaling Group
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div class="bg-white rounded p-2 text-center">
+                  <div class="text-xs text-gray-600">ECS Task</div>
+                </div>
+                <div class="bg-white rounded p-2 text-center">
+                  <div class="text-xs text-gray-600">ECS Task</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Image Processing Service -->
+          <div
+            class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-6 shadow-md"
+          >
+            <h3
+              class="text-lg font-bold text-orange-800 mb-4 flex items-center"
+            >
+              <svg
+                class="w-6 h-6 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                ></path>
+              </svg>
+              Image Processing
+            </h3>
+
+            <!-- Target Group -->
+            <div class="bg-orange-200/50 rounded p-2 mb-3 text-center">
+              <div class="text-xs font-medium text-orange-700">
+                Target Group
+              </div>
+            </div>
+
+            <!-- Auto Scaling Group -->
+            <div class="bg-orange-200 rounded p-3">
+              <div class="text-sm font-medium text-orange-700 mb-2">
+                Auto Scaling Group
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div class="bg-white rounded p-2 text-center">
+                  <div class="text-xs text-gray-600">ECS Task</div>
+                </div>
+                <div class="bg-white rounded p-2 text-center">
+                  <div class="text-xs text-gray-600">ECS Task</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Connection Lines -->
+        <div class="flex justify-center mb-8">
+          <svg class="w-full h-16" viewBox="0 0 800 60">
+            <!-- Lines from services to database -->
+            <line
+              x1="133"
+              y1="0"
+              x2="400"
+              y2="50"
+              stroke="#9CA3AF"
+              stroke-width="2"
+              stroke-dasharray="5,5"
+            />
+            <line
+              x1="400"
+              y1="0"
+              x2="400"
+              y2="50"
+              stroke="#9CA3AF"
+              stroke-width="2"
+              stroke-dasharray="5,5"
+            />
+            <line
+              x1="667"
+              y1="0"
+              x2="400"
+              y2="50"
+              stroke="#9CA3AF"
+              stroke-width="2"
+              stroke-dasharray="5,5"
+            />
+          </svg>
+        </div>
+
+        <!-- Database Layer -->
+        <div class="flex justify-center">
+          <div
+            class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 shadow-md w-full max-w-md"
+          >
+            <h3
+              class="text-lg font-bold text-blue-800 mb-4 flex items-center justify-center"
+            >
+              <svg
+                class="w-6 h-6 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"
+                ></path>
+              </svg>
+              SQL Database
+            </h3>
+
+            <div class="bg-blue-200 rounded p-4">
+              <div class="bg-white rounded p-3 text-center">
+                <div class="text-sm font-medium text-gray-700">Amazon RDS</div>
+                <div class="text-xs text-gray-500 mt-1">
+                  Multi-AZ Deployment
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="mt-12 border-t pt-6">
+          <h4 class="text-sm font-semibold text-gray-700 mb-3">
+            Architecture Benefits:
+          </h4>
+          <div
+            class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600"
+          >
+            <div class="flex items-start">
+              <svg
+                class="w-5 h-5 text-green-500 mr-2 mt-0.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                ></path>
+              </svg>
+              <span
+                ><strong>Single Load Balancer:</strong> Cost-effective routing
+                based on URL paths</span
+              >
+            </div>
+            <div class="flex items-start">
+              <svg
+                class="w-5 h-5 text-green-500 mr-2 mt-0.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                ></path>
+              </svg>
+              <span
+                ><strong>Auto Scaling:</strong> Each service scales
+                independently based on demand</span
+              >
+            </div>
+            <div class="flex items-start">
+              <svg
+                class="w-5 h-5 text-green-500 mr-2 mt-0.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                ></path>
+              </svg>
+              <span
+                ><strong>Target Groups:</strong> ALB routes to specific service
+                groups</span
+              >
+            </div>
+            <div class="flex items-start">
+              <svg
+                class="w-5 h-5 text-green-500 mr-2 mt-0.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                ></path>
+              </svg>
+              <span
+                ><strong>Shared Database:</strong> All services connect to
+                centralized RDS</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
