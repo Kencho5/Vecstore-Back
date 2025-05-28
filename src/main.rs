@@ -15,6 +15,7 @@ async fn main() {
     let (model, clip_config) = load_model().unwrap();
     let pinecone = init_pinecone().await;
     let tokenizer = get_tokenizer(None).expect("Failed to get tokenizer");
+    init_db().await;
 
     let state = AppState {
         model,
