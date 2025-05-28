@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-pub async fn init_db() {
+pub async fn init_db() -> PgPool {
     let db_url = env::var("DB_URL").expect("DB url not set");
 
     let pool = PgPoolOptions::new()
@@ -13,4 +13,6 @@ pub async fn init_db() {
         .run(&pool)
         .await
         .expect("Failed to run migrations");
+
+    pool
 }

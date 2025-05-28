@@ -15,13 +15,14 @@ async fn main() {
     let (model, clip_config) = load_model().unwrap();
     let pinecone = init_pinecone().await;
     let tokenizer = get_tokenizer(None).expect("Failed to get tokenizer");
-    init_db().await;
+    let pool = init_db().await;
 
     let state = AppState {
         model,
         clip_config,
         pinecone,
         tokenizer,
+        pool,
     };
 
     let app = register_routes::create_router()
