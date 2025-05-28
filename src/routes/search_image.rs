@@ -79,7 +79,6 @@ async fn search_vectors(
         )
         .await
         .map_err(|_| SearchImageError::Unforseen)?;
-    println!("{:?}", response);
 
     // Convert QueryResponse to SearchResponse
     let search_response = SearchResponse {
