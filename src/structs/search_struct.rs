@@ -14,6 +14,7 @@ pub struct SearchResponse {
 pub struct SearchMatch {
     pub id: String,
     pub score: f32,
+    pub filename: Option<String>,
 }
 
 #[derive(Debug)]

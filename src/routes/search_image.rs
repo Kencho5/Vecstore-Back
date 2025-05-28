@@ -75,10 +75,11 @@ async fn search_vectors(
             &Namespace::from("kencho"),
             None,
             None,
-            None,
+            Some(true),
         )
         .await
         .map_err(|_| SearchImageError::Unforseen)?;
+    println!("{:?}", response);
 
     // Convert QueryResponse to SearchResponse
     let search_response = SearchResponse {
@@ -88,6 +89,15 @@ async fn search_vectors(
             .map(|m| SearchMatch {
                 id: m.id,
                 score: m.score,
+                filename: m.metadata.and_then(|metadata| {
+                    metadata.fields.get("filename").and_then(|value| {
+                        if let Some(Kind::StringValue(s)) = &value.kind {
+                            Some(s.clone())
+                        } else {
+                            None
+                        }
+                    })
+                }),
             })
             .collect(),
     };
