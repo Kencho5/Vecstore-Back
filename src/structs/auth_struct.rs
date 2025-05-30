@@ -14,6 +14,17 @@ pub struct RegisterPayload {
     pub password: String,
 }
 
+#[derive(Serialize)]
+pub struct AuthResponse {
+    pub token: String,
+}
+
+impl AuthResponse {
+    pub fn new(token: String) -> Self {
+        Self { token }
+    }
+}
+
 pub enum AuthError {
     UserExists,
 }
