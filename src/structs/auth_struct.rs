@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Clone)]
 pub struct User {
     pub email: String,
     pub name: String,
@@ -12,6 +12,13 @@ pub struct RegisterPayload {
     pub email: String,
     pub name: String,
     pub password: String,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Claims {
+    pub email: String,
+    pub company: String,
+    pub exp: i64,
 }
 
 #[derive(Serialize)]
@@ -28,6 +35,8 @@ impl AuthResponse {
 pub enum AuthError {
     UserExists,
     MissingCredentials,
+    TokenCreation,
+    InvalidToken,
 }
 
 impl IntoResponse for AuthError {
@@ -35,6 +44,8 @@ impl IntoResponse for AuthError {
         let (status, error_message) = match self {
             AuthError::UserExists => (StatusCode::BAD_REQUEST, "Email already exists"),
             AuthError::MissingCredentials => (StatusCode::BAD_REQUEST, "Missing credentials"),
+            AuthError::TokenCreation => (StatusCode::BAD_REQUEST, "Failed to create jwt token"),
+            AuthError::InvalidToken => (StatusCode::BAD_REQUEST, "Unauthorized"),
         };
 
         let body = Json(json!({
