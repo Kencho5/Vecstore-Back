@@ -11,6 +11,5 @@ pub async fn verify_google_handler(
         .await
         .map_err(|_| VerifyGoogleError::InvalidToken)?;
 
-    println!("{:?}", &payload);
     Ok(StatusCode::OK)
 }
