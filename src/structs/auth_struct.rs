@@ -27,12 +27,14 @@ impl AuthResponse {
 
 pub enum AuthError {
     UserExists,
+    MissingCredentials,
 }
 
 impl IntoResponse for AuthError {
     fn into_response(self) -> Response {
         let (status, error_message) = match self {
             AuthError::UserExists => (StatusCode::BAD_REQUEST, "Email already exists"),
+            AuthError::MissingCredentials => (StatusCode::BAD_REQUEST, "Missing credentials"),
         };
 
         let body = Json(json!({
@@ -40,5 +42,28 @@ impl IntoResponse for AuthError {
         }));
 
         (status, body).into_response()
+    }
+}
+
+pub trait ValidatePayload {
+    fn validate(&self) -> Result<(), AuthError>;
+}
+
+impl<T> ValidatePayload for T
+where
+    T: Serialize,
+{
+    fn validate(&self) -> Result<(), AuthError> {
+        let json_value = serde_json::to_value(self).unwrap();
+
+        if let serde_json::Value::Object(map) = json_value {
+            for (_, value) in map.iter() {
+                if value.as_str().map_or(true, |s| s.is_empty()) {
+                    return Err(AuthError::MissingCredentials);
+                }
+            }
+        }
+
+        Ok(())
     }
 }
