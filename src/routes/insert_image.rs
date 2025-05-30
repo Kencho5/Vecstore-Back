@@ -24,7 +24,7 @@ async fn extract_image_features(
 ) -> Result<Vec<f32>, InsertImageError> {
     let start_time = Instant::now();
 
-    let image = load_image(image, state.clip_config.image_size)
+    let image = load_image::load_image(image, state.clip_config.image_size)
         .map_err(|_| InsertImageError::ImageProcessing)?;
 
     let batched_image = image

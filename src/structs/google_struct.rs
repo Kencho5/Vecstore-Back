@@ -7,6 +7,7 @@ pub struct VerifyGooglePayload {
 
 pub enum VerifyGoogleError {
     InvalidToken,
+    UserExists,
 }
 
 impl IntoResponse for VerifyGoogleError {
@@ -15,6 +16,7 @@ impl IntoResponse for VerifyGoogleError {
             VerifyGoogleError::InvalidToken => {
                 (StatusCode::BAD_REQUEST, "Failed to verify google token")
             }
+            VerifyGoogleError::UserExists => (StatusCode::BAD_REQUEST, "Email already exists"),
         };
 
         let body = Json(json!({

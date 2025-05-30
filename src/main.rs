@@ -1,3 +1,5 @@
+mod auth;
+mod loaders;
 mod prelude;
 mod register_routes;
 mod routes;
@@ -12,10 +14,10 @@ async fn main() {
     dotenv().ok();
     tracing_subscriber::fmt().with_max_level(Level::INFO).init();
 
-    let (model, clip_config) = load_model().unwrap();
-    let pinecone = init_pinecone().await;
+    let (model, clip_config) = load_model::load_model().unwrap();
+    let pinecone = init_pinecone::init_pinecone().await;
     let tokenizer = get_tokenizer(None).expect("Failed to get tokenizer");
-    let pool = init_db().await;
+    let pool = init_db::init_db().await;
     let google_client =
         AsyncClient::new(env::var("GOOGLE_CLIENT_ID").expect("Google client id not found"));
 
