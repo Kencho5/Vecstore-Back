@@ -22,7 +22,6 @@ impl InsertImageBody {
     }
 }
 
-#[derive(Debug)]
 pub enum InsertImageError {
     ImageProcessing,
     ModelInference,
