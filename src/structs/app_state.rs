@@ -7,4 +7,5 @@ pub struct AppState {
     pub pinecone: PineconeClient,
     pub tokenizer: Tokenizer,
     pub pool: PgPool,
+    pub google_client: AsyncClient,
 }

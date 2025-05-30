@@ -16,6 +16,8 @@ async fn main() {
     let pinecone = init_pinecone().await;
     let tokenizer = get_tokenizer(None).expect("Failed to get tokenizer");
     let pool = init_db().await;
+    let google_client =
+        AsyncClient::new(env::var("GOOGLE_CLIENT_ID").expect("Google client id not found"));
 
     let state = AppState {
         model,
@@ -23,6 +25,7 @@ async fn main() {
         pinecone,
         tokenizer,
         pool,
+        google_client,
     };
 
     let app = register_routes::create_router()

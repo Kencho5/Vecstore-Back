@@ -22,6 +22,7 @@ pub use crate::utils::init_pinecone::*;
 pub use crate::utils::load_model::*;
 pub use crate::utils::tokenizer::*;
 pub use dotenv::dotenv;
+pub use google_oauth::AsyncClient;
 pub use http::HeaderMap;
 pub use pinecone_sdk::models::{Kind, Metadata, Namespace, QueryResponse, Value, Vector};
 pub use pinecone_sdk::pinecone::{PineconeClient, PineconeClientConfig};
