@@ -15,10 +15,12 @@ fn api_routes() -> Router<AppState> {
 }
 
 fn auth() -> Router<AppState> {
-    Router::new().route(
-        "/verify-google",
-        post(register_google::register_google_handler),
-    )
+    Router::new()
+        .route(
+            "/verify-google",
+            post(register_google::register_google_handler),
+        )
+        .route("/register", post(register::register_handler))
 }
 
 fn health() -> Router<AppState> {

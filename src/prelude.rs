@@ -1,6 +1,6 @@
 pub use crate::loaders::*;
 pub use crate::structs::app_state::AppState;
-pub use crate::structs::user_struct::*;
+pub use crate::structs::auth_struct::*;
 pub use anyhow::Result;
 pub use axum::{
     extract::State,
@@ -19,6 +19,7 @@ pub use serde_json::json;
 pub use std::time::Instant;
 pub use tower_http::cors::CorsLayer;
 pub extern crate image_base64;
+pub use crate::routes::auth::*;
 pub use crate::utils::tokenizer::*;
 pub use dotenv::dotenv;
 pub use google_oauth::AsyncClient;
