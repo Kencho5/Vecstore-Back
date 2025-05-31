@@ -12,6 +12,7 @@ fn api_routes() -> Router<AppState> {
     Router::new()
         .route("/insert", post(insert_image::insert_image_handler))
         .route("/search", post(search_image::search_image_handler))
+        .route("/nsfw", post(nsfw_detector::nsfw_detector_handler))
 }
 
 fn auth() -> Router<AppState> {

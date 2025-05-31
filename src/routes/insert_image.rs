@@ -6,14 +6,14 @@ pub async fn insert_image_handler(
     Json(payload): Json<InsertImagePayload>,
 ) -> Result<Json<InsertImageBody>, InsertImageError> {
     let total_start = Instant::now();
-    println!("Handler started");
+    println!("CLIP Handler started");
 
     let image_vectors = extract_image_features(&state, payload.image).await?;
 
     insert_vectors(state.pinecone, image_vectors, payload.filename).await?;
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;
-    println!("Total handler time: {}ms", total_time_ms);
+    println!("Total CLIP handler time: {}ms", total_time_ms);
 
     Ok(Json(InsertImageBody::new(total_time_ms)))
 }
@@ -27,13 +27,9 @@ async fn extract_image_features(
     let image = load_image::load_image(image, state.clip_config.image_size)
         .map_err(|_| InsertImageError::ImageProcessing)?;
 
-    let batched_image = image
-        .unsqueeze(0)
-        .map_err(|_| InsertImageError::ImageProcessing)?;
-
     let image_features = state
-        .model
-        .get_image_features(&batched_image)
+        .clip_model
+        .get_image_features(&image)
         .map_err(|_| InsertImageError::ModelInference)?;
 
     let image_vector = image_features

@@ -14,7 +14,8 @@ async fn main() {
     dotenv().ok();
     tracing_subscriber::fmt().with_max_level(Level::INFO).init();
 
-    let (model, clip_config) = load_model::load_model().unwrap();
+    let (clip_model, clip_config) = load_model::load_clip_model().unwrap();
+    let nsfw_model = load_model::load_nsfw_model().unwrap();
     let pinecone = init_pinecone::init_pinecone().await;
     let tokenizer = get_tokenizer(None).expect("Failed to get tokenizer");
     let pool = init_db::init_db().await;
@@ -22,12 +23,13 @@ async fn main() {
         AsyncClient::new(env::var("GOOGLE_CLIENT_ID").expect("Google client id not found"));
 
     let state = AppState {
-        model,
+        clip_model,
         clip_config,
         pinecone,
         tokenizer,
         pool,
         google_client,
+        nsfw_model,
     };
 
     let app = register_routes::create_router()

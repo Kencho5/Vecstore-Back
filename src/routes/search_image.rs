@@ -39,7 +39,7 @@ async fn extract_text_features(
         Tensor::new(vec![tokens], &Device::Cpu).map_err(|_| SearchImageError::ModelInference)?;
 
     let text_features = state
-        .model
+        .clip_model
         .get_text_features(&input_ids)
         .map_err(|_| SearchImageError::ModelInference)?;
 
