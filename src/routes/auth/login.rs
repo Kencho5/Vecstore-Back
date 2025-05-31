@@ -1,8 +1,6 @@
-use crate::auth::insert_user::insert_user;
-use crate::prelude::*;
-use crate::structs::google_struct::*;
+use crate::{auth::check_user::check_user, prelude::*, structs::google_struct::*};
 
-pub async fn register_google_handler(
+pub async fn login_handler(
     State(state): State<AppState>,
     Json(payload): Json<GoogleAuthPayload>,
 ) -> Result<Json<AuthResponse>, AuthError> {
@@ -18,9 +16,9 @@ pub async fn register_google_handler(
         password: None,
     };
 
-    insert_user(state.pool, user.clone())
+    check_user(state.pool, user.clone())
         .await
-        .map_err(|_| AuthError::UserExists)?;
+        .map_err(|_| AuthError::UserNotFound)?;
 
     let token = create_token(user.email, user.name)
         .await

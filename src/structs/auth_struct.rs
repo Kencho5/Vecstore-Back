@@ -7,6 +7,7 @@ pub struct User {
     pub password: Option<String>,
 }
 
+//REGISTER
 #[derive(Deserialize, Serialize)]
 pub struct RegisterPayload {
     pub email: String,
@@ -35,6 +36,7 @@ impl AuthResponse {
 
 pub enum AuthError {
     UserExists,
+    UserNotFound,
     MissingCredentials,
     TokenCreation,
     InvalidToken,
@@ -44,6 +46,7 @@ impl IntoResponse for AuthError {
     fn into_response(self) -> Response {
         let (status, error_message) = match self {
             AuthError::UserExists => (StatusCode::BAD_REQUEST, "Email already exists"),
+            AuthError::UserNotFound => (StatusCode::BAD_REQUEST, "User not found"),
             AuthError::MissingCredentials => (StatusCode::BAD_REQUEST, "Missing credentials"),
             AuthError::TokenCreation => (StatusCode::BAD_REQUEST, "Failed to create jwt token"),
             AuthError::InvalidToken => (StatusCode::BAD_REQUEST, "Unauthorized"),

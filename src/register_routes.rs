@@ -22,6 +22,7 @@ fn auth() -> Router<AppState> {
             post(register_google::register_google_handler),
         )
         .route("/register", post(register::register_handler))
+        .route("/login", post(login::login_handler))
 }
 
 fn health() -> Router<AppState> {
