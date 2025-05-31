@@ -17,6 +17,7 @@ pub struct RegisterPayload {
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Claims {
     pub email: String,
+    pub name: String,
     pub company: String,
     pub exp: i64,
 }

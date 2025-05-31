@@ -18,9 +18,13 @@ pub async fn register_google_handler(
         password: None,
     };
 
-    insert_user(state.pool, user)
+    insert_user(state.pool, user.clone())
         .await
         .map_err(|_| VerifyGoogleError::UserExists)?;
 
-    Ok(Json(AuthResponse::new(payload.token)))
+    let token = create_token(user.email, user.name)
+        .await
+        .map_err(|_| VerifyGoogleError::InvalidToken)?;
+
+    Ok(Json(AuthResponse::new(token)))
 }

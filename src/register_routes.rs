@@ -18,7 +18,7 @@ fn api_routes() -> Router<AppState> {
 fn auth() -> Router<AppState> {
     Router::new()
         .route(
-            "/verify-google",
+            "/register-google",
             post(register_google::register_google_handler),
         )
         .route("/register", post(register::register_handler))

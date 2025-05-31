@@ -1,10 +1,11 @@
 use crate::prelude::*;
 
-pub async fn create_token(email: String) -> Result<String, AuthError> {
+pub async fn create_token(email: String, name: String) -> Result<String, AuthError> {
     let exp = Utc::now() + Duration::days(7);
 
     let claims = Claims {
         email,
+        name,
         company: "Vecstore GE".to_string(),
         exp: exp.timestamp_millis(),
     };
