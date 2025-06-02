@@ -20,13 +20,19 @@ jobs:
       - name: Cache cargo
         uses: actions/cache@v4
         with:
-          path: target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          path: target/aarch64-unknown-linux-gnu
+          key: ${{ runner.os }}-cargo-aarch64-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-cargo-
+            ${{ runner.os }}-cargo-aarch64-
 
-      - name: Build
-        run: cargo build --release
+      - name: Add ARM target
+        run: rustup target add aarch64-unknown-linux-gnu
+
+      - name: Install cross 
+        run: cargo install cross
+
+      - name: Build for ARM
+        run: cross build --release --target aarch64-unknown-linux-gnu
 
       - name: Deploy to EC2
         uses: appleboy/scp-action@master
@@ -34,7 +40,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
-          source: "target/release/vecstore-back"
+          source: "target/aarch64-unknown-linux-gnu/release/vecstore-back"
           target: "/home/ubuntu/vecstore-back"
 
       - name: SSH into VPS and Restart Service
@@ -44,6 +50,5 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
-            chmod +x /home/ubuntu/vecstore-back/target/release/vecstore-back
+            chmod +x /home/ubuntu/vecstore-back
             sudo systemctl restart vecstore
-
