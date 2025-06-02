@@ -2,8 +2,7 @@ name: Vecstore Backend Build
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   build:
@@ -12,27 +11,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-
-      - name: Cache cargo
-        uses: actions/cache@v4
-        with:
-          path: target/aarch64-unknown-linux-gnu
-          key: ${{ runner.os }}-cargo-aarch64-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-aarch64-
-
-      - name: Add ARM target
-        run: rustup target add aarch64-unknown-linux-gnu
-
-      - name: Install cross 
+      - name: Install cross
         run: cargo install cross
 
-      - name: Build for ARM
-        run: cross build --release --target aarch64-unknown-linux-gnu
+      - name: Build (aarch64-unknown-linux-gnu)
+        run: cross build --target aarch64-unknown-linux-gnu --release
 
       - name: Deploy to EC2
         uses: appleboy/scp-action@master
