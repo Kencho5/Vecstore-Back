@@ -1,4 +1,5 @@
 name: Vecstore Backend Build
+
 on:
   push:
     branches:
@@ -9,52 +10,43 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
 
-      - name: Install Rust
+      - name: Install Rust with aarch64 target
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           target: aarch64-unknown-linux-gnu
 
-      - name: Install ARM64 cross-compilation dependencies
+      - name: Install cross-compilation dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu
-          
-          # Add ARM64 architecture and install ARM64 OpenSSL
           sudo dpkg --add-architecture arm64
           sudo apt-get update
-          sudo apt-get install -y libssl-dev:arm64
+          sudo apt-get install -y \
+            gcc-aarch64-linux-gnu \
+            libc6-dev-arm64-cross \
+            pkg-config \
+            libssl-dev \
+            libssl-dev:arm64
 
-      - name: Configure cargo for cross-compilation
-        run: |
-          mkdir -p ~/.cargo
-          cat >> ~/.cargo/config.toml << EOF
-          [target.aarch64-unknown-linux-gnu]
-          linker = "aarch64-linux-gnu-gcc"
-          EOF
-
-      - name: Set OpenSSL environment variables for ARM64
+      - name: Set environment for OpenSSL cross-compilation
         run: |
           echo "OPENSSL_DIR=/usr/lib/aarch64-linux-gnu" >> $GITHUB_ENV
           echo "OPENSSL_LIB_DIR=/usr/lib/aarch64-linux-gnu" >> $GITHUB_ENV
-          echo "OPENSSL_INCLUDE_DIR=/usr/include/openssl" >> $GITHUB_ENV
+          echo "OPENSSL_INCLUDE_DIR=/usr/include" >> $GITHUB_ENV
           echo "PKG_CONFIG_ALLOW_CROSS=1" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=/usr/lib/aarch64-linux-gnu/pkgconfig" >> $GITHUB_ENV
 
       - name: Cache cargo
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-aarch64-cargo-${{ hashFiles('**/Cargo.lock') }}
+          path: target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-aarch64-cargo-
+            ${{ runner.os }}-cargo-
 
-      - name: Build for ARM64
-        run: cargo build --release --target aarch64-unknown-linux-gnu
+      - name: Build for aarch64
+        run: cargo build --release --target=aarch64-unknown-linux-gnu
 
       - name: Deploy to EC2
         uses: appleboy/scp-action@master
@@ -63,7 +55,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           source: "target/aarch64-unknown-linux-gnu/release/vecstore-back"
-          target: "/home/ubuntu/"
+          target: "/home/ubuntu/vecstore-back"
 
       - name: SSH into VPS and Restart Service
         uses: appleboy/ssh-action@master
@@ -72,7 +64,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
-            chmod +x /home/ubuntu/target/aarch64-unknown-linux-gnu/release/vecstore-back
+            chmod +x /home/ubuntu/vecstore-back
             sudo systemctl restart vecstore
 
 # [Unit]
