@@ -1,45 +1,29 @@
 name: Vecstore Backend Build
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          target: aarch64-unknown-linux-gnu
-      
-      - name: Install ARM64 cross-compilation dependencies
+      - name: Install OpenSSL for cross-compilation
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu
-      
-      - name: Configure cargo for cross-compilation
-        run: |
-          mkdir -p ~/.cargo
-          cat >> ~/.cargo/config.toml << EOF
-          [target.aarch64-unknown-linux-gnu]
-          linker = "aarch64-linux-gnu-gcc"
-          EOF
-      
-      - name: Cache cargo
-        uses: actions/cache@v4
-        with:
-          path: target
-          key: ${{ runner.os }}-arm64-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-arm64-cargo-
-      
-      - name: Build for ARM64
-        run: cargo build --release --target aarch64-unknown-linux-gnu
-      
+          sudo apt-get install -y pkg-config qemu-user-static gcc-aarch64-linux-gnu
+          # Install ARM64 OpenSSL development packages
+          sudo apt-get install -y libssl-dev:arm64
+          # Add ARM64 architecture
+          sudo dpkg --add-architecture arm64
+          sudo apt-get update
+      - name: Install cross
+        run: cargo install cross
+      - name: Build (aarch64-unknown-linux-gnu)
+        env:
+          PKG_CONFIG_PATH: /usr/lib/aarch64-linux-gnu/pkgconfig
+          PKG_CONFIG_ALLOW_CROSS: 1
+        run: cross build --target aarch64-unknown-linux-gnu --release
       - name: Deploy to EC2
         uses: appleboy/scp-action@master
         with:
@@ -48,7 +32,6 @@ jobs:
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           source: "target/aarch64-unknown-linux-gnu/release/vecstore-back"
           target: "/home/ubuntu/vecstore-back"
-      
       - name: SSH into VPS and Restart Service
         uses: appleboy/ssh-action@master
         with:
@@ -56,5 +39,5 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
-            chmod +x /home/ubuntu/vecstore-back/target/aarch64-unknown-linux-gnu/release/vecstore-back
+            chmod +x /home/ubuntu/vecstore-back
             sudo systemctl restart vecstore
