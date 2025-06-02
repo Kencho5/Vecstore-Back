@@ -20,6 +20,6 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY --from=builder /app/target/release/vecstore /app/app
+COPY --from=builder /app/target/release/vecstore-back /app/app
 
 CMD ["./app"]

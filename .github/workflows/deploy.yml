@@ -1,35 +1,47 @@
 name: Vecstore Backend Build
+
 on:
   push:
     branches:
       - main
+
 jobs:
   build:
-    runs-on: ubuntu-latest-arm64
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Install Rust
+
+      - name: Install Rust with aarch64 target
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
+          target: aarch64-unknown-linux-gnu
+
+      - name: Install dependencies for cross-compilation
+        run: sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu
+
       - name: Cache cargo
         uses: actions/cache@v4
         with:
           path: target
-          key: ${{ runner.os }}-arm64-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-arm64-cargo-
-      - name: Build
-        run: cargo build --release
+            ${{ runner.os }}-cargo-
+
+      - name: Build for aarch64
+        run: |
+          cargo build --release --target=aarch64-unknown-linux-gnu
+
       - name: Deploy to EC2
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
-          source: "target/release/vecstore-back"
+          source: "target/aarch64-unknown-linux-gnu/release/vecstore-back"
           target: "/home/ubuntu/vecstore-back"
+
       - name: SSH into VPS and Restart Service
         uses: appleboy/ssh-action@master
         with:
@@ -37,7 +49,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
-            chmod +x /home/ubuntu/vecstore-back/target/release/vecstore-back
+            chmod +x /home/ubuntu/vecstore-back
             sudo systemctl restart vecstore
 
 # [Unit]
