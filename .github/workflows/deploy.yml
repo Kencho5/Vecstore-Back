@@ -1,37 +1,54 @@
 name: Vecstore Backend Build
+
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      TARGET: aarch64-unknown-linux-gnu
+      OPENSSL_DIR: /usr/lib/aarch64-linux-gnu
+      OPENSSL_LIB_DIR: /usr/lib/aarch64-linux-gnu
+      OPENSSL_INCLUDE_DIR: /usr/include/openssl
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Install OpenSSL for cross-compilation
+
+      - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y pkg-config qemu-user-static gcc-aarch64-linux-gnu
-          # Install ARM64 OpenSSL development packages
-          sudo apt-get install -y libssl-dev:arm64
-          # Add ARM64 architecture
-          sudo dpkg --add-architecture arm64
-          sudo apt-get update
-      - name: Install cross
-        run: cargo install cross
-      - name: Build (aarch64-unknown-linux-gnu)
-        env:
-          PKG_CONFIG_PATH: /usr/lib/aarch64-linux-gnu/pkgconfig
-          PKG_CONFIG_ALLOW_CROSS: 1
-        run: cross build --target aarch64-unknown-linux-gnu --release
+          sudo apt-get install -y pkg-config libssl-dev gcc-aarch64-linux-gnu
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ env.TARGET }}
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Build for ARM64
+        run: cargo build --release --target ${{ env.TARGET }}
+
       - name: Deploy to EC2
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
-          source: "target/aarch64-unknown-linux-gnu/release/vecstore-back"
+          source: "target/${{ env.TARGET }}/release/vecstore-back"
           target: "/home/ubuntu/vecstore-back"
+
       - name: SSH into VPS and Restart Service
         uses: appleboy/ssh-action@master
         with:
