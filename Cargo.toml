@@ -21,6 +21,7 @@ google-oauth = "1.11.3"
 pwhash = "1"
 jsonwebtoken = "9.3.0"
 chrono = { version = "0.4.39", features = ["serde"] }
+openssl = { version = "0.10", features = ["vendored"] }
 
 # ML
 candle-core = "0.9.1"
