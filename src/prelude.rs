@@ -29,9 +29,10 @@ pub use axum::{
 pub use candle_core::{DType, Device, Tensor};
 pub use candle_nn::VarBuilder;
 pub use candle_transformers::models::{
-    clip,
+    mobileclip,
     vit::{Config, Model},
 };
+pub use hf_hub::api::sync::Api;
 
 // Pinecone SDK
 pub use pinecone_sdk::{
