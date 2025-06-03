@@ -19,7 +19,7 @@ pub async fn add_db_handler(
         .bind(&user.email)
         .execute(&state.pool)
         .await
-        .map_err(|_| AddDbError::Unforseen)?;
+        .map_err(|_| AddDbError::DatabaseExists)?;
 
     Ok(StatusCode::OK)
 }

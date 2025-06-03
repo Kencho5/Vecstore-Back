@@ -11,6 +11,7 @@ pub enum AddDbError {
     Unforseen,
     MissingDbData,
     Unauthorized,
+    DatabaseExists,
 }
 
 impl IntoResponse for AddDbError {
@@ -21,6 +22,7 @@ impl IntoResponse for AddDbError {
             }
             AddDbError::Unforseen => (StatusCode::BAD_REQUEST, "Failed to create database"),
             AddDbError::Unauthorized => (StatusCode::UNAUTHORIZED, "Unauthorized"),
+            AddDbError::DatabaseExists => (StatusCode::BAD_REQUEST, "Database already exists"),
         };
 
         let body = Json(json!({
