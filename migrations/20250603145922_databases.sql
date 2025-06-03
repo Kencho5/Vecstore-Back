@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS databases (
   id SERIAL PRIMARY KEY,
   name TEXT UNIQUE NOT NULL,
-  type TEXT NOT NULL,
+  db_type TEXT NOT NULL,
   region TEXT NOT NULL,
   owner_email TEXT NOT NULL REFERENCES users(email),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

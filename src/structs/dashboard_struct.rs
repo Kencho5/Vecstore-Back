@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, sqlx::FromRow)]
 pub struct AddDbPayload {
     pub db_type: String,
     pub name: String,
@@ -10,7 +10,6 @@ pub struct AddDbPayload {
 pub enum DashboardError {
     Unforseen,
     MissingDbData,
-    Unauthorized,
     DatabaseExists,
 }
 
@@ -20,7 +19,6 @@ impl IntoResponse for DashboardError {
             DashboardError::Unforseen => {
                 (StatusCode::BAD_REQUEST, "Unforseen error. Contact support")
             }
-            DashboardError::Unauthorized => (StatusCode::UNAUTHORIZED, "Unauthorized"),
             DashboardError::MissingDbData => {
                 (StatusCode::BAD_REQUEST, "Missing database creation data")
             }

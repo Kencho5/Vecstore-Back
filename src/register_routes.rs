@@ -18,7 +18,9 @@ fn api_routes() -> Router<AppState> {
 }
 
 fn dashboard_routes() -> Router<AppState> {
-    Router::new().route("/add-db", post(add_db::add_db_handler))
+    Router::new()
+        .route("/add-db", post(add_db::add_db_handler))
+        .route("/get-dbs", get(get_dbs::get_dbs_handler))
 }
 
 fn auth() -> Router<AppState> {

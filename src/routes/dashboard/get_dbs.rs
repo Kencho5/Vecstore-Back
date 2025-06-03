@@ -3,20 +3,15 @@ use crate::{prelude::*, structs::dashboard_struct::*};
 pub async fn get_dbs_handler(
     Extension(claims): Extension<Claims>,
     State(state): State<AppState>,
-    Json(payload): Json<AddDbPayload>,
-) -> Result<StatusCode, DashboardError> {
-    payload
-        .validate()
-        .map_err(|_| DashboardError::MissingDbData)?;
-
-    sqlx::query("INSERT INTO databases(name, type, region, owner_email) VALUES($1, $2, $3, $4)")
-        .bind(&payload.name)
-        .bind(&payload.db_type)
-        .bind(&payload.region)
+) -> Result<Json<Vec<AddDbPayload>>, DashboardError> {
+    let dbs = sqlx::query_as::<_, AddDbPayload>("SELECT * FROM databases WHERE owner_email = $1")
         .bind(&claims.email)
         .fetch_all(&state.pool)
         .await
-        .map_err(|_| DashboardError::DatabaseExists)?;
+        .map_err(|e| {
+            println!("{:?}", e);
+            DashboardError::Unforseen
+        })?;
 
-    Ok(StatusCode::OK)
+    Ok(Json(dbs))
 }
