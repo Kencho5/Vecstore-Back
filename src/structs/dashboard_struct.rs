@@ -7,22 +7,24 @@ pub struct AddDbPayload {
     pub region: String,
 }
 
-pub enum AddDbError {
+pub enum DashboardError {
     Unforseen,
     MissingDbData,
     Unauthorized,
     DatabaseExists,
 }
 
-impl IntoResponse for AddDbError {
+impl IntoResponse for DashboardError {
     fn into_response(self) -> Response {
         let (status, error_message) = match self {
-            AddDbError::MissingDbData => {
+            DashboardError::Unforseen => {
+                (StatusCode::BAD_REQUEST, "Unforseen error. Contact support")
+            }
+            DashboardError::Unauthorized => (StatusCode::UNAUTHORIZED, "Unauthorized"),
+            DashboardError::MissingDbData => {
                 (StatusCode::BAD_REQUEST, "Missing database creation data")
             }
-            AddDbError::Unforseen => (StatusCode::BAD_REQUEST, "Failed to create database"),
-            AddDbError::Unauthorized => (StatusCode::UNAUTHORIZED, "Unauthorized"),
-            AddDbError::DatabaseExists => (StatusCode::BAD_REQUEST, "Database already exists"),
+            DashboardError::DatabaseExists => (StatusCode::BAD_REQUEST, "Database already exists"),
         };
 
         let body = Json(json!({

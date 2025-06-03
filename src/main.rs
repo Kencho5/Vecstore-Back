@@ -1,5 +1,6 @@
 mod auth;
 mod loaders;
+mod middleware;
 mod prelude;
 mod register_routes;
 mod routes;

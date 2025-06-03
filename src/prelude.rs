@@ -19,10 +19,11 @@ pub use uuid::Uuid;
 
 // Axum framework
 pub use axum::{
-    extract::State,
+    extract::{Request, State},
+    middleware,
     response::{IntoResponse, Response},
     routing::{get, post},
-    Json, Router,
+    Extension, Json, Router,
 };
 
 // Candle ML framework
@@ -46,6 +47,7 @@ pub extern crate image_base64;
 pub use crate::{
     auth::token::*,
     loaders::*,
+    middleware::auth_middleware::*,
     routes::auth::*,
     routes::dashboard::*,
     structs::{app_state::AppState, auth_struct::*},

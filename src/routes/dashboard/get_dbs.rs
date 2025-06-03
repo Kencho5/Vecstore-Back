@@ -1,6 +1,6 @@
 use crate::{prelude::*, structs::dashboard_struct::*};
 
-pub async fn add_db_handler(
+pub async fn get_dbs_handler(
     Extension(claims): Extension<Claims>,
     State(state): State<AppState>,
     Json(payload): Json<AddDbPayload>,
@@ -14,7 +14,7 @@ pub async fn add_db_handler(
         .bind(&payload.db_type)
         .bind(&payload.region)
         .bind(&claims.email)
-        .execute(&state.pool)
+        .fetch_all(&state.pool)
         .await
         .map_err(|_| DashboardError::DatabaseExists)?;
 
