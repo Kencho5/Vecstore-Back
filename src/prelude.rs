@@ -47,6 +47,7 @@ pub use crate::{
     auth::token::*,
     loaders::*,
     routes::auth::*,
+    routes::dashboard::*,
     structs::{app_state::AppState, auth_struct::*},
     utils::tokenizer::*,
 };

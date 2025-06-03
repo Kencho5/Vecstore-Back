@@ -4,6 +4,7 @@ use crate::routes::*;
 pub fn create_router() -> Router<AppState> {
     Router::new()
         .merge(api_routes())
+        .merge(dashboard_routes())
         .merge(auth())
         .merge(health())
 }
@@ -13,6 +14,10 @@ fn api_routes() -> Router<AppState> {
         .route("/insert", post(insert_image::insert_image_handler))
         .route("/search", post(search_image::search_image_handler))
         .route("/nsfw", post(nsfw_detector::nsfw_detector_handler))
+}
+
+fn dashboard_routes() -> Router<AppState> {
+    Router::new().route("/add-db", post(add_db::add_db_handler))
 }
 
 fn auth() -> Router<AppState> {

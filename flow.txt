@@ -1,0 +1,4 @@
+insert + save image:
+1. client -> backend url generator
+2. client -> put image to url
+3. client -> backend insert route
