@@ -2,8 +2,8 @@ use crate::prelude::*;
 
 #[derive(Clone)]
 pub struct AppState {
-    pub clip_model: mobileclip::MobileClipModel,
-    pub clip_config: mobileclip::MobileClipConfig,
+    pub clip_model: clip::ClipModel,
+    pub clip_config: clip::ClipConfig,
     pub pinecone: PineconeClient,
     pub tokenizer: Tokenizer,
     pub pool: PgPool,
