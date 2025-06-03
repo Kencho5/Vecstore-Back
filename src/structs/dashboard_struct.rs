@@ -10,6 +10,7 @@ pub struct AddDbPayload {
 pub enum AddDbError {
     Unforseen,
     MissingDbData,
+    Unauthorized,
 }
 
 impl IntoResponse for AddDbError {
@@ -19,6 +20,7 @@ impl IntoResponse for AddDbError {
                 (StatusCode::BAD_REQUEST, "Missing database creation data")
             }
             AddDbError::Unforseen => (StatusCode::BAD_REQUEST, "Failed to create database"),
+            AddDbError::Unauthorized => (StatusCode::UNAUTHORIZED, "Unauthorized"),
         };
 
         let body = Json(json!({
