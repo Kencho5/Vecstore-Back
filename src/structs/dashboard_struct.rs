@@ -1,10 +1,17 @@
 use crate::prelude::*;
 
+//ADD DB
 #[derive(Deserialize, Serialize, sqlx::FromRow)]
 pub struct AddDbPayload {
     pub db_type: String,
     pub name: String,
     pub region: String,
+}
+
+//INDEX
+#[derive(Deserialize, Serialize)]
+pub struct NamespaceStats {
+    pub record_count: u32,
 }
 
 pub enum DashboardError {

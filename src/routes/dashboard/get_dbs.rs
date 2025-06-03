@@ -8,10 +8,7 @@ pub async fn get_dbs_handler(
         .bind(&claims.email)
         .fetch_all(&state.pool)
         .await
-        .map_err(|e| {
-            println!("{:?}", e);
-            DashboardError::Unforseen
-        })?;
+        .map_err(|_| DashboardError::Unforseen)?;
 
     Ok(Json(dbs))
 }
