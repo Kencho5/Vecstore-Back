@@ -1,11 +1,21 @@
 use crate::prelude::*;
 
 //ADD DB
-#[derive(Deserialize, Serialize, sqlx::FromRow)]
+#[derive(Deserialize, Serialize)]
 pub struct AddDbPayload {
     pub db_type: String,
     pub name: String,
     pub region: String,
+}
+
+//GET DBS
+#[derive(Deserialize, Serialize, sqlx::FromRow)]
+pub struct Database {
+    pub db_type: String,
+    pub name: String,
+    pub region: String,
+    pub documents: i32,
+    pub requests: i32,
 }
 
 //INDEX

@@ -16,7 +16,10 @@ pub async fn add_db_handler(
         .bind(&claims.email)
         .execute(&state.pool)
         .await
-        .map_err(|_| DashboardError::DatabaseExists)?;
+        .map_err(|error| {
+            println!("Add DB Error: {:?}", error);
+            DashboardError::DatabaseExists
+        })?;
 
     Ok(StatusCode::OK)
 }

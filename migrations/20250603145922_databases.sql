@@ -3,6 +3,8 @@ CREATE TABLE IF NOT EXISTS databases (
   name TEXT UNIQUE NOT NULL,
   db_type TEXT NOT NULL,
   region TEXT NOT NULL,
+  documents INT DEFAULT 0,
+  requests INT DEFAULT 0,
   owner_email TEXT NOT NULL REFERENCES users(email),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
