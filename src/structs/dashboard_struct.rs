@@ -9,11 +9,15 @@ pub struct AddDbPayload {
 
 pub enum AddDbError {
     Unforseen,
+    MissingDbData,
 }
 
 impl IntoResponse for AddDbError {
     fn into_response(self) -> Response {
         let (status, error_message) = match self {
+            AddDbError::MissingDbData => {
+                (StatusCode::BAD_REQUEST, "Missing database creation data")
+            }
             AddDbError::Unforseen => (StatusCode::BAD_REQUEST, "Failed to create database"),
         };
 
