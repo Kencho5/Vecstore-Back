@@ -2,6 +2,7 @@ use crate::prelude::*;
 use crate::structs::insert_struct::*;
 
 pub async fn insert_image_handler(
+    Extension(claims): Extension<Claims>,
     State(state): State<AppState>,
     Json(payload): Json<InsertImagePayload>,
 ) -> Result<Json<InsertImageBody>, InsertImageError> {
@@ -10,7 +11,13 @@ pub async fn insert_image_handler(
 
     let image_vectors = extract_image_features(&state, payload.image).await?;
 
-    insert_vectors(state.pinecone, image_vectors, payload.filename).await?;
+    insert_vectors(
+        state.pinecone,
+        image_vectors,
+        payload.filename,
+        claims.email,
+    )
+    .await?;
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;
     println!("Total CLIP handler time: {}ms", total_time_ms);
@@ -51,6 +58,7 @@ async fn insert_vectors(
     pinecone: PineconeClient,
     vectors: Vec<f32>,
     filename: String,
+    email: String,
 ) -> Result<(), InsertImageError> {
     let mut index = pinecone
         .index(&env::var("PINECONE_INDEX").expect("Pinecone index not found"))
@@ -73,7 +81,7 @@ async fn insert_vectors(
     }];
 
     index
-        .upsert(&vectors, &"kencho".into())
+        .upsert(&vectors, &email.into())
         .await
         .map_err(|_| InsertImageError::DatabaseInsert)?;
 
