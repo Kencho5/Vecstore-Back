@@ -14,5 +14,6 @@ pub struct AppState {
 
 #[derive(Clone)]
 pub struct WorkerState {
+    pub pool: PgPool,
     pub pinecone: PineconeClient,
 }

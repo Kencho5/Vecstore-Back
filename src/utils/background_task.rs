@@ -8,6 +8,9 @@ pub enum BackgroundTask {
         filename: String,
         database: String,
     },
+    IncrementRequest {
+        database: String,
+    },
 }
 
 pub async fn process_task_queue(
@@ -25,6 +28,11 @@ pub async fn process_task_queue(
                 if let Err(e) =
                     insert_vectors(&state.pinecone, vectors, filename, user_id, database).await
                 {
+                    eprintln!("Failed to insert vectors: {:?}", e);
+                }
+            }
+            BackgroundTask::IncrementRequest { database } => {
+                if let Err(e) = increment_req(&state.pool, database).await {
                     eprintln!("Failed to insert vectors: {:?}", e);
                 }
             }

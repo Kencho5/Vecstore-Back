@@ -14,17 +14,23 @@ pub async fn insert_image_handler(
 
     let image_vectors = extract_image_features(&state, payload.image).await?;
 
-    let task = BackgroundTask::InsertVectors {
+    let insert_task = BackgroundTask::InsertVectors {
         user_id: claims.user_id,
         vectors: image_vectors,
         filename: payload.filename,
+        database: payload.database.clone(),
+    };
+    let increment_task = BackgroundTask::IncrementRequest {
         database: payload.database,
     };
 
-    state
-        .task_queue
-        .send(task)
-        .map_err(|_| InsertImageError::DatabaseConnection)?;
+    if state.task_queue.send(insert_task).is_err() {
+        eprintln!("Failed to send insert_task");
+    }
+
+    if state.task_queue.send(increment_task).is_err() {
+        eprintln!("Failed to send increment_task");
+    }
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;
     println!("Total CLIP handler time: {}ms", total_time_ms);
