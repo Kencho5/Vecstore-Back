@@ -14,11 +14,11 @@ pub struct SearchImagePayload {
 
 #[derive(Serialize)]
 pub struct InsertImageBody {
-    pub time: u64,
+    pub time: String,
 }
 
 impl InsertImageBody {
-    pub fn new(time: u64) -> Self {
+    pub fn new(time: String) -> Self {
         Self { time }
     }
 }
