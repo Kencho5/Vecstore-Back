@@ -12,3 +12,20 @@ pub async fn get_dbs_handler(
 
     Ok(Json(dbs))
 }
+
+pub async fn get_db_handler(
+    Extension(claims): Extension<Claims>,
+    State(state): State<AppState>,
+    Json(payload): Json<GetDbPayload>,
+) -> Result<Json<Vec<Database>>, DashboardError> {
+    let dbs = sqlx::query_as::<_, Database>(
+        "SELECT * FROM databases WHERE owner_email = $1 AND name = $2",
+    )
+    .bind(&claims.email)
+    .bind(&payload.name)
+    .fetch_all(&state.pool)
+    .await
+    .map_err(|_| DashboardError::Unforseen)?;
+
+    Ok(Json(dbs))
+}

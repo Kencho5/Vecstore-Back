@@ -9,6 +9,11 @@ pub struct AddDbPayload {
 }
 
 //GET DBS
+#[derive(Deserialize, Serialize)]
+pub struct GetDbPayload {
+    pub name: String,
+}
+
 #[derive(Deserialize, Serialize, sqlx::FromRow)]
 pub struct Database {
     pub db_type: String,
