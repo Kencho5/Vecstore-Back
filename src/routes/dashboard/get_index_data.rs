@@ -3,6 +3,7 @@ use crate::{prelude::*, structs::dashboard_struct::*};
 pub async fn index_data_handler(
     Extension(claims): Extension<Claims>,
     State(state): State<AppState>,
+    Json(payload): Json<GetDbPayload>,
 ) -> Result<Json<NamespaceStats>, DashboardError> {
     let mut index = state
         .pinecone
@@ -17,7 +18,7 @@ pub async fn index_data_handler(
 
     let vector_count = stats
         .namespaces
-        .get(&claims.email)
+        .get(&format!("{}-{}", claims.user_id, payload.name))
         .map(|ns| ns.vector_count)
         .unwrap_or(0);
 
