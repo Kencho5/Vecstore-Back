@@ -7,6 +7,12 @@ pub struct User {
     pub password: Option<String>,
 }
 
+#[derive(Deserialize, Serialize, Clone, sqlx::FromRow)]
+pub struct UserResponse {
+    pub id: i32,
+    pub email: String,
+}
+
 //REGISTER
 #[derive(Deserialize, Serialize)]
 pub struct RegisterPayload {
@@ -17,6 +23,7 @@ pub struct RegisterPayload {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Claims {
+    pub user_id: i32,
     pub email: String,
     pub name: String,
     pub company: String,

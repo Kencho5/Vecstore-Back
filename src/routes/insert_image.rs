@@ -6,18 +6,25 @@ pub async fn insert_image_handler(
     State(state): State<AppState>,
     Json(payload): Json<InsertImagePayload>,
 ) -> Result<Json<InsertImageBody>, InsertImageError> {
+    payload
+        .validate()
+        .map_err(|_| InsertImageError::MissingData)?;
+
     let total_start = Instant::now();
-    println!("CLIP Handler started");
 
     let image_vectors = extract_image_features(&state, payload.image).await?;
 
-    insert_vectors(
-        state.pinecone,
-        image_vectors,
-        payload.filename,
-        claims.email,
-    )
-    .await?;
+    let task = BackgroundTask::InsertVectors {
+        user_id: claims.user_id,
+        vectors: image_vectors,
+        filename: payload.filename,
+        database: payload.database,
+    };
+
+    state
+        .task_queue
+        .send(task)
+        .map_err(|_| InsertImageError::DatabaseConnection)?;
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;
     println!("Total CLIP handler time: {}ms", total_time_ms);
@@ -54,11 +61,12 @@ async fn extract_image_features(
     Ok(image_vector)
 }
 
-async fn insert_vectors(
-    pinecone: PineconeClient,
+pub async fn insert_vectors(
+    pinecone: &PineconeClient,
     vectors: Vec<f32>,
     filename: String,
-    email: String,
+    user_id: i32,
+    database: String,
 ) -> Result<(), InsertImageError> {
     let mut index = pinecone
         .index(&env::var("PINECONE_INDEX").expect("Pinecone index not found"))
@@ -80,8 +88,10 @@ async fn insert_vectors(
         metadata: Some(metadata),
     }];
 
+    let namespace = format!("{}-{}", user_id, database);
+
     index
-        .upsert(&vectors, &email.into())
+        .upsert(&vectors, &namespace.into())
         .await
         .map_err(|_| InsertImageError::DatabaseInsert)?;
 

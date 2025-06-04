@@ -5,8 +5,8 @@ pub fn create_router() -> Router<AppState> {
     Router::new()
         .merge(api_routes())
         .merge(dashboard_routes())
-        .merge(auth())
         .route_layer(middleware::from_fn(validate_headers))
+        .merge(auth())
         .merge(health())
 }
 

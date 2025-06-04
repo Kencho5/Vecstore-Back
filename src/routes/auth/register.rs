@@ -14,11 +14,11 @@ pub async fn register_handler(
         password: Some(pwh),
     };
 
-    insert_user(state.pool, user.clone())
+    let user_id = insert_user(state.pool, user.clone())
         .await
         .map_err(|_| AuthError::UserExists)?;
 
-    let token = create_token(user.email, user.name)
+    let token = create_token(user_id, user.email, user.name)
         .await
         .map_err(|_| AuthError::TokenCreation)?;
 

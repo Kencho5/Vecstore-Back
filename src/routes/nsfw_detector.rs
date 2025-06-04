@@ -8,7 +8,6 @@ pub async fn nsfw_detector_handler(
     Json(payload): Json<NsfwPayload>,
 ) -> Result<Json<NsfwBody>, NsfwError> {
     let total_start = Instant::now();
-    println!("NSFW Handler started");
 
     let image = load_image::load_image(payload.image, 224);
     let nsfw = predict(state.nsfw_model, image.unwrap()).map_err(|_| NsfwError::ImageProcessing)?;

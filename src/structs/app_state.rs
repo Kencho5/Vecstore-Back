@@ -9,4 +9,10 @@ pub struct AppState {
     pub pool: PgPool,
     pub google_client: AsyncClient,
     pub nsfw_model: Model,
+    pub task_queue: mpsc::UnboundedSender<BackgroundTask>,
+}
+
+#[derive(Clone)]
+pub struct WorkerState {
+    pub pinecone: PineconeClient,
 }

@@ -4,6 +4,7 @@ use crate::prelude::*;
 pub struct InsertImagePayload {
     pub image: String,
     pub filename: String,
+    pub database: String,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -22,11 +23,13 @@ impl InsertImageBody {
     }
 }
 
+#[derive(Debug)]
 pub enum InsertImageError {
     ImageProcessing,
     ModelInference,
     DatabaseConnection,
     DatabaseInsert,
+    MissingData,
     Unforseen,
 }
 
@@ -47,6 +50,9 @@ impl IntoResponse for InsertImageError {
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "Failed to insert into database",
             ),
+            InsertImageError::MissingData => {
+                (StatusCode::INTERNAL_SERVER_ERROR, "Missing api data")
+            }
             InsertImageError::Unforseen => {
                 (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error")
             }

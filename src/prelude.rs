@@ -13,7 +13,9 @@ pub use reqwest::{header::HeaderName, Client};
 pub use serde::{Deserialize, Serialize};
 pub use serde_json::json;
 pub use sqlx::postgres::{PgPool, PgPoolOptions};
+pub use std::sync::Arc;
 pub use tokenizers::Tokenizer;
+pub use tokio::sync::mpsc::{self, Receiver, Sender};
 pub use tower_http::cors::CorsLayer;
 pub use uuid::Uuid;
 
@@ -48,8 +50,8 @@ pub use crate::{
     auth::token::*,
     loaders::*,
     middleware::auth_middleware::*,
-    routes::auth::*,
-    routes::dashboard::*,
-    structs::{app_state::AppState, auth_struct::*},
+    routes::{auth::*, dashboard::*, insert_image::*},
+    structs::{app_state::*, auth_struct::*},
+    utils::background_task::*,
     utils::tokenizer::*,
 };

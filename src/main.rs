@@ -22,6 +22,7 @@ async fn main() {
     let pool = init_db::init_db().await;
     let google_client =
         AsyncClient::new(env::var("GOOGLE_CLIENT_ID").expect("Google client id not found"));
+    let (tx, rx) = mpsc::unbounded_channel::<BackgroundTask>();
 
     let state = AppState {
         clip_model,
@@ -31,7 +32,16 @@ async fn main() {
         pool,
         google_client,
         nsfw_model,
+        task_queue: tx,
     };
+
+    let worker_state = WorkerState {
+        pinecone: state.pinecone.clone(),
+    };
+
+    tokio::spawn(async move {
+        process_task_queue(rx, worker_state).await;
+    });
 
     let app = register_routes::create_router()
         .layer(

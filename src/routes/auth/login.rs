@@ -16,11 +16,11 @@ pub async fn login_handler(
         password: None,
     };
 
-    check_user(state.pool, user.clone())
+    let db_user = check_user(&state.pool, user.clone())
         .await
         .map_err(|_| AuthError::UserNotFound)?;
 
-    let token = create_token(user.email, user.name)
+    let token = create_token(db_user.id, user.email, user.name)
         .await
         .map_err(|_| AuthError::InvalidToken)?;
 
