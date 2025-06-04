@@ -42,8 +42,6 @@ async fn extract_image_features(
     state: &AppState,
     image: String,
 ) -> Result<Vec<f32>, InsertImageError> {
-    let start_time = Instant::now();
-
     let image = load_image::load_image(image, state.clip_config.image_size)
         .map_err(|_| InsertImageError::ImageProcessing)?;
 
@@ -57,12 +55,6 @@ async fn extract_image_features(
         .map_err(|_| InsertImageError::ImageProcessing)?
         .to_vec1::<f32>()
         .map_err(|_| InsertImageError::ImageProcessing)?;
-
-    let total_processing_time_ms = start_time.elapsed().as_millis();
-    println!(
-        "Total extract_image_features took: {}ms",
-        total_processing_time_ms
-    );
 
     Ok(image_vector)
 }
