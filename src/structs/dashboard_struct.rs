@@ -14,7 +14,6 @@ pub struct Database {
     pub db_type: String,
     pub name: String,
     pub region: String,
-    pub documents: i32,
     pub requests: i32,
 }
 
