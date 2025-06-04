@@ -26,6 +26,7 @@ pub struct Database {
 #[derive(Deserialize, Serialize)]
 pub struct NamespaceStats {
     pub record_count: u32,
+    pub size: String,
 }
 
 pub enum DashboardError {
