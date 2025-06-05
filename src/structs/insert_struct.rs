@@ -30,7 +30,6 @@ pub enum InsertImageError {
     DatabaseConnection,
     DatabaseInsert,
     MissingData,
-    Unforseen,
 }
 
 impl IntoResponse for InsertImageError {
@@ -52,9 +51,6 @@ impl IntoResponse for InsertImageError {
             ),
             InsertImageError::MissingData => {
                 (StatusCode::INTERNAL_SERVER_ERROR, "Missing api data")
-            }
-            InsertImageError::Unforseen => {
-                (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error")
             }
         };
 

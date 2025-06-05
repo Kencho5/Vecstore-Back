@@ -5201,7 +5201,6 @@ dependencies = [
  "pinecone-sdk",
  "pwhash",
  "rand 0.9.1",
- "reqwest",
  "serde",
  "serde_json",
  "sha2 0.10.9",

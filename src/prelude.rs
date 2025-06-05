@@ -9,7 +9,6 @@ pub use google_oauth::AsyncClient;
 pub use http::{HeaderMap, HeaderValue, Method, StatusCode};
 pub use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 pub use pwhash::bcrypt;
-pub use reqwest::{header::HeaderName, Client};
 pub use serde::{Deserialize, Serialize};
 pub use serde_json::json;
 pub use sqlx::postgres::{PgPool, PgPoolOptions};
