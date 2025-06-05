@@ -30,6 +30,7 @@ pub enum InsertImageError {
     DatabaseConnection,
     DatabaseInsert,
     MissingData,
+    InvalidApiKey,
 }
 
 impl IntoResponse for InsertImageError {
@@ -52,6 +53,7 @@ impl IntoResponse for InsertImageError {
             InsertImageError::MissingData => {
                 (StatusCode::INTERNAL_SERVER_ERROR, "Missing api data")
             }
+            InsertImageError::InvalidApiKey => (StatusCode::UNAUTHORIZED, "Api key invalid"),
         };
 
         let body = Json(json!({

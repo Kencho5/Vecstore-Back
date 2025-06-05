@@ -26,14 +26,14 @@ pub async fn process_task_queue(
                 database,
             } => {
                 if let Err(e) =
-                    insert_vectors(&state.pinecone, vectors, filename, user_id, database).await
+                    insert_vectors(user_id, &state.pinecone, vectors, filename, database).await
                 {
                     eprintln!("Failed to insert vectors: {:?}", e);
                 }
             }
             BackgroundTask::IncrementRequest { database } => {
                 if let Err(e) = increment_req(&state.pool, database).await {
-                    eprintln!("Failed to insert vectors: {:?}", e);
+                    eprintln!("Failed to increment requests: {:?}", e);
                 }
             }
         }

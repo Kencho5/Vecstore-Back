@@ -12,21 +12,24 @@ pub async fn insert_image_handler(
 
     let total_start = Instant::now();
 
+    let user_id = get_user(&state.pool, api_key)
+        .await
+        .map_err(|_| InsertImageError::InvalidApiKey)?;
     let image_vectors = extract_image_features(&state, payload.image).await?;
 
-    //let insert_task = BackgroundTask::InsertVectors {
-    //    user_id: claims.user_id,
-    //    vectors: image_vectors,
-    //    filename: payload.filename,
-    //    database: payload.database.clone(),
-    //};
+    let insert_task = BackgroundTask::InsertVectors {
+        user_id,
+        vectors: image_vectors,
+        filename: payload.filename,
+        database: payload.database.clone(),
+    };
     let increment_task = BackgroundTask::IncrementRequest {
         database: payload.database,
     };
 
-    //if state.task_queue.send(insert_task).is_err() {
-    //    eprintln!("Failed to send insert_task");
-    //}
+    if state.task_queue.send(insert_task).is_err() {
+        eprintln!("Failed to send insert_task");
+    }
 
     if state.task_queue.send(increment_task).is_err() {
         eprintln!("Failed to send increment_task");
@@ -60,10 +63,10 @@ async fn extract_image_features(
 }
 
 pub async fn insert_vectors(
+    user_id: i32,
     pinecone: &PineconeClient,
     vectors: Vec<f32>,
     filename: String,
-    user_id: i32,
     database: String,
 ) -> Result<(), InsertImageError> {
     let mut index = pinecone
