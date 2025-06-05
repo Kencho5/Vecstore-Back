@@ -23,6 +23,10 @@ fn dashboard_routes() -> Router<AppState> {
         .route("/get-dbs", get(get_dbs::get_dbs_handler))
         .route("/get-db", post(get_dbs::get_db_handler))
         .route("/index-data", post(get_index_data::index_data_handler))
+        .route(
+            "/create-api-key",
+            post(create_api_key::create_api_key_handler),
+        )
 }
 
 fn auth() -> Router<AppState> {

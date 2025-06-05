@@ -9,11 +9,11 @@ pub async fn add_db_handler(
         .validate()
         .map_err(|_| DashboardError::MissingDbData)?;
 
-    sqlx::query("INSERT INTO databases(name, db_type, region, owner_email) VALUES($1, $2, $3, $4)")
+    sqlx::query("INSERT INTO databases(name, db_type, region, owner_id) VALUES($1, $2, $3, $4)")
         .bind(&payload.name)
         .bind(&payload.db_type)
         .bind(&payload.region)
-        .bind(&claims.email)
+        .bind(&claims.user_id)
         .execute(&state.pool)
         .await
         .map_err(|error| {

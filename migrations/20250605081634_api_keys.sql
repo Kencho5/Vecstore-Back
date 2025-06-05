@@ -1,9 +1,10 @@
 CREATE TABLE IF NOT EXISTS api_keys (
   id SERIAL PRIMARY KEY,
   key TEXT UNIQUE NOT NULL,
-  database_id INT NOT NULL REFERENCES databases(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  owner_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_api_keys_key ON api_keys(key);
-CREATE INDEX idx_api_keys_database_id ON api_keys(database_id);
+CREATE INDEX IF NOT EXISTS idx_api_keys_key ON api_keys(key);
+CREATE INDEX IF NOT EXISTS idx_api_keys_owner_id ON api_keys(owner_id);

@@ -29,10 +29,17 @@ pub struct NamespaceStats {
     pub size: String,
 }
 
+//API KEYS
+#[derive(Deserialize, Serialize)]
+pub struct ApiKeyPayload {
+    pub key_name: String,
+}
+
 pub enum DashboardError {
     Unforseen,
     MissingDbData,
     DatabaseExists,
+    ApiKeyExists,
 }
 
 impl IntoResponse for DashboardError {
@@ -45,6 +52,7 @@ impl IntoResponse for DashboardError {
                 (StatusCode::BAD_REQUEST, "Missing database creation data")
             }
             DashboardError::DatabaseExists => (StatusCode::BAD_REQUEST, "Database already exists"),
+            DashboardError::ApiKeyExists => (StatusCode::BAD_REQUEST, "Api key already exists"),
         };
 
         let body = Json(json!({

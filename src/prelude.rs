@@ -51,5 +51,5 @@ pub use crate::{
     middleware::auth_middleware::*,
     routes::{auth::*, dashboard::*, insert_image::*},
     structs::{app_state::*, auth_struct::*},
-    utils::{background_task::*, increment_req::*, tokenizer::*},
+    utils::{background_task::*, hash_api_key::*, increment_req::*, tokenizer::*},
 };
