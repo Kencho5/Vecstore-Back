@@ -7,3 +7,5 @@ CREATE TABLE IF NOT EXISTS databases (
   owner_email TEXT NOT NULL REFERENCES users(email),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+CREATE INDEX idx_databases_name ON databases(name);
+CREATE INDEX idx_databases_owner_email ON databases(owner_email);
