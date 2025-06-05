@@ -53,7 +53,7 @@ impl IntoResponse for InsertImageError {
             InsertImageError::MissingData => {
                 (StatusCode::INTERNAL_SERVER_ERROR, "Missing api data")
             }
-            InsertImageError::InvalidApiKey => (StatusCode::UNAUTHORIZED, "Api key invalid"),
+            InsertImageError::InvalidApiKey => (StatusCode::UNAUTHORIZED, "Invalid api key"),
         };
 
         let body = Json(json!({

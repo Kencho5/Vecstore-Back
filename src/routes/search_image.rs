@@ -2,17 +2,32 @@ use crate::prelude::*;
 use crate::structs::search_struct::*;
 
 pub async fn search_image_handler(
+    Extension(api_key): Extension<String>,
     State(state): State<AppState>,
     Json(payload): Json<SearchImagePayload>,
 ) -> Result<Json<SearchResponse>, SearchImageError> {
+    payload
+        .validate()
+        .map_err(|_| SearchImageError::MissingData)?;
+
     let total_start = Instant::now();
-    println!("Handler started");
+
+    let user_id = get_user(&state.pool, api_key)
+        .await
+        .map_err(|_| SearchImageError::InvalidApiKey)?;
 
     let text_vectors = extract_text_features(&state, payload.text).await?;
-    let results = search_vectors(state.pinecone, text_vectors).await?;
+    let results = search_vectors(state.pinecone, text_vectors, user_id, &payload.database).await?;
+
+    let increment_task = BackgroundTask::IncrementRequest {
+        database: payload.database,
+    };
+    if state.task_queue.send(increment_task).is_err() {
+        eprintln!("Failed to send increment_task");
+    }
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;
-    println!("Total handler time: {}ms", total_time_ms);
+    println!("Total text handler time: {}ms", total_time_ms);
 
     Ok(Json(results))
 }
@@ -24,11 +39,6 @@ async fn extract_text_features(
     let start_time = Instant::now();
 
     let tokenizer = &state.tokenizer;
-
-    //let pad_id = *tokenizer
-    //    .get_vocab(true)
-    //    .get("<|endoftext|>")
-    //    .ok_or(SearchImageError::ModelInference)?;
 
     let encoding = tokenizer
         .encode(text, true)
@@ -61,6 +71,8 @@ async fn extract_text_features(
 async fn search_vectors(
     pinecone: PineconeClient,
     vectors: Vec<f32>,
+    user_id: i32,
+    database: &String,
 ) -> Result<SearchResponse, SearchImageError> {
     let mut index = pinecone
         .index(&env::var("PINECONE_INDEX").expect("Pinecone index not found"))
@@ -72,7 +84,7 @@ async fn search_vectors(
             vectors,
             None,
             3,
-            &Namespace::from("kencho"),
+            &Namespace::from(format!("{}-{}", user_id, database)),
             None,
             None,
             Some(true),
@@ -86,7 +98,6 @@ async fn search_vectors(
             .matches
             .into_iter()
             .map(|m| SearchMatch {
-                id: m.id,
                 score: m.score,
                 filename: m.metadata.and_then(|metadata| {
                     metadata.fields.get("filename").and_then(|value| {

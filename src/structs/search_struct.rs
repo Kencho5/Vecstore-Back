@@ -3,6 +3,7 @@ use crate::prelude::*;
 #[derive(Deserialize, Serialize)]
 pub struct SearchImagePayload {
     pub text: String,
+    pub database: String,
 }
 
 #[derive(Serialize)]
@@ -12,7 +13,6 @@ pub struct SearchResponse {
 
 #[derive(Serialize)]
 pub struct SearchMatch {
-    pub id: String,
     pub score: f32,
     pub filename: Option<String>,
 }
@@ -21,6 +21,8 @@ pub struct SearchMatch {
 pub enum SearchImageError {
     Unforseen,
     ModelInference,
+    MissingData,
+    InvalidApiKey,
 }
 
 impl IntoResponse for SearchImageError {
@@ -32,6 +34,8 @@ impl IntoResponse for SearchImageError {
             SearchImageError::Unforseen => {
                 (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error")
             }
+            SearchImageError::MissingData => (StatusCode::BAD_REQUEST, "Missing search data"),
+            SearchImageError::InvalidApiKey => (StatusCode::BAD_REQUEST, "Invalid api key"),
         };
 
         let body = Json(json!({
