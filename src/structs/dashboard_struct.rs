@@ -35,6 +35,11 @@ pub struct ApiKeyPayload {
     pub key_name: String,
 }
 
+#[derive(Deserialize, Serialize)]
+pub struct ApiKeyResponse {
+    pub key: String,
+}
+
 pub enum DashboardError {
     Unforseen,
     MissingDbData,
