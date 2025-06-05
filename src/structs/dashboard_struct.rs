@@ -42,9 +42,10 @@ pub struct ApiKeyResponse {
 
 pub enum DashboardError {
     Unforseen,
-    MissingDbData,
+    MissingData,
     DatabaseExists,
     ApiKeyExists,
+    ApiKeyCreationLimit,
 }
 
 impl IntoResponse for DashboardError {
@@ -53,11 +54,13 @@ impl IntoResponse for DashboardError {
             DashboardError::Unforseen => {
                 (StatusCode::BAD_REQUEST, "Unforseen error. Contact support")
             }
-            DashboardError::MissingDbData => {
-                (StatusCode::BAD_REQUEST, "Missing database creation data")
-            }
+            DashboardError::MissingData => (StatusCode::BAD_REQUEST, "Missing form data"),
             DashboardError::DatabaseExists => (StatusCode::BAD_REQUEST, "Database already exists"),
             DashboardError::ApiKeyExists => (StatusCode::BAD_REQUEST, "Api key already exists"),
+            DashboardError::ApiKeyCreationLimit => (
+                StatusCode::TOO_MANY_REQUESTS,
+                "Maximum limit of 10 api keys reached",
+            ),
         };
 
         let body = Json(json!({

@@ -7,7 +7,7 @@ pub async fn add_db_handler(
 ) -> Result<StatusCode, DashboardError> {
     payload
         .validate()
-        .map_err(|_| DashboardError::MissingDbData)?;
+        .map_err(|_| DashboardError::MissingData)?;
 
     sqlx::query("INSERT INTO databases(name, db_type, region, owner_id) VALUES($1, $2, $3, $4)")
         .bind(&payload.name)

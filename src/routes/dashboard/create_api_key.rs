@@ -7,6 +7,20 @@ pub async fn create_api_key_handler(
     State(state): State<AppState>,
     Json(payload): Json<ApiKeyPayload>,
 ) -> Result<Json<ApiKeyResponse>, DashboardError> {
+    payload
+        .validate()
+        .map_err(|_| DashboardError::MissingData)?;
+
+    let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM api_keys WHERE owner_id = $1")
+        .bind(&claims.user_id)
+        .fetch_one(&state.pool)
+        .await
+        .map_err(|_| DashboardError::Unforseen)?;
+
+    if count >= 10 {
+        return Err(DashboardError::ApiKeyCreationLimit);
+    }
+
     let mut key_bytes = [0u8; 32];
     rand::rng().fill_bytes(&mut key_bytes);
     let api_key = hex::encode(key_bytes);
