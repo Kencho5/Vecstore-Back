@@ -16,8 +16,15 @@ pub async fn search_image_handler(
         .await
         .map_err(|_| SearchImageError::InvalidApiKey)?;
 
-    let text_vectors = extract_text_features(&state, payload.text).await?;
-    let results = search_vectors(state.pinecone, text_vectors, user_id, &payload.database).await?;
+    let vectors = if let Some(image) = &payload.image {
+        extract_image_features(&state, image.to_string())
+            .await
+            .map_err(|_| SearchImageError::ModelInference)?
+    } else {
+        extract_text_features(&state, payload.text.unwrap()).await?
+    };
+
+    let results = search_vectors(state.pinecone, vectors, user_id, &payload.database).await?;
 
     let increment_task = BackgroundTask::IncrementRequest {
         database: payload.database,
@@ -30,42 +37,6 @@ pub async fn search_image_handler(
     println!("Total text handler time: {}ms", total_time_ms);
 
     Ok(Json(results))
-}
-
-async fn extract_text_features(
-    state: &AppState,
-    text: String,
-) -> Result<Vec<f32>, SearchImageError> {
-    let start_time = Instant::now();
-
-    let tokenizer = &state.tokenizer;
-
-    let encoding = tokenizer
-        .encode(text, true)
-        .map_err(|_| SearchImageError::ModelInference)?;
-    let tokens = encoding.get_ids().to_vec();
-
-    let input_ids =
-        Tensor::new(vec![tokens], &Device::Cpu).map_err(|_| SearchImageError::ModelInference)?;
-
-    let text_features = state
-        .clip_model
-        .get_text_features(&input_ids)
-        .map_err(|_| SearchImageError::ModelInference)?;
-
-    let text_vector = text_features
-        .flatten_all()
-        .map_err(|_| SearchImageError::ModelInference)?
-        .to_vec1::<f32>()
-        .map_err(|_| SearchImageError::ModelInference)?;
-
-    let total_processing_time_ms = start_time.elapsed().as_millis();
-    println!(
-        "Total extract_text_features took: {}ms",
-        total_processing_time_ms
-    );
-
-    Ok(text_vector)
 }
 
 async fn search_vectors(

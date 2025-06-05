@@ -1,4 +1,5 @@
 pub mod background_task;
+pub mod extract_features;
 pub mod get_user;
 pub mod hash_api_key;
 pub mod increment_req;

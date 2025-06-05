@@ -50,5 +50,8 @@ pub use crate::{
     middleware::{api_middleware::*, auth_middleware::*},
     routes::{auth::*, dashboard::*, insert_image::*},
     structs::{app_state::*, auth_struct::*},
-    utils::{background_task::*, get_user::*, hash_api_key::*, increment_req::*, tokenizer::*},
+    utils::{
+        background_task::*, extract_features::*, get_user::*, hash_api_key::*, increment_req::*,
+        tokenizer::*,
+    },
 };

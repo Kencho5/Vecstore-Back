@@ -80,7 +80,10 @@ where
 
         if let serde_json::Value::Object(map) = json_value {
             for (_, value) in map.iter() {
-                if value.as_str().map_or(true, |s| s.is_empty()) {
+                if value.is_null() {
+                    continue;
+                }
+                if value.as_str().map_or(false, |s| s.is_empty()) {
                     return Err(AuthError::MissingCredentials);
                 }
             }

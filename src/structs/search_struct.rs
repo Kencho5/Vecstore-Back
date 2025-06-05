@@ -2,7 +2,8 @@ use crate::prelude::*;
 
 #[derive(Deserialize, Serialize)]
 pub struct SearchImagePayload {
-    pub text: String,
+    pub text: Option<String>,
+    pub image: Option<String>,
     pub database: String,
 }
 

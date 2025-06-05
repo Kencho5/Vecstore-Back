@@ -41,27 +41,6 @@ pub async fn insert_image_handler(
     Ok(Json(InsertImageBody::new(format!("{}ms", total_time_ms))))
 }
 
-async fn extract_image_features(
-    state: &AppState,
-    image: String,
-) -> Result<Vec<f32>, InsertImageError> {
-    let image = load_image::load_image(image, state.clip_config.image_size)
-        .map_err(|_| InsertImageError::ImageProcessing)?;
-
-    let image_features = state
-        .clip_model
-        .get_image_features(&image)
-        .map_err(|_| InsertImageError::ModelInference)?;
-
-    let image_vector = image_features
-        .flatten_all()
-        .map_err(|_| InsertImageError::ImageProcessing)?
-        .to_vec1::<f32>()
-        .map_err(|_| InsertImageError::ImageProcessing)?;
-
-    Ok(image_vector)
-}
-
 pub async fn insert_vectors(
     user_id: i32,
     pinecone: &PineconeClient,
