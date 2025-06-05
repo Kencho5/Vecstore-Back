@@ -47,7 +47,7 @@ pub extern crate image_base64;
 pub use crate::{
     auth::token::*,
     loaders::*,
-    middleware::auth_middleware::*,
+    middleware::{api_middleware::*, auth_middleware::*},
     routes::{auth::*, dashboard::*, insert_image::*},
     structs::{app_state::*, auth_struct::*},
     utils::{background_task::*, hash_api_key::*, increment_req::*, tokenizer::*},

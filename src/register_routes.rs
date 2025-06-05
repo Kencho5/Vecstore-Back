@@ -3,9 +3,10 @@ use crate::routes::*;
 
 pub fn create_router() -> Router<AppState> {
     Router::new()
-        .merge(api_routes())
         .merge(dashboard_routes())
         .route_layer(middleware::from_fn(validate_headers))
+        .merge(api_routes())
+        .route_layer(middleware::from_fn(api_middleware))
         .merge(auth())
         .merge(health())
 }

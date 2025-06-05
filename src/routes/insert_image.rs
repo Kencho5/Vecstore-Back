@@ -2,7 +2,7 @@ use crate::prelude::*;
 use crate::structs::insert_struct::*;
 
 pub async fn insert_image_handler(
-    Extension(claims): Extension<Claims>,
+    Extension(api_key): Extension<String>,
     State(state): State<AppState>,
     Json(payload): Json<InsertImagePayload>,
 ) -> Result<Json<InsertImageBody>, InsertImageError> {
@@ -14,19 +14,19 @@ pub async fn insert_image_handler(
 
     let image_vectors = extract_image_features(&state, payload.image).await?;
 
-    let insert_task = BackgroundTask::InsertVectors {
-        user_id: claims.user_id,
-        vectors: image_vectors,
-        filename: payload.filename,
-        database: payload.database.clone(),
-    };
+    //let insert_task = BackgroundTask::InsertVectors {
+    //    user_id: claims.user_id,
+    //    vectors: image_vectors,
+    //    filename: payload.filename,
+    //    database: payload.database.clone(),
+    //};
     let increment_task = BackgroundTask::IncrementRequest {
         database: payload.database,
     };
 
-    if state.task_queue.send(insert_task).is_err() {
-        eprintln!("Failed to send insert_task");
-    }
+    //if state.task_queue.send(insert_task).is_err() {
+    //    eprintln!("Failed to send insert_task");
+    //}
 
     if state.task_queue.send(increment_task).is_err() {
         eprintln!("Failed to send increment_task");
