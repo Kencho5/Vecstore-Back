@@ -19,12 +19,14 @@ impl NsfwBody {
 
 pub enum NsfwError {
     ImageProcessing,
+    MissingData,
 }
 
 impl IntoResponse for NsfwError {
     fn into_response(self) -> Response {
         let (status, error_message) = match self {
             NsfwError::ImageProcessing => (StatusCode::BAD_REQUEST, "Failed to process image"),
+            NsfwError::MissingData => (StatusCode::BAD_REQUEST, "Missing payload data"),
         };
 
         let body = Json(json!({

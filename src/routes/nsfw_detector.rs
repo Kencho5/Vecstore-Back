@@ -1,12 +1,11 @@
-use crate::{
-    prelude::*,
-    structs::nsfw_struct::{NsfwBody, NsfwError, NsfwPayload},
-};
+use crate::{prelude::*, structs::nsfw_struct::*};
 
 pub async fn nsfw_detector_handler(
     State(state): State<AppState>,
     Json(payload): Json<NsfwPayload>,
 ) -> Result<Json<NsfwBody>, NsfwError> {
+    payload.validate().map_err(|_| NsfwError::MissingData)?;
+
     let total_start = Instant::now();
 
     let image = load_image::load_image(payload.image, 224);
