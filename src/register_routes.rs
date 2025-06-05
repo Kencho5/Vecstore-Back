@@ -4,9 +4,7 @@ use crate::routes::*;
 pub fn create_router() -> Router<AppState> {
     Router::new()
         .merge(dashboard_routes())
-        .route_layer(middleware::from_fn(validate_headers))
         .merge(api_routes())
-        .route_layer(middleware::from_fn(api_middleware))
         .merge(auth())
         .merge(health())
 }
@@ -16,6 +14,7 @@ fn api_routes() -> Router<AppState> {
         .route("/insert", post(insert_image::insert_image_handler))
         .route("/search", post(search_image::search_image_handler))
         .route("/nsfw", post(nsfw_detector::nsfw_detector_handler))
+        .route_layer(middleware::from_fn(api_middleware))
 }
 
 fn dashboard_routes() -> Router<AppState> {
@@ -29,6 +28,7 @@ fn dashboard_routes() -> Router<AppState> {
             post(create_api_key::create_api_key_handler),
         )
         .route("/get-api-keys", get(get_api_keys::get_api_keys_handler))
+        .route_layer(middleware::from_fn(validate_headers))
 }
 
 fn auth() -> Router<AppState> {

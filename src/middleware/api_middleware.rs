@@ -10,6 +10,7 @@ pub async fn api_middleware(
         .get(http::header::AUTHORIZATION)
         .and_then(|v| v.to_str().ok())
         .map(|s| s.to_string());
+    println!("{:?}", api_key);
 
     req.extensions_mut().insert(api_key.unwrap());
 
