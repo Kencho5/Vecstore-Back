@@ -27,6 +27,7 @@ fn dashboard_routes() -> Router<AppState> {
             "/create-api-key",
             post(create_api_key::create_api_key_handler),
         )
+        .route("/get-api-keys", get(get_api_keys::get_api_keys_handler))
 }
 
 fn auth() -> Router<AppState> {

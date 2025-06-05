@@ -35,6 +35,12 @@ pub struct ApiKeyPayload {
     pub key_name: String,
 }
 
+#[derive(Deserialize, Serialize, sqlx::FromRow)]
+pub struct ApiKeysResponse {
+    pub name: String,
+    pub created_at: NaiveDateTime,
+}
+
 #[derive(Deserialize, Serialize)]
 pub struct ApiKeyResponse {
     pub key: String,
