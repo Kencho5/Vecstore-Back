@@ -32,7 +32,7 @@ def insert_image():
     if not img_data:
         return
     
-    filename = input(f"Enter filename (or press Enter for '{get_filename_from_url(image_url)}'): ").strip()
+    filename = input(f"Enter filename: ").strip()
     if not filename:
         filename = get_filename_from_url(image_url)
     
