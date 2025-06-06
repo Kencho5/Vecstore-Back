@@ -3,9 +3,9 @@ use crate::structs::{insert_struct::*, search_struct::*};
 
 pub async fn extract_image_features(
     state: &AppState,
-    image: String,
+    image_data: Vec<u8>,
 ) -> Result<Vec<f32>, InsertImageError> {
-    let image = load_image::load_image(image, state.clip_config.image_size)
+    let image = load_image::load_image(image_data, state.clip_config.image_size)
         .map_err(|_| InsertImageError::ImageProcessing)?;
 
     let image_features = state
@@ -18,7 +18,6 @@ pub async fn extract_image_features(
         .map_err(|_| InsertImageError::ImageProcessing)?
         .to_vec1::<f32>()
         .map_err(|_| InsertImageError::ImageProcessing)?;
-
     Ok(image_vector)
 }
 

@@ -19,7 +19,7 @@ pub use uuid::Uuid;
 
 // Axum framework
 pub use axum::{
-    extract::{Request, State},
+    extract::{Multipart, Request, State},
     middleware,
     response::{IntoResponse, Response},
     routing::{get, post},
@@ -39,9 +39,6 @@ pub use pinecone_sdk::{
     models::{Kind, Metadata, Namespace, QueryResponse, Value, Vector},
     pinecone::{PineconeClient, PineconeClientConfig},
 };
-
-// External crate declaration
-pub extern crate image_base64;
 
 // Local crate modules
 pub use crate::{

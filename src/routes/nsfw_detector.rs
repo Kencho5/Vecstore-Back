@@ -2,13 +2,36 @@ use crate::{prelude::*, structs::nsfw_struct::*};
 
 pub async fn nsfw_detector_handler(
     State(state): State<AppState>,
-    Json(payload): Json<NsfwPayload>,
+    mut multipart: Multipart,
 ) -> Result<Json<NsfwBody>, NsfwError> {
-    payload.validate().map_err(|_| NsfwError::MissingData)?;
-
     let total_start = Instant::now();
 
-    let image = load_image::load_image(payload.image, 224);
+    let mut image_data: Option<Vec<u8>> = None;
+
+    while let Some(field) = multipart
+        .next_field()
+        .await
+        .map_err(|_| NsfwError::MissingData)?
+    {
+        let field_name = field.name().unwrap_or("").to_string();
+
+        match field_name.as_str() {
+            "image" | "file" => {
+                image_data = Some(
+                    field
+                        .bytes()
+                        .await
+                        .map_err(|_| NsfwError::MissingData)?
+                        .to_vec(),
+                );
+            }
+            _ => {} // Ignore unknown fields
+        }
+    }
+
+    let image_data = image_data.ok_or(NsfwError::MissingData)?;
+
+    let image = load_image::load_image(image_data, 224);
     let nsfw = predict(state.nsfw_model, image.unwrap()).map_err(|_| NsfwError::ImageProcessing)?;
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;
