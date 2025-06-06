@@ -49,6 +49,6 @@ pub use crate::{
     structs::{app_state::*, auth_struct::*},
     utils::{
         background_task::*, extract_features::*, get_user::*, hash_api_key::*, increment_req::*,
-        tokenizer::*,
+        search_vectors::*, tokenizer::*,
     },
 };
