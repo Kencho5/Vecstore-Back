@@ -1,19 +1,37 @@
 use crate::prelude::*;
 use sqlx::Error;
 
-pub async fn check_user(pool: &PgPool, user: User) -> Result<Json<UserResponse>, Error> {
-    let pwh = user
-        .password
-        .map(|p| bcrypt::hash(p).unwrap())
-        .unwrap_or_default();
-
-    let result = sqlx::query_as::<_, UserResponse>(
-        "SELECT id, email FROM users WHERE email = $1 AND password = $2",
+pub async fn check_user(
+    pool: &PgPool,
+    email: String,
+    password: Option<String>,
+) -> Result<UserResponse, Error> {
+    // Get user data in a single query
+    let user = sqlx::query_as::<_, UserResponse>(
+        "SELECT id, email, name, password FROM users WHERE email = $1",
     )
-    .bind(&user.email)
-    .bind(&pwh)
-    .fetch_one(pool)
+    .bind(&email)
+    .fetch_optional(pool)
     .await?;
 
-    Ok(Json(result))
+    match (user, password) {
+        // User found and password provided (regular login)
+        (Some(user), Some(password)) => {
+            // Only verify if user has a password stored
+            if let Some(stored_hash) = &user.password {
+                // Verify password using bcrypt
+                match bcrypt::verify(&password, stored_hash) {
+                    true => Ok(user),
+                    _ => Err(Error::RowNotFound), // Password didn't match
+                }
+            } else {
+                // User exists but has no password (likely a Google user)
+                Err(Error::RowNotFound)
+            }
+        }
+        // User found but no password provided (Google login)
+        (Some(user), None) => Ok(user),
+        // User not found
+        (None, _) => Err(Error::RowNotFound),
+    }
 }

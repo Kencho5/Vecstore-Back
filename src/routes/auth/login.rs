@@ -1,5 +1,22 @@
 use crate::{auth::check_user::check_user, prelude::*, structs::google_struct::*};
 
+pub async fn login_handler(
+    State(state): State<AppState>,
+    Json(payload): Json<LoginPayload>,
+) -> Result<Json<AuthResponse>, AuthError> {
+    payload.validate()?;
+
+    let db_user = check_user(&state.pool, payload.email, Some(payload.password))
+        .await
+        .map_err(|_| AuthError::UserNotFound)?;
+
+    let token = create_token(db_user.id, db_user.email, db_user.name)
+        .await
+        .map_err(|_| AuthError::InvalidToken)?;
+
+    Ok(Json(AuthResponse::new(token)))
+}
+
 pub async fn login_google_handler(
     State(state): State<AppState>,
     Json(payload): Json<GoogleAuthPayload>,
@@ -10,17 +27,11 @@ pub async fn login_google_handler(
         .await
         .map_err(|_| AuthError::InvalidToken)?;
 
-    let user = User {
-        name: claims.name.expect("missing name from Google payload"),
-        email: claims.email.expect("missing email from Google payload"),
-        password: None,
-    };
-
-    let db_user = check_user(&state.pool, user.clone())
+    let db_user = check_user(&state.pool, claims.email.unwrap(), None)
         .await
         .map_err(|_| AuthError::UserNotFound)?;
 
-    let token = create_token(db_user.id, user.email, user.name)
+    let token = create_token(db_user.id, db_user.email, db_user.name)
         .await
         .map_err(|_| AuthError::InvalidToken)?;
 

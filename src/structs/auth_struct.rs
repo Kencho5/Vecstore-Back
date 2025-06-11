@@ -11,6 +11,9 @@ pub struct User {
 pub struct UserResponse {
     pub id: i32,
     pub email: String,
+    pub name: String,
+    #[serde(skip_serializing)]
+    pub password: Option<String>,
 }
 
 //REGISTER
@@ -18,6 +21,13 @@ pub struct UserResponse {
 pub struct RegisterPayload {
     pub email: String,
     pub name: String,
+    pub password: String,
+}
+
+//LOGIN
+#[derive(Deserialize, Serialize)]
+pub struct LoginPayload {
+    pub email: String,
     pub password: String,
 }
 
@@ -53,7 +63,7 @@ impl IntoResponse for AuthError {
     fn into_response(self) -> Response {
         let (status, error_message) = match self {
             AuthError::UserExists => (StatusCode::BAD_REQUEST, "Email already exists"),
-            AuthError::UserNotFound => (StatusCode::BAD_REQUEST, "User not found"),
+            AuthError::UserNotFound => (StatusCode::BAD_REQUEST, "Invalid email or password"),
             AuthError::MissingCredentials => (StatusCode::BAD_REQUEST, "Missing credentials"),
             AuthError::TokenCreation => (StatusCode::BAD_REQUEST, "Failed to create jwt token"),
             AuthError::InvalidToken => (StatusCode::BAD_REQUEST, "Unauthorized"),
