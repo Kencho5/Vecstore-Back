@@ -14,7 +14,7 @@ pub struct SearchResponse {
 
 #[derive(Serialize)]
 pub struct SearchMatch {
-    pub score: f32,
+    pub score: String,
     pub filename: Option<String>,
 }
 

@@ -31,7 +31,7 @@ pub async fn search_vectors(
             .matches
             .into_iter()
             .map(|m| SearchMatch {
-                score: m.score,
+                score: format!("{:.2}%", m.score * 100.0),
                 filename: m.metadata.and_then(|metadata| {
                     metadata.fields.get("filename").and_then(|value| {
                         if let Some(Kind::StringValue(s)) = &value.kind {

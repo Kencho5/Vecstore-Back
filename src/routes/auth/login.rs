@@ -1,6 +1,6 @@
 use crate::{auth::check_user::check_user, prelude::*, structs::google_struct::*};
 
-pub async fn login_handler(
+pub async fn login_google_handler(
     State(state): State<AppState>,
     Json(payload): Json<GoogleAuthPayload>,
 ) -> Result<Json<AuthResponse>, AuthError> {

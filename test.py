@@ -83,7 +83,7 @@ def search_by_text():
     results = res.json().get("matches", [])
     print(f"\n🔍 Matches ({len(results)}):")
     for i, match in enumerate(results, 1):
-        print(f"{i}. 📄 {match['filename']} — Score: {match['score']:.4f}")
+        print(f"{i}. 📄 {match['filename']} — Score: {match['score']}")
 
 def search_by_image():
     print("=== SEARCH BY IMAGE ===")
@@ -118,7 +118,7 @@ def search_by_image():
     results = res.json().get("matches", [])
     print(f"\n🔍 Matches ({len(results)}):")
     for i, match in enumerate(results, 1):
-        print(f"{i}. 📄 {match['filename']} — Score: {match['score']:.4f}")
+        print(f"{i}. 📄 {match['filename']} — Score: {match['score']}")
 
 def main():
     print("🖼️  Image Vector Database CLI")
