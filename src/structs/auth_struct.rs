@@ -62,11 +62,14 @@ pub enum AuthError {
 impl IntoResponse for AuthError {
     fn into_response(self) -> Response {
         let (status, error_message) = match self {
-            AuthError::UserExists => (StatusCode::BAD_REQUEST, "Email already exists"),
-            AuthError::UserNotFound => (StatusCode::BAD_REQUEST, "Invalid email or password"),
+            AuthError::UserExists => (StatusCode::CONFLICT, "Email already exists"),
+            AuthError::UserNotFound => (StatusCode::UNAUTHORIZED, "Invalid email or password"),
             AuthError::MissingCredentials => (StatusCode::BAD_REQUEST, "Missing credentials"),
-            AuthError::TokenCreation => (StatusCode::BAD_REQUEST, "Failed to create jwt token"),
-            AuthError::InvalidToken => (StatusCode::BAD_REQUEST, "Unauthorized"),
+            AuthError::TokenCreation => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Failed to create jwt token",
+            ),
+            AuthError::InvalidToken => (StatusCode::UNAUTHORIZED, "Unauthorized"),
         };
 
         let body = Json(json!({
