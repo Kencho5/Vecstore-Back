@@ -11,6 +11,7 @@ pub enum BackgroundTask {
     },
     IncrementRequest {
         database: String,
+        user_id: i32,
     },
 }
 
@@ -75,8 +76,8 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
                 eprintln!("Failed to insert vectors: {:?}", e);
             }
         }
-        BackgroundTask::IncrementRequest { database } => {
-            if let Err(e) = increment_req(&state.pool, database).await {
+        BackgroundTask::IncrementRequest { database, user_id } => {
+            if let Err(e) = increment_req(&state.pool, database, user_id).await {
                 eprintln!("Failed to increment requests: {:?}", e);
             }
         }

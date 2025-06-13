@@ -67,7 +67,7 @@ pub async fn search_image_handler(
 
     let results = search_vectors(state.pinecone, vectors, user_id, &database).await?;
 
-    let increment_task = BackgroundTask::IncrementRequest { database: database };
+    let increment_task = BackgroundTask::IncrementRequest { database, user_id };
 
     if state.task_queue.send(increment_task).is_err() {
         eprintln!("Failed to send increment_task");

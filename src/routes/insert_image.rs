@@ -67,7 +67,7 @@ pub async fn insert_image_handler(
         filename: filename.clone(),
         database: database.clone(),
     };
-    let increment_task = BackgroundTask::IncrementRequest { database };
+    let increment_task = BackgroundTask::IncrementRequest { database, user_id };
 
     if state.task_queue.send(insert_task).is_err() {
         eprintln!("Failed to send insert_task");
