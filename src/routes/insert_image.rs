@@ -78,7 +78,6 @@ pub async fn insert_image_handler(
     }
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;
-    println!("Total CLIP handler time: {}ms", total_time_ms);
 
     Ok(Json(InsertImageBody::new(format!("{}ms", total_time_ms))))
 }

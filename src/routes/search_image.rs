@@ -74,7 +74,6 @@ pub async fn search_image_handler(
     }
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;
-    println!("Total search handler time: {}ms", total_time_ms);
 
     Ok(Json(results))
 }

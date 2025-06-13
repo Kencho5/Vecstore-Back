@@ -35,7 +35,6 @@ pub async fn nsfw_detector_handler(
     let nsfw = predict(state.nsfw_model, image.unwrap()).map_err(|_| NsfwError::ImageProcessing)?;
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;
-    println!("Total NSFW handler time: {}ms", total_time_ms);
 
     Ok(Json(NsfwBody::new(nsfw == 1, total_time_ms)))
 }
