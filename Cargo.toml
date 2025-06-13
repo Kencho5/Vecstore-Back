@@ -23,6 +23,7 @@ chrono = { version = "0.4.39", features = ["serde"] }
 rand = "0.9.1"
 hex = "0.4.3"
 sha2 = "0.10.9"
+futures = "0.3.31"
 
 # ML
 candle-core = "0.9.1"

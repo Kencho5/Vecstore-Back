@@ -1,6 +1,6 @@
 import requests
 import time
-from multiprocessing import Process
+from multiprocessing import Process, Value, Lock
 
 def get_image_data(url):
     try:
@@ -16,17 +16,33 @@ FILENAME = "image.jpg"
 DATABASE = "vecstore"
 IMG_DATA = get_image_data(IMAGE_URL)
 
-def insert_image_loop():
+def insert_image_loop(counter, limit, lock, start_time):
     while True:
+        with lock:
+            if counter.value >= limit:
+                return
+            counter.value += 1
+            current = counter.value
+
         data = {'filename': FILENAME, 'database': DATABASE}
         files = {'image': (FILENAME, IMG_DATA, 'image/jpeg')}
         headers = {"Authorization": API_KEY}
         res = requests.post("http://localhost:3000/insert", headers=headers, data=data, files=files)
-        print(f"Inserted | Status: {res.status_code}")
+        print(f"{current}/{limit} | Status: {res.status_code}")
+
+        if current == limit:
+            duration = time.time() - start_time.value
+            print(f"\nInserted {limit} images in {duration:.2f} seconds")
 
 if __name__ == "__main__":
-    num_processes = 6
-    processes = [Process(target=insert_image_loop) for _ in range(num_processes)]
+    num_processes = 5
+    total_images = 20
+
+    counter = Value('i', 0)
+    lock = Lock()
+    start_time = Value('d', time.time())
+
+    processes = [Process(target=insert_image_loop, args=(counter, total_images, lock, start_time)) for _ in range(num_processes)]
     for p in processes:
         p.start()
     for p in processes:
