@@ -1,6 +1,8 @@
 import requests
 import sys
 
+API_KEY = "58315b813632e7469c99b0809393e9ec8bfeb2fa7a8f71d534a0b56f656bbb2e"
+
 def get_image_data(url):
     """Download image from URL and return the binary data"""
     try:
@@ -50,7 +52,7 @@ def insert_image():
     }
 
     headers = {
-        "Authorization": "2cddb9fcc785ebac5b02be0c7a7056a63c5bde8b0db448198d626562e3643cea"
+        "Authorization": API_KEY
     }
 
     print("Inserting image...")
@@ -75,7 +77,7 @@ def search_by_text():
     }
 
     headers = {
-        "Authorization": "2cddb9fcc785ebac5b02be0c7a7056a63c5bde8b0db448198d626562e3643cea"
+        "Authorization": API_KEY
     }
 
     print("Searching...")
@@ -110,7 +112,7 @@ def search_by_image():
     }
 
     headers = {
-        "Authorization": "2cddb9fcc785ebac5b02be0c7a7056a63c5bde8b0db448198d626562e3643cea"
+        "Authorization": API_KEY
     }
 
     print("Searching by image...")
