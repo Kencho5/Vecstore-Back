@@ -10,8 +10,8 @@ def get_image_data(url):
     except:
         return None
 
-API_KEY = "58315b813632e7469c99b0809393e9ec8bfeb2fa7a8f71d534a0b56f656bbb2e"
-IMAGE_URL = "https://cdn.outsideonline.com/wp-content/uploads/2023/03/Funny_Dog_H.jpg?crop=25:14&width=500&enable=upscale"
+API_KEY = "ba9ce44a0154e7af8308b2d67fbf7a5ea724f93801d0644a69d71005c8fb3d28"
+IMAGE_URL = "https://c.files.bbci.co.uk/18d0/live/88ff5600-d979-11ef-a5c8-1da73bd59591.jpg"
 FILENAME = "image.jpg"
 DATABASE = "vecstore"
 IMG_DATA = get_image_data(IMAGE_URL)
@@ -28,15 +28,15 @@ def insert_image_loop(counter, limit, lock, start_time):
         files = {'image': (FILENAME, IMG_DATA, 'image/jpeg')}
         headers = {"Authorization": API_KEY}
         res = requests.post("http://localhost:3000/insert", headers=headers, data=data, files=files)
-        print(f"{current}/{limit} | Status: {res.status_code}")
+        print(f"{current}/{limit} | time: {res.json()['time']}")
 
         if current == limit:
             duration = time.time() - start_time.value
             print(f"\nInserted {limit} images in {duration:.2f} seconds")
 
 if __name__ == "__main__":
-    num_processes = 5
-    total_images = 20
+    num_processes = 1
+    total_images = 3
 
     counter = Value('i', 0)
     lock = Lock()
