@@ -10,7 +10,7 @@ pub async fn add_db_handler(
         .map_err(|_| DashboardError::MissingData)?;
 
     sqlx::query("INSERT INTO databases(name, db_type, region, owner_id) VALUES($1, $2, $3, $4)")
-        .bind(&payload.name)
+        .bind(&payload.name.to_lowercase())
         .bind(&payload.db_type)
         .bind(&payload.region)
         .bind(&claims.user_id)
