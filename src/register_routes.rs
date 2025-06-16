@@ -5,7 +5,8 @@ pub fn create_router() -> Router<AppState> {
     Router::new()
         .merge(dashboard_routes())
         .merge(api_routes())
-        .merge(auth())
+        .merge(auth_routes())
+        .merge(payment_routes())
         .merge(health())
 }
 
@@ -35,7 +36,7 @@ fn dashboard_routes() -> Router<AppState> {
         .route_layer(middleware::from_fn(validate_headers))
 }
 
-fn auth() -> Router<AppState> {
+fn auth_routes() -> Router<AppState> {
     Router::new()
         .route(
             "/register-google",
@@ -44,6 +45,13 @@ fn auth() -> Router<AppState> {
         .route("/register", post(register::register_handler))
         .route("/login-google", post(login::login_google_handler))
         .route("/login", post(login::login_handler))
+}
+
+fn payment_routes() -> Router<AppState> {
+    Router::new().route(
+        "/payments/created",
+        post(payment_created::payment_created_handler),
+    )
 }
 
 fn health() -> Router<AppState> {

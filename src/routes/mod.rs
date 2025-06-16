@@ -3,4 +3,5 @@ pub mod dashboard;
 pub mod health;
 pub mod insert_image;
 pub mod nsfw_detector;
+pub mod payments;
 pub mod search_image;
