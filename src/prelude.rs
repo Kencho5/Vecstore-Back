@@ -22,7 +22,7 @@ pub use axum::{
     extract::{Multipart, Request, State},
     middleware,
     response::{IntoResponse, Response},
-    routing::{get, post},
+    routing::{delete, get, post},
     Extension, Json, Router,
 };
 
