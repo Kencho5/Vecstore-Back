@@ -11,6 +11,7 @@ pub async fn register_handler(
     let user = User {
         email: payload.email,
         name: payload.name,
+        company: payload.company,
         password: Some(pwh),
     };
 

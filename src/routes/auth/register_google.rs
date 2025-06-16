@@ -13,8 +13,9 @@ pub async fn register_google_handler(
         .map_err(|_| AuthError::InvalidToken)?;
 
     let user = User {
-        name: claims.name.expect("missing name from Google payload"),
         email: claims.email.expect("missing email from Google payload"),
+        name: claims.name.expect("missing name from Google payload"),
+        company: None,
         password: None,
     };
 

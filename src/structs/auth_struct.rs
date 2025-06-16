@@ -4,6 +4,7 @@ use crate::prelude::*;
 pub struct User {
     pub email: String,
     pub name: String,
+    pub company: Option<String>,
     pub password: Option<String>,
 }
 
@@ -21,6 +22,7 @@ pub struct UserResponse {
 pub struct RegisterPayload {
     pub email: String,
     pub name: String,
+    pub company: Option<String>,
     pub password: String,
 }
 
