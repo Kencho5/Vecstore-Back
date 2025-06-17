@@ -37,6 +37,10 @@ fn dashboard_routes() -> Router<AppState> {
             "/subscriptions",
             get(subscriptions::list_subscriptions_handler),
         )
+        .route(
+            "/payment-methods",
+            get(payment_methods::payment_methods_handler),
+        )
         .route_layer(middleware::from_fn(validate_headers))
 }
 

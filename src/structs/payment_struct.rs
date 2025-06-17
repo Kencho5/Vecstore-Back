@@ -8,10 +8,12 @@ pub struct PaymentCreatedPayload {
 
 #[derive(Deserialize)]
 pub struct SubscriptionData {
-    pub id: String,                     // subscription_id
-    pub status: String,                 // status
-    pub next_billed_at: Option<String>, // next_billing_date
-    pub items: Vec<SubscriptionItem>,   // to extract plan_id and custom_data
+    pub id: String,
+    pub status: String,
+    pub next_billed_at: Option<String>,
+    pub items: Vec<SubscriptionItem>,
+    pub customer_id: String,
+    pub custom_data: Option<CustomData>,
 }
 
 #[derive(Deserialize)]
@@ -22,7 +24,6 @@ pub struct SubscriptionItem {
 
 #[derive(Deserialize)]
 pub struct ProductData {
-    pub custom_data: Option<CustomData>,
     pub name: String,
 }
 
@@ -33,7 +34,7 @@ pub struct PriceData {
 
 #[derive(Deserialize)]
 pub struct CustomData {
-    pub email: Option<String>,
+    pub user_email: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -43,6 +44,7 @@ pub struct UnitPrice {
 
 pub enum PaymentError {
     Unforseen,
+    MissingCustomerData,
 }
 
 impl IntoResponse for PaymentError {
@@ -51,6 +53,10 @@ impl IntoResponse for PaymentError {
             PaymentError::Unforseen => {
                 (StatusCode::BAD_REQUEST, "Unforseen error. Contact support")
             }
+            PaymentError::MissingCustomerData => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Missing customer data. Contact support",
+            ),
         };
 
         let body = Json(json!({

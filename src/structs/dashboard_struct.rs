@@ -62,6 +62,9 @@ pub struct Subscription {
     pub next_billing_date: NaiveDate,
 }
 
+#[derive(Deserialize, Serialize, sqlx::FromRow)]
+pub struct PaymentMethods {}
+
 pub enum DashboardError {
     Unforseen,
     MissingData,

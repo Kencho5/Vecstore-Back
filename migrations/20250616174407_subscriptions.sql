@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS subscriptions (
     id SERIAL PRIMARY KEY,
     user_email VARCHAR(255) NOT NULL REFERENCES users(email) ON DELETE CASCADE,
+    customer_id VARCHAR(255) NOT NULL,
     subscription_id VARCHAR(255) UNIQUE NOT NULL,
     plan_name VARCHAR(255) NOT NULL,
     price VARCHAR(50) NOT NULL,
