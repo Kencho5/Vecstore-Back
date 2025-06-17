@@ -57,13 +57,10 @@ pub struct ApiKeyResponse {
 pub struct Subscription {
     pub subscription_id: String,
     pub plan_name: String,
-    pub price: String,
+    pub price: i32,
     pub status: String,
     pub next_billing_date: NaiveDate,
 }
-
-#[derive(Deserialize, Serialize, sqlx::FromRow)]
-pub struct PaymentMethods {}
 
 pub enum DashboardError {
     Unforseen,
