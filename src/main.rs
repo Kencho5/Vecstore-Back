@@ -23,6 +23,11 @@ async fn main() {
     let google_client =
         AsyncClient::new(env::var("GOOGLE_CLIENT_ID").expect("Google client id not found"));
     let (tx, rx) = mpsc::unbounded_channel::<BackgroundTask>();
+    let paddle = Paddle::new(
+        std::env::var("PADDLE_API_KEY").expect("Paddle API key not found"),
+        Paddle::SANDBOX,
+    )
+    .unwrap();
 
     let state = AppState {
         clip_model,
@@ -33,6 +38,7 @@ async fn main() {
         google_client,
         nsfw_model,
         task_queue: tx,
+        paddle,
     };
 
     let worker_state = WorkerState {

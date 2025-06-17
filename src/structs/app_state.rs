@@ -10,6 +10,7 @@ pub struct AppState {
     pub google_client: AsyncClient,
     pub nsfw_model: Model,
     pub task_queue: mpsc::UnboundedSender<BackgroundTask>,
+    pub paddle: Paddle,
 }
 
 #[derive(Clone)]
