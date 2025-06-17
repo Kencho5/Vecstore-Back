@@ -33,6 +33,10 @@ fn dashboard_routes() -> Router<AppState> {
             "/delete-api-key",
             delete(delete_api_key::delete_api_key_handler),
         )
+        .route(
+            "/subscriptions",
+            get(subscriptions::list_subscriptions_handler),
+        )
         .route_layer(middleware::from_fn(validate_headers))
 }
 

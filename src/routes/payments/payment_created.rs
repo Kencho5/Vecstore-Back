@@ -15,6 +15,13 @@ pub async fn payment_created_handler(
         .map(|item| item.product.name.clone())
         .unwrap_or_default();
 
+    let price = payload
+        .data
+        .items
+        .get(0)
+        .map(|item| item.price.unit_price.amount.clone())
+        .unwrap_or_default();
+
     let email = payload
         .data
         .items
@@ -24,12 +31,13 @@ pub async fn payment_created_handler(
 
     sqlx::query(
         "INSERT INTO subscriptions(
-        user_email, subscription_id, plan_name, status, next_billing_date
-    ) VALUES ($1, $2, $3, $4, $5::timestamptz::date)",
+        user_email, subscription_id, plan_name, price, status, next_billing_date
+    ) VALUES ($1, $2, $3, $4, $5, $6::timestamptz::date)",
     )
     .bind(&email)
     .bind(&subscription_id)
     .bind(&plan_name)
+    .bind(&price)
     .bind(&status)
     .bind(&next_billing_date)
     .execute(&state.pool)

@@ -17,6 +17,7 @@ pub struct SubscriptionData {
 #[derive(Deserialize)]
 pub struct SubscriptionItem {
     pub product: ProductData,
+    pub price: PriceData,
 }
 
 #[derive(Deserialize)]
@@ -26,8 +27,18 @@ pub struct ProductData {
 }
 
 #[derive(Deserialize)]
+pub struct PriceData {
+    pub unit_price: UnitPrice,
+}
+
+#[derive(Deserialize)]
 pub struct CustomData {
-    pub email: Option<String>, // Email field
+    pub email: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub struct UnitPrice {
+    pub amount: String,
 }
 
 pub enum PaymentError {
