@@ -1,9 +1,33 @@
 use crate::prelude::*;
 
 // PAYMENT CREATED
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize)]
 pub struct PaymentCreatedPayload {
-    pub event_id: String,
+    pub data: SubscriptionData,
+}
+
+#[derive(Deserialize)]
+pub struct SubscriptionData {
+    pub id: String,                     // subscription_id
+    pub status: String,                 // status
+    pub next_billed_at: Option<String>, // next_billing_date
+    pub items: Vec<SubscriptionItem>,   // to extract plan_id and custom_data
+}
+
+#[derive(Deserialize)]
+pub struct SubscriptionItem {
+    pub product: ProductData,
+}
+
+#[derive(Deserialize)]
+pub struct ProductData {
+    pub custom_data: Option<CustomData>,
+    pub name: String,
+}
+
+#[derive(Deserialize)]
+pub struct CustomData {
+    pub email: Option<String>, // Email field
 }
 
 pub enum PaymentError {
