@@ -14,7 +14,7 @@ pub async fn payment_created_handler(
 
     let first_item = data.items.first().ok_or(PaymentError::Unforseen)?;
     let plan_name = &first_item.product.name;
-    let price = &first_item.price.unit_price.amount;
+    let price = (&first_item.price.unit_price.amount.parse::<i32>().unwrap()) / 100;
 
     sqlx::query(
         "INSERT INTO subscriptions(

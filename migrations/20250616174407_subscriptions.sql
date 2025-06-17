@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS subscriptions (
     customer_id VARCHAR(255) NOT NULL,
     subscription_id VARCHAR(255) UNIQUE NOT NULL,
     plan_name VARCHAR(255) NOT NULL,
-    price VARCHAR(50) NOT NULL,
+    price INT NOT NULL,
     status VARCHAR(50) NOT NULL DEFAULT 'active', 
     next_billing_date DATE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
