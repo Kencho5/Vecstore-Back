@@ -5,11 +5,12 @@ pub async fn payment_methods_handler(
     Extension(claims): Extension<Claims>,
     State(state): State<AppState>,
 ) -> Result<Json<Vec<Card>>, DashboardError> {
-    let customer_id = get_customer_id(claims.email, &state.pool)
-        .await
-        .map_err(|_| DashboardError::Unforseen)?;
-    let payment_methods = state.paddle.payment_methods_list(customer_id);
+    let customer_id = match get_customer_id(claims.email, &state.pool).await {
+        Ok(id) => id,
+        Err(_) => return Ok(Json(Vec::new())),
+    };
 
+    let payment_methods = state.paddle.payment_methods_list(customer_id);
     let mut paginated = payment_methods.send();
     let mut all_methods = Vec::new();
 
@@ -19,6 +20,5 @@ pub async fn payment_methods_handler(
     }
 
     let cards: Vec<Card> = all_methods.into_iter().filter_map(|pm| pm.card).collect();
-
     Ok(Json(cards))
 }
