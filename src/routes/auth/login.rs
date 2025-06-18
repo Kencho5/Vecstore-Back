@@ -37,3 +37,21 @@ pub async fn login_google_handler(
 
     Ok(Json(AuthResponse::new(token)))
 }
+
+pub async fn refresh_token(
+    Extension(claims): Extension<Claims>,
+    State(state): State<AppState>,
+) -> Result<Json<AuthResponse>, AuthError> {
+    let db_user = get_user_details(&state.pool, claims.email)
+        .await
+        .map_err(|e| {
+            dbg!(e);
+            AuthError::UserNotFound
+        })?;
+
+    let token = create_token(db_user.id, db_user.email, db_user.name, db_user.plan_names)
+        .await
+        .map_err(|_| AuthError::InvalidToken)?;
+
+    Ok(Json(AuthResponse::new(token)))
+}
