@@ -30,10 +30,7 @@ pub async fn payment_created_handler(
     .bind(&data.next_billed_at)
     .execute(&state.pool)
     .await
-    .map_err(|e| {
-        eprintln!("Database error: {:?}", e);
-        PaymentError::Unforseen
-    })?;
+    .map_err(|_| PaymentError::Unforseen)?;
 
     Ok(StatusCode::OK)
 }

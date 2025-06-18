@@ -62,8 +62,20 @@ pub struct Subscription {
     pub next_billing_date: NaiveDate,
 }
 
+#[derive(Serialize)]
+pub struct PortalUrlBody {
+    pub url: String,
+}
+
+impl PortalUrlBody {
+    pub fn new(url: String) -> Self {
+        Self { url }
+    }
+}
+
 pub enum DashboardError {
     Unforseen,
+    Unauthorized,
     MissingData,
     DatabaseExists,
     ApiKeyExists,
@@ -76,6 +88,7 @@ impl IntoResponse for DashboardError {
             DashboardError::Unforseen => {
                 (StatusCode::BAD_REQUEST, "Unforseen error. Contact support")
             }
+            DashboardError::Unauthorized => (StatusCode::UNAUTHORIZED, "Unauthorized"),
             DashboardError::MissingData => (StatusCode::BAD_REQUEST, "Missing form data"),
             DashboardError::DatabaseExists => (StatusCode::BAD_REQUEST, "Database already exists"),
             DashboardError::ApiKeyExists => (StatusCode::BAD_REQUEST, "Api key already exists"),
