@@ -30,6 +30,7 @@ pub struct ProductData {
 #[derive(Deserialize)]
 pub struct PriceData {
     pub unit_price: UnitPrice,
+    pub description: String,
 }
 
 #[derive(Deserialize)]

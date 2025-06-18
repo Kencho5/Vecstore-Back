@@ -15,16 +15,18 @@ pub async fn payment_created_handler(
     let first_item = data.items.first().ok_or(PaymentError::Unforseen)?;
     let plan_name = &first_item.product.name;
     let price = (&first_item.price.unit_price.amount.parse::<i32>().unwrap()) / 100;
+    let plan_type = &first_item.price.description;
 
     sqlx::query(
         "INSERT INTO subscriptions(
-            user_email, customer_id, subscription_id, plan_name, price, status, next_billing_date
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7::timestamptz::date)",
+            user_email, customer_id, subscription_id, plan_name, plan_type, price, status, next_billing_date
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::timestamptz::date)",
     )
     .bind(email)
     .bind(&data.customer_id)
     .bind(&data.id)
     .bind(plan_name)
+    .bind(plan_type)
     .bind(price)
     .bind(&data.status)
     .bind(&data.next_billed_at)
