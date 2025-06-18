@@ -19,7 +19,7 @@ pub async fn register_handler(
         .await
         .map_err(|_| AuthError::UserExists)?;
 
-    let token = create_token(user_id, user.email, user.name)
+    let token = create_token(user_id, user.email, user.name, vec![])
         .await
         .map_err(|_| AuthError::TokenCreation)?;
 

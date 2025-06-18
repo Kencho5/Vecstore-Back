@@ -1,14 +1,19 @@
 use crate::prelude::*;
 
-pub async fn create_token(user_id: i32, email: String, name: String) -> Result<String, AuthError> {
+pub async fn create_token(
+    user_id: i32,
+    email: String,
+    name: String,
+    plan_names: Vec<String>,
+) -> Result<String, AuthError> {
     let exp = Utc::now() + Duration::days(7);
 
     let claims = Claims {
         user_id,
         email,
         name,
-        company: "Vecstore GE".to_string(),
         exp: exp.timestamp_millis(),
+        plan_names,
     };
 
     let key = env::var("SECRET_KEY").expect("Secret key not set");

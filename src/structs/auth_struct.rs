@@ -15,6 +15,7 @@ pub struct UserResponse {
     pub name: String,
     #[serde(skip_serializing)]
     pub password: Option<String>,
+    pub plan_names: Vec<String>,
 }
 
 //REGISTER
@@ -38,8 +39,8 @@ pub struct Claims {
     pub user_id: i32,
     pub email: String,
     pub name: String,
-    pub company: String,
     pub exp: i64,
+    pub plan_names: Vec<String>,
 }
 
 #[derive(Serialize)]
