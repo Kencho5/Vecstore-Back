@@ -52,16 +52,6 @@ pub struct ApiKeyResponse {
     pub key: String,
 }
 
-//SUBSCRIPTIONS
-#[derive(Deserialize, Serialize, sqlx::FromRow)]
-pub struct Subscription {
-    pub subscription_id: String,
-    pub plan_name: String,
-    pub price: i32,
-    pub status: String,
-    pub next_billing_date: NaiveDate,
-}
-
 #[derive(Serialize)]
 pub struct PortalUrlBody {
     pub url: String,

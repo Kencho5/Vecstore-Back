@@ -34,12 +34,6 @@ pub struct LoginPayload {
     pub password: String,
 }
 
-//REFRESH TOKEN
-#[derive(Deserialize, Serialize)]
-pub struct RefreshTokenPayload {
-    pub email: String,
-}
-
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Claims {
     pub user_id: i32,

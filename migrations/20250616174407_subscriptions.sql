@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS subscriptions (
     id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     user_email VARCHAR(255) NOT NULL REFERENCES users(email) ON DELETE CASCADE,
     customer_id VARCHAR(255) NOT NULL,
     subscription_id VARCHAR(255) UNIQUE NOT NULL,
@@ -11,6 +12,9 @@ CREATE TABLE IF NOT EXISTS subscriptions (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id
+    ON subscriptions(user_id);
 
 CREATE INDEX IF NOT EXISTS idx_subscriptions_user_email
     ON subscriptions(user_email);

@@ -7,3 +7,4 @@ pub mod get_index_data;
 pub mod payment_methods;
 pub mod portal_url;
 pub mod subscriptions;
+pub mod user_plans;

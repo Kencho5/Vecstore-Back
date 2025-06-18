@@ -1,10 +1,16 @@
-use crate::{prelude::*, structs::payment_struct::*};
+use crate::prelude::*;
 
 pub async fn payment_created_handler(
     State(state): State<AppState>,
     Json(payload): Json<PaymentCreatedPayload>,
 ) -> Result<StatusCode, PaymentError> {
     let data = &payload.data;
+
+    let user_id = data
+        .custom_data
+        .as_ref()
+        .and_then(|cd| cd.user_id.as_ref())
+        .ok_or(PaymentError::MissingCustomerData)?;
 
     let email = data
         .custom_data
@@ -19,9 +25,10 @@ pub async fn payment_created_handler(
 
     sqlx::query(
         "INSERT INTO subscriptions(
-            user_email, customer_id, subscription_id, plan_name, plan_type, price, status, next_billing_date
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::timestamptz::date)",
+            user_id, user_email, customer_id, subscription_id, plan_name, plan_type, price, status, next_billing_date
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::timestamptz::date)",
     )
+    .bind(user_id)
     .bind(email)
     .bind(&data.customer_id)
     .bind(&data.id)

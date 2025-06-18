@@ -35,12 +35,23 @@ pub struct PriceData {
 
 #[derive(Deserialize)]
 pub struct CustomData {
+    pub user_id: Option<i32>,
     pub user_email: Option<String>,
 }
 
 #[derive(Deserialize)]
 pub struct UnitPrice {
     pub amount: String,
+}
+
+//SUBSCRIPTIONS
+#[derive(Deserialize, Serialize, sqlx::FromRow)]
+pub struct Subscription {
+    pub subscription_id: String,
+    pub plan_name: String,
+    pub price: i32,
+    pub status: String,
+    pub next_billing_date: NaiveDate,
 }
 
 pub enum PaymentError {
