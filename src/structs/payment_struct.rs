@@ -63,8 +63,6 @@ pub struct SubscriptionCanceledPayload {
 pub struct SubscriptionCanceledData {
     pub id: String,
     pub status: String,
-    pub canceled_at: String,
-    pub customer_id: String,
 }
 
 pub enum PaymentError {
