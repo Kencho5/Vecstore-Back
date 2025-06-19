@@ -8,7 +8,7 @@ pub async fn insert_image_handler(
 ) -> Result<Json<InsertImageBody>, InsertImageError> {
     let total_start = Instant::now();
 
-    let user_id = get_user(&state.pool, api_key)
+    let user_id = get_user(&state.pool, api_key, "Image Search".to_string())
         .await
         .map_err(|_| InsertImageError::InvalidApiKey)?;
 

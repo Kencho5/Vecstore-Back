@@ -10,7 +10,7 @@ pub async fn search_image_handler(
     let mut text: Option<String> = None;
     let mut database: Option<String> = None;
 
-    let user_id = get_user(&state.pool, api_key)
+    let user_id = get_user(&state.pool, api_key, "Image Search".to_string())
         .await
         .map_err(|_| SearchImageError::InvalidApiKey)?;
 

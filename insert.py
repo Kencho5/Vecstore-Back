@@ -10,7 +10,7 @@ def get_image_data(url):
     except:
         return None
 
-API_KEY = "ba9ce44a0154e7af8308b2d67fbf7a5ea724f93801d0644a69d71005c8fb3d28"
+API_KEY = "0b276d911340d18ab086a1bc9bad6df8ac41f816b3549de4df20ef3b2ac8fe05"
 IMAGE_URL = "https://c.files.bbci.co.uk/18d0/live/88ff5600-d979-11ef-a5c8-1da73bd59591.jpg"
 FILENAME = "image.jpg"
 DATABASE = "vecstore"
@@ -28,7 +28,7 @@ def insert_image_loop(counter, limit, lock, start_time):
         files = {'image': (FILENAME, IMG_DATA, 'image/jpeg')}
         headers = {"Authorization": API_KEY}
         res = requests.post("http://localhost:3000/insert", headers=headers, data=data, files=files)
-        print(f"{current}/{limit} | time: {res.json()['time']}")
+        print(f"{current}/{limit} | time: {res.json()}")
 
         if current == limit:
             duration = time.time() - start_time.value
