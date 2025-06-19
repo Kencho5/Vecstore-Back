@@ -58,10 +58,15 @@ fn auth_routes() -> Router<AppState> {
 }
 
 fn payment_routes() -> Router<AppState> {
-    Router::new().route(
-        "/payments/created",
-        post(payment_created::payment_created_handler),
-    )
+    Router::new()
+        .route(
+            "/payments/created",
+            post(payment_created::payment_created_handler),
+        )
+        .route(
+            "/payments/canceled",
+            post(subscription_canceled::subscription_canceled_handler),
+        )
 }
 
 fn health() -> Router<AppState> {
