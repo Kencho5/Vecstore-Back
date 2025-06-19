@@ -54,6 +54,19 @@ pub struct Subscription {
     pub next_billing_date: NaiveDate,
 }
 
+#[derive(Deserialize)]
+pub struct SubscriptionCanceledPayload {
+    pub data: SubscriptionCanceledData,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct SubscriptionCanceledData {
+    pub id: String,
+    pub status: String,
+    pub canceled_at: String,
+    pub customer_id: String,
+}
+
 pub enum PaymentError {
     Unforseen,
     MissingCustomerData,
