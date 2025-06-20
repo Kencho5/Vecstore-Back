@@ -9,7 +9,7 @@ pub async fn list_subscriptions_handler(
             .bind(&claims.email)
             .fetch_all(&state.pool)
             .await
-            .map_err(|e|{dbg!(e); DashboardError::Unforseen})?;
+            .map_err(|_| DashboardError::Unforseen)?;
 
     Ok(Json(user_subs))
 }

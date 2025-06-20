@@ -31,12 +31,18 @@ pub struct ProductData {
 pub struct PriceData {
     pub unit_price: UnitPrice,
     pub description: String,
+    pub custom_data: CustomPriceData,
 }
 
 #[derive(Deserialize)]
 pub struct CustomData {
     pub user_id: Option<i32>,
     pub user_email: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub struct CustomPriceData {
+    pub limit: String,
 }
 
 #[derive(Deserialize)]
