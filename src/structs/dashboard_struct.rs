@@ -19,7 +19,6 @@ pub struct Database {
     pub db_type: String,
     pub name: String,
     pub region: String,
-    pub requests: i32,
 }
 
 //INDEX
