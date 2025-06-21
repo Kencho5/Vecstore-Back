@@ -87,8 +87,6 @@ pub async fn insert_vectors(
     filename: String,
     database: String,
 ) -> Result<(), InsertImageError> {
-    let total_start = Instant::now();
-
     let mut fields = BTreeMap::new();
     fields.insert(
         "filename".to_string(),
@@ -112,6 +110,5 @@ pub async fn insert_vectors(
         .await
         .map_err(|_| InsertImageError::DatabaseInsert)?;
 
-    dbg!(total_start.elapsed().as_millis() as u64);
     Ok(())
 }

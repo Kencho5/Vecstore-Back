@@ -43,7 +43,7 @@ pub use candle_transformers::models::{
 // Pinecone SDK
 pub use pinecone_sdk::{
     models::{Kind, Metadata, Namespace, QueryResponse, Value, Vector},
-    pinecone::{data::Index, PineconeClient, PineconeClientConfig},
+    pinecone::{data::Index, PineconeClientConfig},
 };
 
 // Local crate modules
