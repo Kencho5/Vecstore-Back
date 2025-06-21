@@ -8,9 +8,7 @@ pub async fn insert_image_handler(
 ) -> Result<Json<InsertImageBody>, InsertImageError> {
     let total_start = Instant::now();
 
-    let user_id = get_user(&state.pool, api_key, "Image Search".to_string())
-        .await
-        .map_err(|_| InsertImageError::InvalidApiKey)?;
+    let user_id = get_user_key(&state.pool, api_key, "Image Search".to_string()).await?;
 
     let mut image_data: Option<Vec<u8>> = None;
     let mut filename: Option<String> = None;

@@ -31,6 +31,8 @@ pub enum InsertImageError {
     DatabaseInsert,
     MissingData,
     InvalidApiKey,
+    InvalidSubscription,
+    RequestLimitExceeded,
 }
 
 impl IntoResponse for InsertImageError {
@@ -53,7 +55,15 @@ impl IntoResponse for InsertImageError {
             InsertImageError::MissingData => {
                 (StatusCode::INTERNAL_SERVER_ERROR, "Missing api data")
             }
-            InsertImageError::InvalidApiKey => (StatusCode::UNAUTHORIZED, "Invalid api key"),
+            InsertImageError::InvalidApiKey => (StatusCode::UNAUTHORIZED, "Invalid API key"),
+            InsertImageError::InvalidSubscription => (
+                StatusCode::UNAUTHORIZED,
+                "No active subscription found for this user",
+            ),
+            InsertImageError::RequestLimitExceeded => (
+                StatusCode::UNAUTHORIZED,
+                "Monthly API request limit exceeded. Upgrade your plan or contact sales to increase your limit.",
+            ),
         };
 
         let body = Json(json!({
