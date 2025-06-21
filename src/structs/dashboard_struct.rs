@@ -78,6 +78,7 @@ pub enum DashboardError {
     DatabaseExists,
     ApiKeyExists,
     ApiKeyCreationLimit,
+    MissingSubscription,
 }
 
 impl IntoResponse for DashboardError {
@@ -93,6 +94,10 @@ impl IntoResponse for DashboardError {
             DashboardError::ApiKeyCreationLimit => (
                 StatusCode::TOO_MANY_REQUESTS,
                 "Maximum limit of 10 api keys reached",
+            ),
+            DashboardError::MissingSubscription => (
+                StatusCode::UNAUTHORIZED,
+                "Appropriate subscription not found",
             ),
         };
 
