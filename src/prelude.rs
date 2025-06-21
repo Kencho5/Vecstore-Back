@@ -1,5 +1,9 @@
 // Standard library
-pub use std::{collections::BTreeMap, env, time::Instant};
+pub use std::{
+    collections::{BTreeMap, HashMap},
+    env,
+    time::Instant,
+};
 
 // External crates
 pub use anyhow::Result;

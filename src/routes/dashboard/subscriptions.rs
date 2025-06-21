@@ -5,7 +5,7 @@ pub async fn list_subscriptions_handler(
     State(state): State<AppState>,
 ) -> Result<Json<Vec<Subscription>>, DashboardError> {
     let user_subs =
-        sqlx::query_as::<_, Subscription>("SELECT subscription_id, plan_name, price, status, next_billing_date FROM subscriptions WHERE user_email = $1 AND status = 'active'")
+        sqlx::query_as::<_, Subscription>("SELECT subscription_id, plan_name, plan_type, price, status, next_billing_date FROM subscriptions WHERE user_email = $1 AND status = 'active'")
             .bind(&claims.email)
             .fetch_all(&state.pool)
             .await
