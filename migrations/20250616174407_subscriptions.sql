@@ -23,5 +23,8 @@ CREATE INDEX IF NOT EXISTS idx_subscriptions_user_email
 CREATE INDEX IF NOT EXISTS idx_subscriptions_status
     ON subscriptions(status);
 
+CREATE INDEX IF NOT EXISTS idx_subscriptions_plan
+    ON subscriptions(plan_name);
+
 CREATE INDEX IF NOT EXISTS idx_subscriptions_next_billing_date
     ON subscriptions(next_billing_date);

@@ -4,5 +4,6 @@ pub mod extract_features;
 pub mod get_customer_id;
 pub mod hash_api_key;
 pub mod increment_req;
+pub mod insert_vectors;
 pub mod search_vectors;
 pub mod tokenizer;

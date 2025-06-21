@@ -51,10 +51,10 @@ pub use crate::{
     auth::token::*,
     loaders::*,
     middleware::{api_middleware::*, auth_middleware::*},
-    routes::{auth::*, dashboard::*, insert_image::*, payments::*},
+    routes::{auth::*, dashboard::*, payments::*},
     structs::{app_state::*, auth_struct::*, payment_struct::*},
     utils::{
         background_task::*, check_user_limits::*, extract_features::*, get_customer_id::*,
-        hash_api_key::*, increment_req::*, search_vectors::*, tokenizer::*,
+        hash_api_key::*, increment_req::*, insert_vectors::*, search_vectors::*, tokenizer::*,
     },
 };
