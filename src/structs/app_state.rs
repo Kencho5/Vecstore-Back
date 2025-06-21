@@ -4,7 +4,7 @@ use crate::prelude::*;
 pub struct AppState {
     pub clip_model: clip::ClipModel,
     pub clip_config: clip::ClipConfig,
-    pub pinecone: PineconeClient,
+    pub pinecone_index: Arc<Mutex<Index>>,
     pub tokenizer: Tokenizer,
     pub pool: PgPool,
     pub google_client: AsyncClient,
@@ -16,5 +16,5 @@ pub struct AppState {
 #[derive(Clone)]
 pub struct WorkerState {
     pub pool: PgPool,
-    pub pinecone: PineconeClient,
+    pub pinecone_index: Arc<Mutex<Index>>,
 }

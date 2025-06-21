@@ -71,7 +71,7 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
             database,
         } => {
             if let Err(e) =
-                insert_vectors(user_id, &state.pinecone, vectors, filename, database).await
+                insert_vectors(user_id, state.pinecone_index, vectors, filename, database).await
             {
                 eprintln!("Failed to insert vectors: {:?}", e);
             }

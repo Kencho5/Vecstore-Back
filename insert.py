@@ -10,7 +10,7 @@ def get_image_data(url):
     except:
         return None
 
-API_KEY = "0b276d911340d18ab086a1bc9bad6df8ac41f816b3549de4df20ef3b2ac8fe05"
+API_KEY = "f9b5f0b6c1d6efd3c5861e0ea261a5864c6456b9b956130355cc46f543da42b7"
 IMAGE_URL = "https://c.files.bbci.co.uk/18d0/live/88ff5600-d979-11ef-a5c8-1da73bd59591.jpg"
 FILENAME = "image.jpg"
 DATABASE = "vecstore"

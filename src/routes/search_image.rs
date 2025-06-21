@@ -64,7 +64,7 @@ pub async fn search_image_handler(
         return Err(SearchImageError::MissingData); // Neither image nor text provided
     };
 
-    let results = search_vectors(state.pinecone, vectors, user_id, &database).await?;
+    let results = search_vectors(state.pinecone_index, vectors, user_id, &database).await?;
 
     let increment_task = BackgroundTask::IncrementRequest { database, user_id };
 

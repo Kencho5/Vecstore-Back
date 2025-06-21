@@ -17,8 +17,9 @@ pub use pwhash::bcrypt;
 pub use serde::{Deserialize, Serialize};
 pub use serde_json::json;
 pub use sqlx::postgres::{PgPool, PgPoolOptions};
+pub use std::sync::Arc;
 pub use tokenizers::Tokenizer;
-pub use tokio::sync::mpsc;
+pub use tokio::sync::{mpsc, Mutex};
 pub use tower_http::cors::CorsLayer;
 pub use uuid::Uuid;
 
@@ -42,7 +43,7 @@ pub use candle_transformers::models::{
 // Pinecone SDK
 pub use pinecone_sdk::{
     models::{Kind, Metadata, Namespace, QueryResponse, Value, Vector},
-    pinecone::{PineconeClient, PineconeClientConfig},
+    pinecone::{data::Index, PineconeClient, PineconeClientConfig},
 };
 
 // Local crate modules

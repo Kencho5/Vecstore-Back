@@ -5,12 +5,7 @@ pub async fn index_data_handler(
     State(state): State<AppState>,
     Json(payload): Json<GetDbPayload>,
 ) -> Result<Json<NamespaceStats>, DashboardError> {
-    let mut index = state
-        .pinecone
-        .index(&env::var("PINECONE_INDEX").expect("Pinecone index not found"))
-        .await
-        .map_err(|_| DashboardError::Unforseen)?;
-
+    let mut index = state.pinecone_index.lock().await;
     let stats = index
         .describe_index_stats(None)
         .await

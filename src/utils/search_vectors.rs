@@ -2,16 +2,12 @@ use crate::prelude::*;
 use crate::structs::search_struct::*;
 
 pub async fn search_vectors(
-    pinecone: PineconeClient,
+    pinecone_index: Arc<Mutex<Index>>,
     vectors: Vec<f32>,
     user_id: i32,
     database: &String,
 ) -> Result<SearchResponse, SearchImageError> {
-    let mut index = pinecone
-        .index(&env::var("PINECONE_INDEX").expect("Pinecone index not found"))
-        .await
-        .map_err(|_| SearchImageError::Unforseen)?;
-
+    let mut index = pinecone_index.lock().await;
     let response: QueryResponse = index
         .query_by_value(
             vectors,
