@@ -17,8 +17,8 @@ async fn main() {
 
     let (clip_model, clip_config) = load_model::load_clip_model().unwrap();
     let nsfw_model = load_model::load_nsfw_model().unwrap();
-    let pinecone_index = init_pinecone::init_pinecone().await;
-    let pinecone_index = Arc::new(Mutex::new(pinecone_index));
+    let pinecone_indexes = init_pinecone::init_pinecone().await;
+    let pinecone_indexes = Arc::new(Mutex::new(pinecone_indexes));
     let tokenizer = get_tokenizer(None).expect("Failed to get tokenizer");
     let pool = init_db::init_db().await;
     let google_client =
@@ -33,7 +33,7 @@ async fn main() {
     let state = AppState {
         clip_model,
         clip_config,
-        pinecone_index,
+        pinecone_indexes,
         tokenizer,
         pool,
         google_client,
@@ -44,7 +44,7 @@ async fn main() {
 
     let worker_state = WorkerState {
         pool: state.pool.clone(),
-        pinecone_index: state.pinecone_index.clone(),
+        pinecone_indexes: state.pinecone_indexes.clone(),
     };
 
     tokio::spawn(async move {

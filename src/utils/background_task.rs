@@ -70,9 +70,9 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
             filename,
             database,
         } => {
-            if let Err(e) =
-                insert_vectors(user_id, state.pinecone_index, vectors, filename, database).await
-            {
+            let indexes = state.pinecone_indexes.lock().await;
+            let index = indexes.image_us_east.clone();
+            if let Err(e) = insert_vectors(user_id, index, vectors, filename, database).await {
                 eprintln!("Failed to insert vectors: {:?}", e);
             }
         }
