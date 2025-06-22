@@ -43,7 +43,7 @@ async fn main() {
     };
 
     let worker_state = WorkerState {
-        pool: state.pool.clone(),
+        //pool: state.pool.clone(),
         pinecone_indexes: state.pinecone_indexes.clone(),
     };
 

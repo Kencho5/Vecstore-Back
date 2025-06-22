@@ -10,10 +10,6 @@ pub async fn search_image_handler(
     let mut text: Option<String> = None;
     let mut database: Option<String> = None;
 
-    let user_id = get_user_key(&state.pool, api_key, "Image Search".to_string())
-        .await
-        .map_err(|_| SearchImageError::InvalidApiKey)?;
-
     while let Some(field) = multipart
         .next_field()
         .await
@@ -54,6 +50,16 @@ pub async fn search_image_handler(
 
     let database = database.ok_or(SearchImageError::MissingData)?;
 
+    // Validate user and increment request count in one call
+    let validation_result = validate_user_and_increment(
+        &state.pool,
+        api_key,
+        database.clone(),
+        "Image Search".to_string(),
+    )
+    .await
+    .map_err(|_| SearchImageError::InvalidApiKey)?;
+
     let vectors = if let Some(image_bytes) = image_data {
         extract_image_features(&state, image_bytes)
             .await
@@ -64,13 +70,7 @@ pub async fn search_image_handler(
         return Err(SearchImageError::MissingData); // Neither image nor text provided
     };
 
-    let results = search_vectors(&state, vectors, user_id, &database).await?;
-
-    let increment_task = BackgroundTask::IncrementRequest { database, user_id };
-
-    if state.task_queue.send(increment_task).is_err() {
-        eprintln!("Failed to send increment_task");
-    }
+    let results = search_vectors_with_region(&state, vectors, validation_result.user_id, &database, &validation_result.region).await?;
 
     Ok(Json(results))
 }

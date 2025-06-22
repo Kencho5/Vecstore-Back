@@ -8,8 +8,6 @@ pub async fn insert_image_handler(
 ) -> Result<Json<InsertImageBody>, InsertError> {
     let total_start = Instant::now();
 
-    let user_id = get_user_key(&state.pool, api_key, "Image Search".to_string()).await?;
-
     let mut image_data: Option<Vec<u8>> = None;
     let mut filename: Option<String> = None;
     let mut database: Option<String> = None;
@@ -50,13 +48,22 @@ pub async fn insert_image_handler(
     let filename = filename.ok_or(InsertError::MissingData)?;
     let database = database.ok_or(InsertError::MissingData)?;
 
+    let validation_result = validate_user_and_increment(
+        &state.pool,
+        api_key,
+        database.clone(),
+        "Image Search".to_string(),
+    )
+    .await?;
+
     let image_vectors = extract_image_features(&state, image_data).await?;
 
     let insert_task = BackgroundTask::InsertVectors {
-        user_id,
+        user_id: validation_result.user_id,
         vectors: image_vectors,
         filename: Some(filename),
         database: database.clone(),
+        region: validation_result.region,
     };
 
     if state.task_queue.send(insert_task).is_err() {

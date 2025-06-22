@@ -1,7 +1,7 @@
 import requests
 import sys
 
-API_KEY = "58315b813632e7469c99b0809393e9ec8bfeb2fa7a8f71d534a0b56f656bbb2e"
+API_KEY = "f9b5f0b6c1d6efd3c5861e0ea261a5864c6456b9b956130355cc46f543da42b7"
 
 def get_image_data(url):
     """Download image from URL and return the binary data"""
@@ -56,7 +56,7 @@ def insert_image():
     }
 
     print("Inserting image...")
-    res = requests.post("http://localhost:3000/insert", headers=headers, data=data, files=files)
+    res = requests.post("http://localhost:3000/insert-image", headers=headers, data=data, files=files)
     print(f"Insert - Status: {res.status_code}, Response: {res.text}")
 
 def search_by_text():

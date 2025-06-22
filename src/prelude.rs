@@ -54,8 +54,7 @@ pub use crate::{
     routes::{auth::*, dashboard::*, payments::*},
     structs::{app_state::*, auth_struct::*, payment_struct::*, pinecone_struct::*},
     utils::{
-        background_task::*, check_user_limits::*, extract_features::*, get_customer_id::*,
-        get_db_region::*, hash_api_key::*, increment_req::*, insert_vectors::*, search_vectors::*,
-        tokenizer::*,
+        background_task::*, extract_features::*, get_customer_id::*, get_user_and_region::*,
+        hash_api_key::*, insert_vectors::*, search_vectors::*, tokenizer::*,
     },
 };

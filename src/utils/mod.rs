@@ -1,10 +1,8 @@
 pub mod background_task;
-pub mod check_user_limits;
 pub mod extract_features;
 pub mod get_customer_id;
-pub mod get_db_region;
+pub mod get_user_and_region;
 pub mod hash_api_key;
-pub mod increment_req;
 pub mod insert_vectors;
 pub mod search_vectors;
 pub mod tokenizer;

@@ -15,6 +15,6 @@ pub struct AppState {
 
 #[derive(Clone)]
 pub struct WorkerState {
-    pub pool: PgPool,
+    //pub pool: PgPool,
     pub pinecone_indexes: Arc<Mutex<PineconeIndexes>>,
 }

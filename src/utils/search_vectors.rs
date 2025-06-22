@@ -1,17 +1,26 @@
 use crate::prelude::*;
 use crate::structs::search_struct::*;
 
-pub async fn search_vectors(
+pub async fn search_vectors_with_region(
     state: &AppState,
     vectors: Vec<f32>,
     user_id: i32,
     database: &String,
+    region: &String,
 ) -> Result<SearchResponse, SearchImageError> {
     let indexes = state.pinecone_indexes.lock().await;
-    let region = get_db_region(&state.pool, &database, &user_id).await?;
-    let index = indexes.get_index_by_region(&region).unwrap();
+    let index = indexes.get_index_by_region(region).unwrap();
     let mut index = index.lock().await;
 
+    search_vectors_impl(vectors, user_id, database, &mut index).await
+}
+
+async fn search_vectors_impl(
+    vectors: Vec<f32>,
+    user_id: i32,
+    database: &String,
+    index: &mut Index,
+) -> Result<SearchResponse, SearchImageError> {
     let response: QueryResponse = index
         .query_by_value(
             vectors,

@@ -8,11 +8,12 @@ pub enum BackgroundTask {
         vectors: Vec<f32>,
         filename: Option<String>,
         database: String,
+        region: String,
     },
-    IncrementRequest {
-        database: String,
-        user_id: i32,
-    },
+    //IncrementRequest {
+    //    database: String,
+    //    user_id: i32,
+    //},
 }
 
 pub async fn process_task_queue(
@@ -69,23 +70,18 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
             vectors,
             filename,
             database,
+            region,
         } => {
             let indexes = state.pinecone_indexes.lock().await;
-
-            let region = increment_req(&state.pool, &database, user_id)
-                .await
-                .unwrap();
-
             let index = indexes.get_index_by_region(&region).unwrap();
 
             if let Err(e) = insert_vectors(user_id, index, vectors, filename, database).await {
                 eprintln!("Failed to insert vectors: {:?}", e);
             }
-        }
-        BackgroundTask::IncrementRequest { database, user_id } => {
-            if let Err(e) = increment_req(&state.pool, &database, user_id).await {
-                eprintln!("Failed to increment requests: {:?}", e);
-            }
-        }
+        } //BackgroundTask::IncrementRequest { database, user_id } => {
+          //    if let Err(e) = increment_req(&state.pool, &database, user_id).await {
+          //        eprintln!("Failed to increment requests: {:?}", e);
+          //    }
+          //}
     }
 }

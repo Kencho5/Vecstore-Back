@@ -28,7 +28,7 @@ pub struct InsertTextPayload {
 pub enum InsertError {
     ImageProcessing,
     ModelInference,
-    DatabaseConnection,
+    DatabaseNotFound,
     DatabaseInsert,
     MissingData,
     InvalidApiKey,
@@ -45,9 +45,9 @@ impl IntoResponse for InsertError {
             InsertError::ModelInference => {
                 (StatusCode::INTERNAL_SERVER_ERROR, "Model inference failed")
             }
-            InsertError::DatabaseConnection => (
+            InsertError::DatabaseNotFound => (
                 StatusCode::SERVICE_UNAVAILABLE,
-                "Database connection failed",
+                "Database not found",
             ),
             InsertError::DatabaseInsert => (
                 StatusCode::INTERNAL_SERVER_ERROR,

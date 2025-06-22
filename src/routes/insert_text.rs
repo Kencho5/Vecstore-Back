@@ -5,7 +5,15 @@ pub async fn insert_text_handler(
     State(state): State<AppState>,
     Json(payload): Json<InsertTextPayload>,
 ) -> Result<(), InsertError> {
-    let user_id = get_user_key(&state.pool, api_key, "Text Search".to_string()).await?;
+    let validation_result = validate_user_and_increment(
+        &state.pool,
+        api_key,
+        payload.database.clone(),
+        "Text Search".to_string(),
+    )
+    .await?;
+
+    let user_id = validation_result.user_id;
 
     let text_vectors = extract_text_features(&state, payload.text)
         .await
@@ -16,6 +24,7 @@ pub async fn insert_text_handler(
         vectors: text_vectors,
         filename: None,
         database: payload.database,
+        region: validation_result.region,
     };
 
     if state.task_queue.send(insert_task).is_err() {
