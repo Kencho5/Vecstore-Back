@@ -15,7 +15,7 @@ pub async fn add_db_handler(
         SELECT $1, $2, $3, $4
         WHERE EXISTS (
           SELECT 1 FROM subscriptions
-          WHERE user_id = $4 AND plan_name = $5 AND status = 'active'
+          WHERE user_id = $4 AND db_type = $5 AND status = 'active'
         );
         ",
     )
@@ -23,7 +23,7 @@ pub async fn add_db_handler(
     .bind(&payload.db_type)
     .bind(&payload.region)
     .bind(&claims.user_id)
-    .bind(&format!("{} Search", capitalize(&payload.db_type)))
+    .bind(&payload.db_type)
     .execute(&state.pool)
     .await
     .map_err(|_| DashboardError::DatabaseExists)?;
@@ -33,12 +33,4 @@ pub async fn add_db_handler(
     }
 
     Ok(StatusCode::OK)
-}
-
-fn capitalize(s: &str) -> String {
-    let mut c = s.chars();
-    match c.next() {
-        None => String::new(),
-        Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
-    }
 }

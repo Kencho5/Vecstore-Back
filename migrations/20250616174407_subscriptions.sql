@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS subscriptions (
     subscription_id VARCHAR(255) UNIQUE NOT NULL,
     plan_name VARCHAR(50) NOT NULL,
     plan_type VARCHAR(50) NOT NULL,
+    db_type VARCHAR(50) NOT NULL,
     price INT NOT NULL,
     req_limit INT NOT NULL,
     status VARCHAR(50) NOT NULL DEFAULT 'active', 

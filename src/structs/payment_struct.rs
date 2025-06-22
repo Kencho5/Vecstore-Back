@@ -43,6 +43,7 @@ pub struct CustomData {
 #[derive(Deserialize)]
 pub struct CustomPriceData {
     pub limit: String,
+    pub db_type: String,
 }
 
 #[derive(Deserialize)]

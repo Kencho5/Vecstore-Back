@@ -19,13 +19,23 @@ pub struct Database {
     pub db_type: String,
     pub name: String,
     pub region: String,
+    pub requests: i32,
+}
+
+#[derive(Deserialize, Serialize, sqlx::FromRow)]
+pub struct DatabaseData {
+    pub db_type: String,
+    pub name: String,
+    pub region: String,
+    pub requests: i32,
+    pub req_limit: i32,
 }
 
 //INDEX
 #[derive(Deserialize, Serialize)]
 pub struct NamespaceStats {
     pub record_count: u32,
-    pub size: String,
+    //pub size: String,
 }
 
 //API KEYS

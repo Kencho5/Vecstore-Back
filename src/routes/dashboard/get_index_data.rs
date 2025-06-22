@@ -21,6 +21,6 @@ pub async fn index_data_handler(
 
     Ok(Json(NamespaceStats {
         record_count: vector_count,
-        size: format!("{:.2}MB", (vector_count * 512 * 8) as f64 / 1024.0 / 1024.0),
+        //size: format!("{:.2}MB", (vector_count * 512 * 8) as f64 / 1024.0 / 1024.0),
     }))
 }
