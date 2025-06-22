@@ -86,6 +86,17 @@ pub struct SubscriptionCanceledData {
     pub status: String,
 }
 
+#[derive(Deserialize)]
+pub struct PaymentFailedPayload {
+    pub data: PaymentFailedData,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct PaymentFailedData {
+    pub id: String,
+    pub status: String,
+}
+
 pub fn get_price_maps() -> HashMap<String, String> {
     let mut obj = HashMap::new();
     //IMAGE

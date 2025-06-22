@@ -13,10 +13,8 @@ pub async fn validate_user_and_increment(
     database: String,
     plan_name: String,
 ) -> Result<UserValidationResult, InsertError> {
-    // First validate the user and check limits
     let user_id = validate_user_limits(pool, &api_key, &plan_name).await?;
 
-    // Then atomically increment requests and get region
     let region: String = sqlx::query_scalar(
         "UPDATE databases 
          SET requests = requests + 1 
@@ -95,4 +93,3 @@ async fn validate_user_limits(
         }
     }
 }
-

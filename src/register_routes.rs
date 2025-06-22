@@ -77,6 +77,10 @@ fn payment_routes() -> Router<AppState> {
             "/payments/canceled",
             post(subscription_canceled::subscription_canceled_handler),
         )
+        .route(
+            "/payments/failed",
+            post(payment_failed::payment_failed_handler),
+        )
 }
 
 fn health() -> Router<AppState> {
