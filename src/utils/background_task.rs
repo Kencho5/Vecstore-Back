@@ -71,13 +71,26 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
             database,
         } => {
             let indexes = state.pinecone_indexes.lock().await;
-            let index = indexes.image_us_east.clone();
+
+            let region = increment_req(&state.pool, &database, user_id)
+                .await
+                .unwrap();
+
+            let index = match region.as_str() {
+                "us-east-1-image" => indexes.image_us_east.clone(),
+                "us-east-1-text" => indexes.text_us_east.clone(),
+                _ => {
+                    eprintln!("Unknown database/region: {}", database);
+                    return;
+                }
+            };
+
             if let Err(e) = insert_vectors(user_id, index, vectors, filename, database).await {
                 eprintln!("Failed to insert vectors: {:?}", e);
             }
         }
         BackgroundTask::IncrementRequest { database, user_id } => {
-            if let Err(e) = increment_req(&state.pool, database, user_id).await {
+            if let Err(e) = increment_req(&state.pool, &database, user_id).await {
                 eprintln!("Failed to increment requests: {:?}", e);
             }
         }

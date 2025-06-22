@@ -49,6 +49,7 @@ pub async fn insert_image_handler(
                     String::from_utf8(bytes.to_vec()).map_err(|_| InsertImageError::MissingData)?,
                 );
             }
+
             _ => {} // Ignore unknown fields
         }
     }
@@ -62,17 +63,12 @@ pub async fn insert_image_handler(
     let insert_task = BackgroundTask::InsertVectors {
         user_id,
         vectors: image_vectors,
-        filename: filename.clone(),
+        filename,
         database: database.clone(),
     };
-    let increment_task = BackgroundTask::IncrementRequest { database, user_id };
 
     if state.task_queue.send(insert_task).is_err() {
         eprintln!("Failed to send insert_task");
-    }
-
-    if state.task_queue.send(increment_task).is_err() {
-        eprintln!("Failed to send increment_task");
     }
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;

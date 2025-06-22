@@ -23,6 +23,12 @@ pub struct Database {
     pub req_limit: i32,
 }
 
+#[derive(Deserialize, Serialize, sqlx::FromRow)]
+pub struct DatabaseInfo {
+    pub db_type: String,
+    pub region: String,
+}
+
 //INDEX
 #[derive(Deserialize, Serialize)]
 pub struct NamespaceStats {
