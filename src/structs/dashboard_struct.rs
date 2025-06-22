@@ -20,14 +20,6 @@ pub struct Database {
     pub name: String,
     pub region: String,
     pub requests: i32,
-}
-
-#[derive(Deserialize, Serialize, sqlx::FromRow)]
-pub struct DatabaseData {
-    pub db_type: String,
-    pub name: String,
-    pub region: String,
-    pub requests: i32,
     pub req_limit: i32,
 }
 
