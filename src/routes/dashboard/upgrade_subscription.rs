@@ -116,7 +116,8 @@ async fn update_subscription_db(
              next_billing_date = $1::timestamptz::date,
              updated_at = CURRENT_TIMESTAMP,
              price = $2,
-             req_limit = 15000
+             req_limit = 15000,
+             status = 'active'
          WHERE subscription_id = $3",
     )
     .bind(&next_billed_at)
