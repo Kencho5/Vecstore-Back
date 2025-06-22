@@ -6,7 +6,7 @@ pub enum BackgroundTask {
     InsertVectors {
         user_id: i32,
         vectors: Vec<f32>,
-        filename: String,
+        filename: Option<String>,
         database: String,
     },
     IncrementRequest {
@@ -76,14 +76,7 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
                 .await
                 .unwrap();
 
-            let index = match region.as_str() {
-                "us-east-1-image" => indexes.image_us_east.clone(),
-                "us-east-1-text" => indexes.text_us_east.clone(),
-                _ => {
-                    eprintln!("Unknown database/region: {}", database);
-                    return;
-                }
-            };
+            let index = indexes.get_index_by_region(&region).unwrap();
 
             if let Err(e) = insert_vectors(user_id, index, vectors, filename, database).await {
                 eprintln!("Failed to insert vectors: {:?}", e);

@@ -4,20 +4,20 @@ use crate::structs::{insert_struct::*, search_struct::*};
 pub async fn extract_image_features(
     state: &AppState,
     image_data: Vec<u8>,
-) -> Result<Vec<f32>, InsertImageError> {
+) -> Result<Vec<f32>, InsertError> {
     let image = load_image::load_image(image_data, state.clip_config.image_size)
-        .map_err(|_| InsertImageError::ImageProcessing)?;
+        .map_err(|_| InsertError::ImageProcessing)?;
 
     let image_features = state
         .clip_model
         .get_image_features(&image)
-        .map_err(|_| InsertImageError::ModelInference)?;
+        .map_err(|_| InsertError::ModelInference)?;
 
     let image_vector = image_features
         .flatten_all()
-        .map_err(|_| InsertImageError::ImageProcessing)?
+        .map_err(|_| InsertError::ImageProcessing)?
         .to_vec1::<f32>()
-        .map_err(|_| InsertImageError::ImageProcessing)?;
+        .map_err(|_| InsertError::ImageProcessing)?;
     Ok(image_vector)
 }
 

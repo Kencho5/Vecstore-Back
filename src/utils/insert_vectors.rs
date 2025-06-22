@@ -5,16 +5,19 @@ pub async fn insert_vectors(
     user_id: i32,
     index: Arc<Mutex<Index>>,
     vectors: Vec<f32>,
-    filename: String,
+    filename: Option<String>,
     database: String,
-) -> Result<(), InsertImageError> {
+) -> Result<(), InsertError> {
     let mut fields = BTreeMap::new();
-    fields.insert(
-        "filename".to_string(),
-        Value {
-            kind: Some(Kind::StringValue(filename)),
-        },
-    );
+
+    if let Some(filename_value) = filename {
+        fields.insert(
+            "filename".to_string(),
+            Value {
+                kind: Some(Kind::StringValue(filename_value)),
+            },
+        );
+    }
 
     let metadata = Metadata { fields };
     let vectors = [Vector {
@@ -29,7 +32,7 @@ pub async fn insert_vectors(
     index
         .upsert(&vectors, &namespace.into())
         .await
-        .map_err(|_| InsertImageError::DatabaseInsert)?;
+        .map_err(|_| InsertError::DatabaseInsert)?;
 
     Ok(())
 }

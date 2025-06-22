@@ -6,7 +6,7 @@ pub async fn index_data_handler(
     Json(payload): Json<GetDbPayload>,
 ) -> Result<Json<NamespaceStats>, DashboardError> {
     let indexes = state.pinecone_indexes.lock().await;
-    let mut index = indexes.image_us_east.lock().await;
+    let mut index = indexes.us_east.lock().await;
 
     let stats = index
         .describe_index_stats(None)

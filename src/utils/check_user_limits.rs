@@ -5,7 +5,7 @@ pub async fn get_user_key(
     pool: &PgPool,
     api_key: String,
     plan_name: String,
-) -> Result<i32, InsertImageError> {
+) -> Result<i32, InsertError> {
     let result: Option<(i32, bool, bool, bool)> = sqlx::query_as(
         "
         SELECT 
@@ -27,17 +27,17 @@ pub async fn get_user_key(
     .bind(&plan_name)
     .fetch_optional(pool)
     .await
-    .map_err(|_| InsertImageError::DatabaseConnection)?;
+    .map_err(|_| InsertError::InvalidSubscription)?;
 
     match result {
-        None => Err(InsertImageError::InvalidApiKey),
+        None => Err(InsertError::InvalidApiKey),
         Some((owner_id, key_exists, subscription_active, within_limits)) => {
             if !key_exists {
-                Err(InsertImageError::InvalidApiKey)
+                Err(InsertError::InvalidApiKey)
             } else if !subscription_active {
-                Err(InsertImageError::InvalidSubscription)
+                Err(InsertError::InvalidSubscription)
             } else if !within_limits {
-                Err(InsertImageError::RequestLimitExceeded)
+                Err(InsertError::RequestLimitExceeded)
             } else {
                 Ok(owner_id)
             }

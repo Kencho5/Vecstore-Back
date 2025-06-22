@@ -5,7 +5,7 @@ pub async fn insert_image_handler(
     Extension(api_key): Extension<String>,
     State(state): State<AppState>,
     mut multipart: Multipart,
-) -> Result<Json<InsertImageBody>, InsertImageError> {
+) -> Result<Json<InsertImageBody>, InsertError> {
     let total_start = Instant::now();
 
     let user_id = get_user_key(&state.pool, api_key, "Image Search".to_string()).await?;
@@ -17,7 +17,7 @@ pub async fn insert_image_handler(
     while let Some(field) = multipart
         .next_field()
         .await
-        .map_err(|_| InsertImageError::MissingData)?
+        .map_err(|_| InsertError::MissingData)?
     {
         let field_name = field.name().unwrap_or("").to_string();
 
@@ -27,43 +27,35 @@ pub async fn insert_image_handler(
                     field
                         .bytes()
                         .await
-                        .map_err(|_| InsertImageError::MissingData)?
+                        .map_err(|_| InsertError::MissingData)?
                         .to_vec(),
                 );
             }
             "filename" => {
-                let bytes = field
-                    .bytes()
-                    .await
-                    .map_err(|_| InsertImageError::MissingData)?;
-                filename = Some(
-                    String::from_utf8(bytes.to_vec()).map_err(|_| InsertImageError::MissingData)?,
-                );
+                let bytes = field.bytes().await.map_err(|_| InsertError::MissingData)?;
+                filename =
+                    Some(String::from_utf8(bytes.to_vec()).map_err(|_| InsertError::MissingData)?);
             }
             "database" => {
-                let bytes = field
-                    .bytes()
-                    .await
-                    .map_err(|_| InsertImageError::MissingData)?;
-                database = Some(
-                    String::from_utf8(bytes.to_vec()).map_err(|_| InsertImageError::MissingData)?,
-                );
+                let bytes = field.bytes().await.map_err(|_| InsertError::MissingData)?;
+                database =
+                    Some(String::from_utf8(bytes.to_vec()).map_err(|_| InsertError::MissingData)?);
             }
 
             _ => {} // Ignore unknown fields
         }
     }
 
-    let image_data = image_data.ok_or(InsertImageError::MissingData)?;
-    let filename = filename.ok_or(InsertImageError::MissingData)?;
-    let database = database.ok_or(InsertImageError::MissingData)?;
+    let image_data = image_data.ok_or(InsertError::MissingData)?;
+    let filename = filename.ok_or(InsertError::MissingData)?;
+    let database = database.ok_or(InsertError::MissingData)?;
 
     let image_vectors = extract_image_features(&state, image_data).await?;
 
     let insert_task = BackgroundTask::InsertVectors {
         user_id,
         vectors: image_vectors,
-        filename,
+        filename: Some(filename),
         database: database.clone(),
     };
 

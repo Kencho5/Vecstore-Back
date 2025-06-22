@@ -1,10 +1,19 @@
 use crate::prelude::*;
 
 pub struct PineconeIndexes {
-    pub image_us_east: Arc<Mutex<Index>>,
+    pub us_east: Arc<Mutex<Index>>,
     //pub image_us_west: Index,
     //pub image_eu: Index,
-    pub text_us_east: Arc<Mutex<Index>>,
-    //pub text_us_west: Index,
-    //pub text_eu: Index,
+}
+
+impl PineconeIndexes {
+    pub fn get_index_by_region(&self, region: &str) -> Option<Arc<Mutex<Index>>> {
+        match region {
+            "us-east-1" => Some(self.us_east.clone()),
+            _ => {
+                eprintln!("Unknown region: {}", region);
+                None
+            }
+        }
+    }
 }

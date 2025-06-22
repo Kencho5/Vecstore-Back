@@ -27,7 +27,7 @@ def insert_image_loop(counter, limit, lock, start_time):
         data = {'filename': FILENAME, 'database': DATABASE}
         files = {'image': (FILENAME, IMG_DATA, 'image/jpeg')}
         headers = {"Authorization": API_KEY}
-        res = requests.post("http://localhost:3000/insert", headers=headers, data=data, files=files)
+        res = requests.post("http://localhost:3000/insert-image", headers=headers, data=data, files=files)
         print(f"{current}/{limit} | time: {res.json()}")
 
         if current == limit:
