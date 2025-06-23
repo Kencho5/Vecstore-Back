@@ -24,7 +24,7 @@ def insert_image_loop(counter, limit, lock, start_time):
             counter.value += 1
             current = counter.value
 
-        data = {'filename': FILENAME, 'database': DATABASE}
+        data = {'filename': FILENAME, 'database': DATABASE, 'metadata': '{"category": "landscape", "featured": true}'}
         files = {'image': (FILENAME, IMG_DATA, 'image/jpeg')}
         headers = {"Authorization": API_KEY}
         res = requests.post("http://localhost:3000/insert-image", headers=headers, data=data, files=files)

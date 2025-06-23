@@ -2,7 +2,7 @@ import requests
 import time
 from multiprocessing import Process, Value, Lock
 
-API_KEY = "f9b5f0b6c1d6efd3c5861e0ea261a5864c6456b9b956130355cc46f543da42b7"
+API_KEY = "cf7439a2cff6867a966bec4384d395f09a21b7af64c1e729d24a01ad8e44ea19"
 DATABASE = "vecstore-text"
 TEXT = "When Tony Stark, an industrialist, is captured, he constructs a high-tech armoured suit to escape. Once he manages to escape, he decides to use his suit to fight against evil forces to save the world."
 URL = "http://localhost:3000/insert-text"

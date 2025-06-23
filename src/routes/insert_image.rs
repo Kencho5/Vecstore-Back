@@ -11,6 +11,7 @@ pub async fn insert_image_handler(
     let mut image_data: Option<Vec<u8>> = None;
     let mut filename: Option<String> = None;
     let mut database: Option<String> = None;
+    let mut metadata: Option<String> = None;
 
     while let Some(field) = multipart
         .next_field()
@@ -39,6 +40,11 @@ pub async fn insert_image_handler(
                 database =
                     Some(String::from_utf8(bytes.to_vec()).map_err(|_| InsertError::MissingData)?);
             }
+            "metadata" => {
+                let bytes = field.bytes().await.map_err(|_| InsertError::MissingData)?;
+                metadata =
+                    Some(String::from_utf8(bytes.to_vec()).map_err(|_| InsertError::MissingData)?);
+            }
 
             _ => {} // Ignore unknown fields
         }
@@ -62,6 +68,7 @@ pub async fn insert_image_handler(
         user_id: validation_result.user_id,
         vectors: image_vectors,
         filename: Some(filename),
+        metadata,
         database: database.clone(),
         region: validation_result.region,
     };

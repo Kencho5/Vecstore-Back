@@ -25,6 +25,7 @@ pub async fn insert_text_handler(
         filename: None,
         database: payload.database,
         region: validation_result.region,
+        metadata: payload.metadata,
     };
 
     if state.task_queue.send(insert_task).is_err() {

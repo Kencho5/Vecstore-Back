@@ -22,6 +22,7 @@ impl InsertImageBody {
 pub struct InsertTextPayload {
     pub text: String,
     pub database: String,
+    pub metadata: Option<String>,
 }
 
 #[derive(Debug)]
@@ -34,6 +35,7 @@ pub enum InsertError {
     InvalidApiKey,
     InvalidSubscription,
     RequestLimitExceeded,
+    InvalidMetadata,
 }
 
 impl IntoResponse for InsertError {
@@ -64,6 +66,10 @@ impl IntoResponse for InsertError {
             InsertError::RequestLimitExceeded => (
                 StatusCode::UNAUTHORIZED,
                 "Monthly API request limit exceeded. Upgrade your plan or contact sales to increase your limit.",
+            ),
+            InsertError::InvalidMetadata => (
+                StatusCode::BAD_REQUEST,
+                "Invalid metadata format. Must be valid JSON.",
             ),
         };
 

@@ -6,6 +6,7 @@ pub async fn insert_vectors(
     index: Arc<Mutex<Index>>,
     vectors: Vec<f32>,
     filename: Option<String>,
+    metadata: Option<String>,
     database: String,
 ) -> Result<(), InsertError> {
     let mut fields = BTreeMap::new();
@@ -17,6 +18,37 @@ pub async fn insert_vectors(
                 kind: Some(Kind::StringValue(filename_value)),
             },
         );
+    }
+
+    if let Some(custom_metadata) = metadata {
+        match serde_json::from_str::<serde_json::Value>(&custom_metadata) {
+            Ok(json_value) => {
+                if let Some(obj) = json_value.as_object() {
+                    for (key, value) in obj {
+                        let pinecone_value = match value {
+                            serde_json::Value::String(s) => Value {
+                                kind: Some(Kind::StringValue(s.clone())),
+                            },
+                            serde_json::Value::Number(n) => {
+                                if let Some(f) = n.as_f64() {
+                                    Value {
+                                        kind: Some(Kind::NumberValue(f)),
+                                    }
+                                } else {
+                                    continue;
+                                }
+                            }
+                            serde_json::Value::Bool(b) => Value {
+                                kind: Some(Kind::BoolValue(*b)),
+                            },
+                            _ => continue,
+                        };
+                        fields.insert(key.clone(), pinecone_value);
+                    }
+                }
+            }
+            Err(_) => return Err(InsertError::InvalidMetadata),
+        }
     }
 
     let metadata = Metadata { fields };

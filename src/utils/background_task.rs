@@ -7,6 +7,7 @@ pub enum BackgroundTask {
         user_id: i32,
         vectors: Vec<f32>,
         filename: Option<String>,
+        metadata: Option<String>,
         database: String,
         region: String,
     },
@@ -69,13 +70,14 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
             user_id,
             vectors,
             filename,
+            metadata,
             database,
             region,
         } => {
             let indexes = state.pinecone_indexes.lock().await;
             let index = indexes.get_index_by_region(&region).unwrap();
 
-            if let Err(e) = insert_vectors(user_id, index, vectors, filename, database).await {
+            if let Err(e) = insert_vectors(user_id, index, vectors, filename, metadata, database).await {
                 eprintln!("Failed to insert vectors: {:?}", e);
             }
         } //BackgroundTask::IncrementRequest { database, user_id } => {

@@ -29,36 +29,24 @@ async fn validate_and_process_request(
 ) -> Result<(i32, String), InsertError> {
     let result: Option<(i32, bool, bool, bool, bool, String)> = sqlx::query_as(
         "
-        WITH user_validation AS (
-            SELECT 
-                ak.owner_id,
-                ak.key IS NOT NULL as key_exists,
-                s.status = 'active' as subscription_active,
-                s.usage_reset_date < (s.next_billing_date - INTERVAL '1 month') as should_reset,
-                d.total_requests,
-                s.req_limit,
-                db.region
-            FROM api_keys ak
-            FULL OUTER JOIN subscriptions s ON ak.owner_id = s.user_id AND s.plan_name = $2
-            FULL OUTER JOIN (
-                SELECT owner_id, SUM(requests) AS total_requests
-                FROM databases
-                GROUP BY owner_id
-            ) d ON ak.owner_id = d.owner_id
-            JOIN databases db ON db.name = $3 AND db.owner_id = ak.owner_id
-            WHERE ak.key = $1
-        )
         SELECT 
-            owner_id,
-            key_exists,
-            subscription_active,
+            ak.owner_id,
+            ak.key IS NOT NULL as key_exists,
+            s.status = 'active' as subscription_active,
             CASE 
-                WHEN should_reset THEN 0 < req_limit
-                ELSE COALESCE(total_requests, 0) < req_limit
+                WHEN s.usage_reset_date < (s.next_billing_date - INTERVAL '1 month') THEN 0 < s.req_limit
+                ELSE COALESCE((
+                    SELECT SUM(requests) 
+                    FROM databases 
+                    WHERE owner_id = ak.owner_id AND db_type = s.db_type
+                ), 0) < s.req_limit
             END as within_limits,
-            should_reset,
-            region
-        FROM user_validation
+            s.usage_reset_date < (s.next_billing_date - INTERVAL '1 month') as should_reset,
+            db.region
+        FROM api_keys ak
+        JOIN databases db ON db.name = $3 AND db.owner_id = ak.owner_id
+        JOIN subscriptions s ON s.user_id = ak.owner_id AND s.plan_name = $2 AND s.status = 'active'
+        WHERE ak.key = $1
         ",
     )
     .bind(&hash_api_key(api_key))
@@ -69,7 +57,7 @@ async fn validate_and_process_request(
     .map_err(|_| InsertError::InvalidSubscription)?;
 
     match result {
-        None => Err(InsertError::InvalidApiKey),
+        None => Err(InsertError::InvalidSubscription),
         Some((user_id, key_exists, subscription_active, within_limits, should_reset, region)) => {
             if !key_exists {
                 Err(InsertError::InvalidApiKey)
