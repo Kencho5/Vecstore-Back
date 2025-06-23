@@ -1,7 +1,7 @@
 use crate::prelude::*;
 use crate::structs::search_struct::*;
 
-pub async fn search_image_handler(
+pub async fn search_handler(
     Extension(api_key): Extension<String>,
     State(state): State<AppState>,
     mut multipart: Multipart,
@@ -70,7 +70,14 @@ pub async fn search_image_handler(
         return Err(SearchImageError::MissingData); // Neither image nor text provided
     };
 
-    let results = search_vectors_with_region(&state, vectors, validation_result.user_id, &database, &validation_result.region).await?;
+    let results = search_vectors_with_region(
+        &state,
+        vectors,
+        validation_result.user_id,
+        &database,
+        &validation_result.region,
+    )
+    .await?;
 
     Ok(Json(results))
 }

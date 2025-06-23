@@ -5,4 +5,4 @@ pub mod insert_image;
 pub mod insert_text;
 pub mod nsfw_detector;
 pub mod payments;
-pub mod search_image;
+pub mod search;

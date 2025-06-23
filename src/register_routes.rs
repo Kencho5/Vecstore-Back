@@ -14,7 +14,7 @@ fn api_routes() -> Router<AppState> {
     Router::new()
         .route("/insert-image", post(insert_image::insert_image_handler))
         .route("/insert-text", post(insert_text::insert_text_handler))
-        .route("/search", post(search_image::search_image_handler))
+        .route("/search", post(search::search_handler))
         .route("/nsfw", post(nsfw_detector::nsfw_detector_handler))
         .route_layer(middleware::from_fn(api_middleware))
 }

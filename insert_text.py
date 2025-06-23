@@ -17,7 +17,8 @@ def insert_text_loop(counter, limit, lock, start_time):
 
         payload = {
             "text": TEXT,
-            "database": DATABASE
+            "database": DATABASE, 
+            'metadata': '{"category": "landscape", "featured": true}'
         }
         headers = {
             "Authorization": API_KEY,
