@@ -92,8 +92,10 @@ async fn search_vectors_impl(
                         })
                         .collect()
                 });
+                let id = m.id;
 
                 SearchMatch {
+                    id,
                     score: format!("{:.2}%", m.score * 100.0),
                     metadata,
                 }
