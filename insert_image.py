@@ -11,8 +11,8 @@ def get_image_data(url):
         return None
 
 API_KEY = "cf7439a2cff6867a966bec4384d395f09a21b7af64c1e729d24a01ad8e44ea19"
-IMAGE_URL = "https://c.files.bbci.co.uk/18d0/live/88ff5600-d979-11ef-a5c8-1da73bd59591.jpg"
-FILENAME = "image.jpg"
+IMAGE_URL = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/2019_Toyota_Corolla_Icon_Tech_VVT-i_Hybrid_1.8.jpg/960px-2019_Toyota_Corolla_Icon_Tech_VVT-i_Hybrid_1.8.jpg"
+FILENAME = "car.jpg"
 DATABASE = "vecstore"
 IMG_DATA = get_image_data(IMAGE_URL)
 
@@ -24,7 +24,7 @@ def insert_image_loop(counter, limit, lock, start_time):
             counter.value += 1
             current = counter.value
 
-        data = {'filename': FILENAME, 'database': DATABASE, 'metadata': '{"category": "landscape", "featured": true}'}
+        data = {'filename': FILENAME, 'database': DATABASE, 'metadata': '{"category": "cars"}'}
         files = {'image': (FILENAME, IMG_DATA, 'image/jpeg')}
         headers = {"Authorization": API_KEY}
         res = requests.post("http://localhost:3000/insert-image", headers=headers, data=data, files=files)

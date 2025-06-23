@@ -5,6 +5,7 @@ pub struct SearchImagePayload {
     pub text: Option<String>,
     pub image: Option<String>,
     pub database: String,
+    pub metadata: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -24,6 +25,7 @@ pub enum SearchImageError {
     ModelInference,
     MissingData,
     InvalidApiKey,
+    InvalidMetadata,
 }
 
 impl IntoResponse for SearchImageError {
@@ -37,6 +39,7 @@ impl IntoResponse for SearchImageError {
             }
             SearchImageError::MissingData => (StatusCode::BAD_REQUEST, "Missing search data"),
             SearchImageError::InvalidApiKey => (StatusCode::BAD_REQUEST, "Invalid api key"),
+            SearchImageError::InvalidMetadata => (StatusCode::BAD_REQUEST, "Invalid metadata format. Must be valid JSON."),
         };
 
         let body = Json(json!({

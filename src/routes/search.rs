@@ -9,6 +9,7 @@ pub async fn search_handler(
     let mut image_data: Option<Vec<u8>> = None;
     let mut text: Option<String> = None;
     let mut database: Option<String> = None;
+    let mut metadata: Option<String> = None;
 
     while let Some(field) = multipart
         .next_field()
@@ -44,6 +45,15 @@ pub async fn search_handler(
                     String::from_utf8(bytes.to_vec()).map_err(|_| SearchImageError::MissingData)?,
                 );
             }
+            "metadata" => {
+                let bytes = field
+                    .bytes()
+                    .await
+                    .map_err(|_| SearchImageError::MissingData)?;
+                metadata = Some(
+                    String::from_utf8(bytes.to_vec()).map_err(|_| SearchImageError::MissingData)?,
+                );
+            }
             _ => {} // Ignore unknown fields
         }
     }
@@ -76,6 +86,7 @@ pub async fn search_handler(
         validation_result.user_id,
         &database,
         &validation_result.region,
+        metadata,
     )
     .await?;
 
