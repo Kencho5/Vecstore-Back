@@ -56,7 +56,7 @@ def search_with_single_metadata_filter():
     }
     
     files = {
-        'text': (None, 'dog'),
+        'text': 'dog',
         'database': (None, DATABASE),
         'metadata': (None, json.dumps(metadata_filter))
     }
