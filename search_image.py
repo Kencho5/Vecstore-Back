@@ -64,12 +64,7 @@ def search_with_single_metadata_filter():
     
     response = requests.post("http://localhost:3000/search", headers=headers, files=files)
     print(f"Status: {response.status_code}")
-    print(f"Response content: {response.text}")
-    if response.headers.get('content-type', '').startswith('application/json'):
-        print(f"Response JSON: {response.json()}")
-    else:
-        print("Response is not JSON")
-    print()
+    print(f"Response JSON: {json.dumps(response.json(), indent=2)}")
 
 def search_with_invalid_metadata():
     """Test search with invalid metadata format"""

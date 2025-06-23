@@ -6,6 +6,8 @@ pub async fn search_handler(
     State(state): State<AppState>,
     mut multipart: Multipart,
 ) -> Result<Json<SearchResponse>, SearchImageError> {
+    let total_start = Instant::now();
+
     let mut image_data: Option<Vec<u8>> = None;
     let mut text: Option<String> = None;
     let mut database: Option<String> = None;
@@ -90,5 +92,10 @@ pub async fn search_handler(
     )
     .await?;
 
-    Ok(Json(results))
+    let total_time_ms = total_start.elapsed().as_millis() as u64;
+
+    Ok(Json(SearchResponse {
+        results: results.matches,
+        time: format!("{}ms", total_time_ms),
+    }))
 }

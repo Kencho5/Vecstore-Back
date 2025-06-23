@@ -10,13 +10,19 @@ pub struct SearchImagePayload {
 
 #[derive(Serialize)]
 pub struct SearchResponse {
+    pub results: Vec<SearchMatch>,
+    pub time: String,
+}
+
+#[derive(Serialize)]
+pub struct SearchResults {
     pub matches: Vec<SearchMatch>,
 }
 
 #[derive(Serialize)]
 pub struct SearchMatch {
     pub score: String,
-    pub filename: Option<String>,
+    pub metadata: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug)]
@@ -39,7 +45,10 @@ impl IntoResponse for SearchImageError {
             }
             SearchImageError::MissingData => (StatusCode::BAD_REQUEST, "Missing search data"),
             SearchImageError::InvalidApiKey => (StatusCode::BAD_REQUEST, "Invalid api key"),
-            SearchImageError::InvalidMetadata => (StatusCode::BAD_REQUEST, "Invalid metadata format. Must be valid JSON."),
+            SearchImageError::InvalidMetadata => (
+                StatusCode::BAD_REQUEST,
+                "Invalid metadata format. Must be valid JSON.",
+            ),
         };
 
         let body = Json(json!({

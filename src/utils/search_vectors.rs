@@ -8,7 +8,7 @@ pub async fn search_vectors_with_region(
     database: &String,
     region: &String,
     metadata_filter: Option<String>,
-) -> Result<SearchResponse, SearchImageError> {
+) -> Result<SearchResults, SearchImageError> {
     let indexes = state.pinecone_indexes.lock().await;
     let index = indexes.get_index_by_region(region).unwrap();
     let mut index = index.lock().await;
@@ -22,7 +22,7 @@ async fn search_vectors_impl(
     database: &String,
     index: &mut Index,
     metadata_filter: Option<String>,
-) -> Result<SearchResponse, SearchImageError> {
+) -> Result<SearchResults, SearchImageError> {
     // Parse metadata filter if provided
     let filter = if let Some(metadata_str) = metadata_filter {
         match serde_json::from_str::<serde_json::Value>(&metadata_str) {
@@ -54,7 +54,7 @@ async fn search_vectors_impl(
                 } else {
                     return Err(SearchImageError::InvalidMetadata);
                 }
-            },
+            }
             Err(_) => return Err(SearchImageError::InvalidMetadata),
         }
     } else {
@@ -74,22 +74,29 @@ async fn search_vectors_impl(
         .await
         .map_err(|_| SearchImageError::Unforseen)?;
 
-    // Convert QueryResponse to SearchResponse
-    let search_response = SearchResponse {
+    // Convert QueryResponse to SearchResults
+    let search_response = SearchResults {
         matches: response
             .matches
             .into_iter()
-            .map(|m| SearchMatch {
-                score: format!("{:.2}%", m.score * 100.0),
-                filename: m.metadata.and_then(|metadata| {
-                    metadata.fields.get("filename").and_then(|value| {
-                        if let Some(Kind::StringValue(s)) = &value.kind {
-                            Some(s.clone())
-                        } else {
-                            None
-                        }
-                    })
-                }),
+            .map(|m| {
+                let metadata = m.metadata.map(|md| {
+                    md.fields
+                        .into_iter()
+                        .filter_map(|(k, v)| {
+                            if let Some(Kind::StringValue(s)) = v.kind {
+                                Some((k, s))
+                            } else {
+                                None
+                            }
+                        })
+                        .collect()
+                });
+
+                SearchMatch {
+                    score: format!("{:.2}%", m.score * 100.0),
+                    metadata,
+                }
             })
             .collect(),
     };
