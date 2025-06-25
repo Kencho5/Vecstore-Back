@@ -21,10 +21,7 @@ pub async fn usage_handler(
     .bind(&claims.user_id)
     .fetch_all(&state.pool)
     .await
-    .map_err(|e| {
-        dbg!(e);
-        DashboardError::Unforseen
-    })?;
+    .map_err(|_| DashboardError::Unforseen)?;
 
     Ok(Json(result))
 }

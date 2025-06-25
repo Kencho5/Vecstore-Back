@@ -22,7 +22,7 @@ pub async fn upgrade_subscription_handler(
         quantity: 1,
     };
 
-    let result = state
+    state
         .paddle
         .subscription_update(&payload.subscription_id)
         .items([new_item])
@@ -30,24 +30,6 @@ pub async fn upgrade_subscription_handler(
         .send()
         .await
         .map_err(|_| DashboardError::Unforseen)?;
-
-    update_subscription_db(
-        state.pool,
-        payload.subscription_id,
-        result.data.next_billed_at.unwrap(),
-        result
-            .data
-            .items
-            .first()
-            .unwrap()
-            .price
-            .unit_price
-            .amount
-            .parse::<i32>()
-            .unwrap()
-            / 100,
-    )
-    .await?;
 
     Ok(StatusCode::OK)
 }
@@ -102,30 +84,4 @@ pub async fn preview_subscription_handler(
     };
 
     Ok(Json(preview))
-}
-
-async fn update_subscription_db(
-    pool: PgPool,
-    subscription_id: String,
-    next_billed_at: DateTime<Utc>,
-    price: i32,
-) -> Result<(), DashboardError> {
-    sqlx::query(
-        "UPDATE subscriptions 
-         SET plan_type = 'pro', 
-             next_billing_date = $1::timestamptz::date,
-             updated_at = CURRENT_TIMESTAMP,
-             price = $2,
-             req_limit = 15000,
-             status = 'active'
-         WHERE subscription_id = $3",
-    )
-    .bind(&next_billed_at)
-    .bind(&price)
-    .bind(&subscription_id)
-    .execute(&pool)
-    .await
-    .map_err(|_| DashboardError::Unforseen)?;
-
-    Ok(())
 }
