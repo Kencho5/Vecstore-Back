@@ -54,13 +54,8 @@ pub async fn insert_image_handler(
     let filename = filename.ok_or(InsertError::MissingData)?;
     let database = database.ok_or(InsertError::MissingData)?;
 
-    let validation_result = validate_user_and_increment(
-        &state.pool,
-        api_key,
-        database.clone(),
-        "Image Search".to_string(),
-    )
-    .await?;
+    let validation_result =
+        validate_user_and_increment(&state.pool, api_key, database.clone()).await?;
 
     let image_vectors = extract_image_features(&state, image_data).await?;
 

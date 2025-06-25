@@ -63,14 +63,9 @@ pub async fn search_handler(
     let database = database.ok_or(SearchImageError::MissingData)?;
 
     // Validate user and increment request count in one call
-    let validation_result = validate_user_and_increment(
-        &state.pool,
-        api_key,
-        database.clone(),
-        "Image Search".to_string(),
-    )
-    .await
-    .map_err(|_| SearchImageError::InvalidApiKey)?;
+    let validation_result = validate_user_and_increment(&state.pool, api_key, database.clone())
+        .await
+        .map_err(|_| SearchImageError::InvalidApiKey)?;
 
     let vectors = if let Some(image_bytes) = image_data {
         extract_image_features(&state, image_bytes)

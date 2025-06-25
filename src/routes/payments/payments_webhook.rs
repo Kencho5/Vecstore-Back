@@ -10,12 +10,8 @@ pub async fn payments_webhook_handler(
         "subscription.updated" => {
             dbg!(&payload);
         }
-        "subscription.past_due" => {
-            dbg!(&payload);
-        }
-        "subscription.canceled" => {
-            dbg!(&payload);
-        }
+        "subscription.past_due" => {}
+        "subscription.canceled" => {}
         _ => {}
     }
     Ok(StatusCode::OK)
