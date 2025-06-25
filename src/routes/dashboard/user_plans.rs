@@ -5,7 +5,7 @@ pub async fn user_plans_handler(
     State(state): State<AppState>,
 ) -> Result<Json<Vec<String>>, DashboardError> {
     let plan_names = sqlx::query_scalar::<_, String>(
-        "SELECT plan_name FROM subscriptions WHERE user_id = $1 AND status = 'active'",
+        "SELECT db_type FROM subscriptions WHERE user_id = $1 AND status = 'active'",
     )
     .bind(&claims.user_id)
     .fetch_all(&state.pool)

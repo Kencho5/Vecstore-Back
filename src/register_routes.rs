@@ -68,19 +68,10 @@ fn auth_routes() -> Router<AppState> {
 }
 
 fn payment_routes() -> Router<AppState> {
-    Router::new()
-        .route(
-            "/payments/created",
-            post(payment_created::payment_created_handler),
-        )
-        .route(
-            "/payments/canceled",
-            post(subscription_canceled::subscription_canceled_handler),
-        )
-        .route(
-            "/payments/failed",
-            post(payment_failed::payment_failed_handler),
-        )
+    Router::new().route(
+        "/payments-webhook",
+        post(payments_webhook::payments_webhook_handler),
+    )
 }
 
 fn health() -> Router<AppState> {

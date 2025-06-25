@@ -1,52 +1,48 @@
 use crate::prelude::*;
 
 // PAYMENT CREATED
-#[derive(Deserialize)]
-pub struct PaymentCreatedPayload {
+#[derive(Deserialize, Debug)]
+pub struct PaymentWebhookPayload {
+    pub event_type: String,
     pub data: SubscriptionData,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct SubscriptionData {
     pub id: String,
-    pub status: String,
-    pub next_billed_at: Option<String>,
-    pub items: Vec<SubscriptionItem>,
     pub customer_id: String,
-    pub custom_data: Option<CustomData>,
+    pub status: String,
+    pub custom_data: CustomData,
+    pub items: Vec<SubscriptionItem>,
+    pub next_billed_at: String,
 }
 
-#[derive(Deserialize)]
-pub struct SubscriptionItem {
-    pub product: ProductData,
-    pub price: PriceData,
-}
-
-#[derive(Deserialize)]
-pub struct ProductData {
-    pub name: String,
-}
-
-#[derive(Deserialize)]
-pub struct PriceData {
-    pub unit_price: UnitPrice,
-    pub description: String,
-    pub custom_data: CustomPriceData,
-}
-
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct CustomData {
-    pub user_id: Option<i32>,
-    pub user_email: Option<String>,
+    pub user_id: i64,
+    pub user_email: String,
 }
 
-#[derive(Deserialize)]
-pub struct CustomPriceData {
-    pub limit: String,
+#[derive(Deserialize, Debug)]
+pub struct SubscriptionItem {
+    pub price: Price,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Price {
+    pub name: String,
+    pub description: String,
+    pub custom_data: PriceCustomData,
+    pub unit_price: UnitPrice,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct PriceCustomData {
     pub db_type: String,
+    pub limit: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct UnitPrice {
     pub amount: String,
 }
@@ -73,28 +69,6 @@ pub struct SubscriptionPreview {
     pub next_billed_at: DateTime<chrono::Utc>,
     pub amount: i32,
     pub plan_name: String,
-}
-
-#[derive(Deserialize)]
-pub struct SubscriptionCanceledPayload {
-    pub data: SubscriptionCanceledData,
-}
-
-#[derive(Deserialize, Debug)]
-pub struct SubscriptionCanceledData {
-    pub id: String,
-    pub status: String,
-}
-
-#[derive(Deserialize)]
-pub struct PaymentFailedPayload {
-    pub data: PaymentFailedData,
-}
-
-#[derive(Deserialize, Debug)]
-pub struct PaymentFailedData {
-    pub id: String,
-    pub status: String,
 }
 
 pub fn get_price_maps() -> HashMap<String, String> {

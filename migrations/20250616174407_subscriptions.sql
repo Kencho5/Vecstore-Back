@@ -11,7 +11,6 @@ CREATE TABLE IF NOT EXISTS subscriptions (
     req_limit INT NOT NULL,
     status VARCHAR(50) NOT NULL DEFAULT 'active', 
     next_billing_date DATE,
-    usage_reset_date DATE DEFAULT CURRENT_DATE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -31,5 +30,3 @@ CREATE INDEX IF NOT EXISTS idx_subscriptions_plan
 CREATE INDEX IF NOT EXISTS idx_subscriptions_next_billing_date
     ON subscriptions(next_billing_date);
 
-CREATE INDEX IF NOT EXISTS idx_subscriptions_usage_reset_date
-    ON subscriptions(usage_reset_date);
