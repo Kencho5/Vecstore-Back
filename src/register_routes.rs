@@ -34,10 +34,10 @@ fn dashboard_routes() -> Router<AppState> {
             "/delete-api-key",
             delete(delete_api_key::delete_api_key_handler),
         )
-        .route(
-            "/subscriptions",
-            get(subscriptions::list_subscriptions_handler),
-        )
+        //.route(
+        //    "/subscriptions",
+        //    get(subscriptions::list_subscriptions_handler),
+        //)
         .route(
             "/payment-methods",
             get(payment_methods::payment_methods_handler),
@@ -45,14 +45,14 @@ fn dashboard_routes() -> Router<AppState> {
         .route("/portal-url", get(portal_url::portal_url_handler))
         .route("/user-plans", get(user_plans::user_plans_handler))
         .route("/usage", get(usage::usage_handler))
-        .route(
-            "/upgrade-subscription",
-            post(upgrade_subscription::upgrade_subscription_handler),
-        )
-        .route(
-            "/subscription-preview",
-            post(upgrade_subscription::preview_subscription_handler),
-        )
+        //.route(
+        //    "/upgrade-subscription",
+        //    post(upgrade_subscription::upgrade_subscription_handler),
+        //)
+        //.route(
+        //    "/subscription-preview",
+        //    post(upgrade_subscription::preview_subscription_handler),
+        //)
         .route_layer(middleware::from_fn(validate_headers))
 }
 
