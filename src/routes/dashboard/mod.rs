@@ -4,6 +4,7 @@ pub mod delete_api_key;
 pub mod get_api_keys;
 pub mod get_dbs;
 pub mod get_index_data;
+pub mod list_transactions;
 pub mod payment_methods;
 pub mod portal_url;
 pub mod usage;

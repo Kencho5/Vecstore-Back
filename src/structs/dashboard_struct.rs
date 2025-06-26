@@ -64,6 +64,16 @@ pub struct PortalUrlBody {
     pub url: String,
 }
 
+//TRANSACTIONS
+#[derive(Serialize, sqlx::FromRow)]
+pub struct Transaction {
+    pub plan_name: String,
+    pub credits_purchased: i32,
+    pub amount_paid: i32,
+    pub status: String,
+    pub created_at: NaiveDateTime,
+}
+
 impl PortalUrlBody {
     pub fn new(url: String) -> Self {
         Self { url }

@@ -38,6 +38,10 @@ fn dashboard_routes() -> Router<AppState> {
             "/payment-methods",
             get(payment_methods::payment_methods_handler),
         )
+        .route(
+            "/list-transactions",
+            get(list_transactions::list_transactions_handler),
+        )
         .route("/portal-url", get(portal_url::portal_url_handler))
         .route("/usage", get(usage::usage_handler))
         .route_layer(middleware::from_fn(validate_headers))

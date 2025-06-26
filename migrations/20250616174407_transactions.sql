@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     credits_purchased INTEGER NOT NULL,
     amount_paid INTEGER NOT NULL, -- amount in cents
     status VARCHAR(50) NOT NULL,
-    billed_at TIMESTAMP NOT NULL,
+    billed_at TIMESTAMP,
     invoice_id VARCHAR(255),
     invoice_number VARCHAR(255),
     payment_method VARCHAR(50),

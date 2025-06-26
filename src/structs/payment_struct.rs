@@ -12,7 +12,7 @@ pub struct TransactionData {
     pub id: String,
     pub customer_id: String,
     pub status: String,
-    pub billed_at: String,
+    pub billed_at: Option<String>,
     pub invoice_id: Option<String>,
     pub invoice_number: Option<String>,
     pub custom_data: CustomData,

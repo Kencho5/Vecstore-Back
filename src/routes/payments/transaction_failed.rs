@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-pub async fn transaction_completed(
+pub async fn transaction_failed(
     state: &AppState,
     payload: &PaymentWebhookPayload,
 ) -> Result<(), PaymentError> {
