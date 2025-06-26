@@ -9,4 +9,3 @@ pub mod portal_url;
 pub mod subscriptions;
 pub mod upgrade_subscription;
 pub mod usage;
-pub mod user_plans;

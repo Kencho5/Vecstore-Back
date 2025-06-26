@@ -56,9 +56,7 @@ pub struct ApiKeyResponse {
 //USAGE
 #[derive(Deserialize, Serialize, sqlx::FromRow)]
 pub struct UsageResponse {
-    pub plan_name: String,
-    pub req_limit: i32,
-    pub used_requests: i64,
+    pub requests: i32,
 }
 
 //USER PORTAL

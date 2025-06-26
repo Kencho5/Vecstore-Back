@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(255) NOT NULL,
     company VARCHAR(255),
     password TEXT,
+    credits INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

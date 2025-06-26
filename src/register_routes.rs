@@ -43,7 +43,6 @@ fn dashboard_routes() -> Router<AppState> {
             get(payment_methods::payment_methods_handler),
         )
         .route("/portal-url", get(portal_url::portal_url_handler))
-        .route("/user-plans", get(user_plans::user_plans_handler))
         .route("/usage", get(usage::usage_handler))
         //.route(
         //    "/upgrade-subscription",

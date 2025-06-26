@@ -5,54 +5,47 @@ pub async fn transaction_completed(
     payload: &PaymentWebhookPayload,
 ) -> Result<(), PaymentError> {
     let data = &payload.data;
-
-    let subscription_id = &data.id;
-    let customer_id = &data.customer_id;
-    let status = &data.status;
-    let user_id = data.custom_data.user_id as i32;
-    let user_email = &data.custom_data.user_email;
-
     let price = &data.items[0].price;
-    let plan_name = &price.name;
-    let plan_type = &price.description;
-    let db_type = &price.custom_data.db_type;
-    let req_limit = price
+
+    let user_id = data.custom_data.user_id as i32;
+    let credits_purchased = price
         .custom_data
-        .limit
+        .credits
         .parse::<i32>()
         .map_err(|_| PaymentError::MissingCustomerData)?;
-    let amount = price
+    let amount_paid = price
         .unit_price
         .amount
         .parse::<i32>()
+        .map_err(|_| PaymentError::MissingCustomerData)?;
+    let billed_at = DateTime::parse_from_rfc3339(&data.billed_at)
         .map_err(|_| PaymentError::MissingCustomerData)?
-        / 100;
-
-    let next_billing_date = DateTime::parse_from_rfc3339(&data.next_billed_at)
-        .map_err(|_| PaymentError::MissingCustomerData)?
-        .naive_utc()
-        .date();
+        .naive_utc();
+    let payment_method = &data.payments[0].method_details.payment_type;
 
     sqlx::query(
         r#"
-        INSERT INTO subscriptions (
-            user_id, user_email, customer_id, subscription_id, 
-            plan_name, plan_type, db_type, price, req_limit, 
-            status, next_billing_date
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        INSERT INTO transactions (
+            user_id, user_email, transaction_id, customer_id, price_id,
+            plan_name, plan_description, credits_purchased, amount_paid,
+            status, billed_at, invoice_id, invoice_number, payment_method
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
         "#,
     )
     .bind(user_id)
-    .bind(user_email)
-    .bind(customer_id)
-    .bind(subscription_id)
-    .bind(plan_name)
-    .bind(plan_type)
-    .bind(db_type)
-    .bind(amount)
-    .bind(req_limit)
-    .bind(status)
-    .bind(next_billing_date)
+    .bind(&data.custom_data.user_email)
+    .bind(&data.id)
+    .bind(&data.customer_id)
+    .bind(&price.id)
+    .bind(&price.name)
+    .bind(&price.description)
+    .bind(credits_purchased)
+    .bind(amount_paid)
+    .bind(&data.status)
+    .bind(billed_at)
+    .bind(&data.invoice_id)
+    .bind(&data.invoice_number)
+    .bind(payment_method)
     .execute(&state.pool)
     .await
     .map_err(|_| PaymentError::Unforseen)?;
