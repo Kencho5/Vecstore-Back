@@ -6,6 +6,4 @@ pub mod get_dbs;
 pub mod get_index_data;
 pub mod payment_methods;
 pub mod portal_url;
-pub mod subscriptions;
-pub mod upgrade_subscription;
 pub mod usage;
