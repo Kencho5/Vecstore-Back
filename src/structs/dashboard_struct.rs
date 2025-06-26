@@ -20,7 +20,6 @@ pub struct Database {
     pub name: String,
     pub region: String,
     pub requests: i32,
-    pub req_limit: i32,
 }
 
 //INDEX

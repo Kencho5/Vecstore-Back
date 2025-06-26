@@ -12,11 +12,7 @@ pub async fn add_db_handler(
     let result = sqlx::query(
         "
         INSERT INTO databases(name, db_type, region, owner_id)
-        SELECT $1, $2, $3, $4
-        WHERE EXISTS (
-          SELECT 1 FROM subscriptions
-          WHERE user_id = $4 AND db_type = $5 AND status = 'active'
-        );
+        VALUES($1, $2, $3, $4)
         ",
     )
     .bind(&payload.name.to_lowercase())

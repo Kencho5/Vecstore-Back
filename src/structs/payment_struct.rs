@@ -61,30 +61,6 @@ pub struct MethodDetails {
     pub payment_type: String,
 }
 
-//SUBSCRIPTIONS
-#[derive(Deserialize, Serialize, sqlx::FromRow)]
-pub struct Subscription {
-    pub subscription_id: String,
-    pub plan_name: String,
-    pub plan_type: String,
-    pub price: i32,
-    pub status: String,
-    pub next_billing_date: NaiveDate,
-}
-
-#[derive(Deserialize, Serialize, sqlx::FromRow)]
-pub struct SubscriptionPreviewPayload {
-    pub subscription_id: String,
-}
-
-#[derive(Serialize)]
-pub struct SubscriptionPreview {
-    pub subscription_id: String,
-    pub next_billed_at: DateTime<chrono::Utc>,
-    pub amount: i32,
-    pub plan_name: String,
-}
-
 pub enum PaymentError {
     Unforseen,
     MissingCustomerData,

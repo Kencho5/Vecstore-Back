@@ -7,7 +7,7 @@ pub use std::{
 
 // External crates
 pub use anyhow::Result;
-pub use chrono::{DateTime, Duration, NaiveDate, NaiveDateTime, Utc};
+pub use chrono::{DateTime, Duration, NaiveDateTime, Utc};
 pub use dotenv::dotenv;
 pub use google_oauth::AsyncClient;
 pub use http::{HeaderMap, HeaderValue, Method, StatusCode};
