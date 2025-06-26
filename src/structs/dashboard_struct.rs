@@ -55,7 +55,7 @@ pub struct ApiKeyResponse {
 //USAGE
 #[derive(Deserialize, Serialize, sqlx::FromRow)]
 pub struct UsageResponse {
-    pub requests: i32,
+    pub requests: i64,
 }
 
 //USER PORTAL
