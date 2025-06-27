@@ -29,31 +29,14 @@ pub async fn validate_user_and_increment(
         None => return Err(InsertError::DatabaseNotFound),
     };
 
-    let validation_result: Option<(i32,)> = sqlx::query_as(
-        "SELECT s.req_limit 
-         FROM subscriptions s
-         WHERE s.user_id = $1 AND s.db_type = $2 AND s.status = 'active'",
-    )
-    .bind(user_id)
-    .bind(&db_type)
-    .fetch_optional(pool)
-    .await
-    .map_err(|_| InsertError::InvalidApiKey)?;
-
-    let req_limit = match validation_result {
-        Some((limit,)) => limit,
-        None => return Err(InsertError::InvalidSubscription),
-    };
-
     let db_result: Option<(String, i32)> = sqlx::query_as(
         "UPDATE databases 
          SET requests = requests + 1 
-         WHERE name = $1 AND owner_id = $2 AND requests < $3
+         WHERE name = $1 AND owner_id = $2
          RETURNING region, requests - 1 as previous_requests",
     )
     .bind(&database)
     .bind(user_id)
-    .bind(req_limit)
     .fetch_optional(pool)
     .await
     .map_err(|_| InsertError::DatabaseNotFound)?;
@@ -70,9 +53,6 @@ pub async fn validate_user_and_increment(
                     .map_err(|_| InsertError::DatabaseNotFound)?;
 
             match exists {
-                Some((current_requests,)) if current_requests >= req_limit => {
-                    return Err(InsertError::RequestLimitExceeded);
-                }
                 Some(_) => return Err(InsertError::DatabaseNotFound),
                 None => return Err(InsertError::DatabaseNotFound),
             }
