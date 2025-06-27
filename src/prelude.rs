@@ -55,6 +55,6 @@ pub use crate::{
     structs::{app_state::*, auth_struct::*, payment_struct::*, pinecone_struct::*},
     utils::{
         background_task::*, extract_features::*, get_customer_id::*, get_user_and_region::*,
-        hash_api_key::*, insert_vectors::*, search_vectors::*, tokenizer::*,
+        hash_api_key::*, insert_vectors::*, save_usage::*, search_vectors::*, tokenizer::*,
     },
 };

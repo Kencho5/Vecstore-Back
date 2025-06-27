@@ -76,8 +76,17 @@ pub async fn insert_image_handler(
         region: validation_result.region,
     };
 
+    let logs_task = BackgroundTask::SaveUsageLogs {
+        pool: state.pool,
+        user_id: validation_result.user_id,
+    };
+
     if state.task_queue.send(insert_task).is_err() {
         eprintln!("Failed to send insert_task");
+    }
+
+    if state.task_queue.send(logs_task).is_err() {
+        eprintln!("Failed to send logs_task");
     }
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;

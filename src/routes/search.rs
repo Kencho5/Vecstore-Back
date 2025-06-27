@@ -94,6 +94,15 @@ pub async fn search_handler(
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;
 
+    let logs_task = BackgroundTask::SaveUsageLogs {
+        pool: state.pool,
+        user_id: validation_result.user_id,
+    };
+
+    if state.task_queue.send(logs_task).is_err() {
+        eprintln!("Failed to send logs_task");
+    }
+
     Ok(Json(SearchResponse {
         results: results.matches,
         time: format!("{}ms", total_time_ms),

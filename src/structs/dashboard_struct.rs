@@ -86,6 +86,7 @@ impl PortalUrlBody {
     }
 }
 
+#[derive(Debug)]
 pub enum DashboardError {
     Unforseen,
     Unauthorized,
