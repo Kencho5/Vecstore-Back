@@ -55,5 +55,12 @@ pub async fn transaction_completed(
     .await
     .map_err(|_| PaymentError::Unforseen)?;
 
+    sqlx::query("UPDATE users SET credits = credits + $1 WHERE id = $2")
+        .bind(&credits_purchased)
+        .bind(user_id)
+        .execute(&state.pool)
+        .await
+        .map_err(|_| PaymentError::Unforseen)?;
+
     Ok(())
 }
