@@ -5,6 +5,7 @@ use crate::structs::insert_struct::*;
 pub struct UserValidationResult {
     pub user_id: i32,
     pub region: String,
+    pub credits_left: i32,
 }
 
 pub async fn validate_user_and_increment(
@@ -12,7 +13,7 @@ pub async fn validate_user_and_increment(
     api_key: String,
     database: &str,
 ) -> Result<UserValidationResult, InsertError> {
-    let result: Option<(i32, String)> = sqlx::query_as(
+    let result: Option<(i32, String, i32)> = sqlx::query_as(
         "WITH validated_user AS (
            SELECT ak.owner_id, d.db_type, d.region
            FROM api_keys ak
@@ -23,7 +24,7 @@ pub async fn validate_user_and_increment(
            UPDATE users 
            SET credits = credits - 1 
            WHERE id = (SELECT owner_id FROM validated_user) AND credits > 0
-           RETURNING id
+           RETURNING id, credits
          ),
          updated_db AS (
            UPDATE databases 
@@ -31,7 +32,7 @@ pub async fn validate_user_and_increment(
            WHERE name = $2 AND owner_id = (SELECT owner_id FROM validated_user)
            RETURNING owner_id, region
          )
-         SELECT ud.owner_id, ud.region
+         SELECT ud.owner_id, ud.region, uc.credits
          FROM updated_db ud
          JOIN updated_credits uc ON ud.owner_id = uc.id",
     )
@@ -41,8 +42,8 @@ pub async fn validate_user_and_increment(
     .await
     .map_err(|_| InsertError::DatabaseInsert)?;
 
-    let (user_id, region) = match result {
-        Some((id, reg)) => (id, reg),
+    let (user_id, region, credits_left) = match result {
+        Some((id, reg, credits)) => (id, reg, credits),
         None => {
             let validation_check: Option<(i32,)> = sqlx::query_as(
                 "SELECT ak.owner_id 
@@ -63,5 +64,9 @@ pub async fn validate_user_and_increment(
         }
     };
 
-    Ok(UserValidationResult { user_id, region })
+    Ok(UserValidationResult {
+        user_id,
+        region,
+        credits_left,
+    })
 }

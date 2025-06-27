@@ -4,9 +4,11 @@ pub async fn insert_text_handler(
     Extension(api_key): Extension<String>,
     State(state): State<AppState>,
     Json(payload): Json<InsertTextPayload>,
-) -> Result<(), InsertError> {
+) -> Result<Json<InsertTextResponse>, InsertError> {
     let validation_result =
         validate_user_and_increment(&state.pool, api_key, &payload.database).await?;
+
+    let total_start = Instant::now();
 
     let user_id = validation_result.user_id;
 
@@ -27,5 +29,10 @@ pub async fn insert_text_handler(
         eprintln!("Failed to send insert_task");
     }
 
-    Ok(())
+    let total_time_ms = total_start.elapsed().as_millis() as u64;
+
+    Ok(Json(InsertTextResponse {
+        time: format!("{}ms", total_time_ms),
+        credits_left: validation_result.credits_left,
+    }))
 }

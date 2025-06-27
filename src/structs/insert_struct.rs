@@ -9,11 +9,12 @@ pub struct SearchImagePayload {
 #[derive(Serialize)]
 pub struct InsertImageBody {
     pub time: String,
+    pub credits_left: i32,
 }
 
 impl InsertImageBody {
-    pub fn new(time: String) -> Self {
-        Self { time }
+    pub fn new(time: String, credits_left: i32) -> Self {
+        Self { time, credits_left }
     }
 }
 
@@ -23,6 +24,12 @@ pub struct InsertTextPayload {
     pub text: String,
     pub database: String,
     pub metadata: Option<String>,
+}
+
+#[derive(Serialize)]
+pub struct InsertTextResponse {
+    pub time: String,
+    pub credits_left: i32,
 }
 
 #[derive(Debug)]

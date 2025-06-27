@@ -12,6 +12,7 @@ pub struct SearchImagePayload {
 pub struct SearchResponse {
     pub results: Vec<SearchMatch>,
     pub time: String,
+    pub credits_left: i32,
 }
 
 #[derive(Serialize)]

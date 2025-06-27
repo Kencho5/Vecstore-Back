@@ -6,8 +6,6 @@ pub async fn insert_image_handler(
     State(state): State<AppState>,
     mut multipart: Multipart,
 ) -> Result<Json<InsertImageBody>, InsertError> {
-    let total_start = Instant::now();
-
     let mut image_data: Option<Vec<u8>> = None;
     let mut filename: Option<String> = None;
     let mut database: Option<String> = None;
@@ -63,8 +61,9 @@ pub async fn insert_image_handler(
     let filename = filename.ok_or(InsertError::MissingData)?;
     let database = database.ok_or(InsertError::MissingData)?;
 
-    let validation_result =
-        validate_user_and_increment(&state.pool, api_key, &database).await?;
+    let validation_result = validate_user_and_increment(&state.pool, api_key, &database).await?;
+
+    let total_start = Instant::now();
 
     let image_vectors = extract_image_features(&state, image_data).await?;
 
@@ -83,5 +82,8 @@ pub async fn insert_image_handler(
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;
 
-    Ok(Json(InsertImageBody::new(format!("{}ms", total_time_ms))))
+    Ok(Json(InsertImageBody::new(
+        format!("{}ms", total_time_ms),
+        validation_result.credits_left,
+    )))
 }

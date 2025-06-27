@@ -1,7 +1,7 @@
 import requests
 import json
 
-API_KEY = "cf7439a2cff6867a966bec4384d395f09a21b7af64c1e729d24a01ad8e44ea19"
+API_KEY = "62d80151c294f137be9cf22a932dbb9c59e72a651a123641263ef45c5d2eb201"
 DATABASE = "vecstore"
 
 def search_with_text_only():

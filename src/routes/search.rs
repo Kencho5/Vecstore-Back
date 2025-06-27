@@ -68,7 +68,6 @@ pub async fn search_handler(
 
     let database = database.ok_or(SearchImageError::MissingData)?;
 
-    // Validate user and increment request count in one call
     let validation_result = validate_user_and_increment(&state.pool, api_key, &database)
         .await
         .map_err(|_| SearchImageError::InvalidApiKey)?;
@@ -98,5 +97,6 @@ pub async fn search_handler(
     Ok(Json(SearchResponse {
         results: results.matches,
         time: format!("{}ms", total_time_ms),
+        credits_left: validation_result.credits_left,
     }))
 }
