@@ -33,7 +33,6 @@ pub enum InsertError {
     DatabaseInsert,
     MissingData,
     InvalidApiKey,
-    InvalidSubscription,
     RequestLimitExceeded,
     InvalidMetadata,
 }
@@ -59,10 +58,6 @@ impl IntoResponse for InsertError {
                 (StatusCode::INTERNAL_SERVER_ERROR, "Missing api data")
             }
             InsertError::InvalidApiKey => (StatusCode::UNAUTHORIZED, "Invalid API key"),
-            InsertError::InvalidSubscription => (
-                StatusCode::UNAUTHORIZED,
-                "No active subscription found for this user",
-            ),
             InsertError::RequestLimitExceeded => (
                 StatusCode::UNAUTHORIZED,
                 "Monthly API request limit exceeded. Upgrade your plan or contact sales to increase your limit.",

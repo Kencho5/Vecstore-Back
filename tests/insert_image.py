@@ -36,7 +36,7 @@ def insert_image_loop(counter, limit, lock, start_time):
 
 if __name__ == "__main__":
     num_processes = 5
-    total_images = 100
+    total_images = 50
 
     counter = Value('i', 0)
     lock = Lock()

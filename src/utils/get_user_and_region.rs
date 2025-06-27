@@ -12,48 +12,52 @@ pub async fn validate_user_and_increment(
     api_key: String,
     database: &str,
 ) -> Result<UserValidationResult, InsertError> {
-    let db_info_result: Option<(i32, String)> = sqlx::query_as(
-        "SELECT ak.owner_id, d.db_type 
-         FROM api_keys ak
-         JOIN databases d ON d.owner_id = ak.owner_id
-         WHERE ak.key = $1 AND d.name = $2",
+    let result: Option<(i32, String)> = sqlx::query_as(
+        "WITH validated_user AS (
+           SELECT ak.owner_id, d.db_type, d.region
+           FROM api_keys ak
+           JOIN databases d ON d.owner_id = ak.owner_id
+           WHERE ak.key = $1 AND d.name = $2
+         ),
+         updated_credits AS (
+           UPDATE users 
+           SET credits = credits - 1 
+           WHERE id = (SELECT owner_id FROM validated_user) AND credits > 0
+           RETURNING id
+         ),
+         updated_db AS (
+           UPDATE databases 
+           SET requests = requests + 1 
+           WHERE name = $2 AND owner_id = (SELECT owner_id FROM validated_user)
+           RETURNING owner_id, region
+         )
+         SELECT ud.owner_id, ud.region
+         FROM updated_db ud
+         JOIN updated_credits uc ON ud.owner_id = uc.id",
     )
     .bind(&hash_api_key(&api_key))
     .bind(database)
     .fetch_optional(pool)
     .await
-    .map_err(|_| InsertError::InvalidApiKey)?;
+    .map_err(|_| InsertError::DatabaseInsert)?;
 
-    let (user_id, db_type) = match db_info_result {
-        Some((id, db_type)) => (id, db_type),
-        None => return Err(InsertError::DatabaseNotFound),
-    };
-
-    let db_result: Option<(String, i32)> = sqlx::query_as(
-        "UPDATE databases 
-         SET requests = requests + 1 
-         WHERE name = $1 AND owner_id = $2
-         RETURNING region, requests - 1 as previous_requests",
-    )
-    .bind(database)
-    .bind(user_id)
-    .fetch_optional(pool)
-    .await
-    .map_err(|_| InsertError::DatabaseNotFound)?;
-
-    let (region, _previous_requests) = match db_result {
-        Some((reg, _prev)) => (reg, _prev),
+    let (user_id, region) = match result {
+        Some((id, reg)) => (id, reg),
         None => {
-            let exists: Option<(i32,)> =
-                sqlx::query_as("SELECT requests FROM databases WHERE name = $1 AND owner_id = $2")
-                    .bind(database)
-                    .bind(user_id)
-                    .fetch_optional(pool)
-                    .await
-                    .map_err(|_| InsertError::DatabaseNotFound)?;
+            let validation_check: Option<(i32,)> = sqlx::query_as(
+                "SELECT ak.owner_id 
+                 FROM api_keys ak
+                 JOIN databases d ON d.owner_id = ak.owner_id
+                 WHERE ak.key = $1 AND d.name = $2",
+            )
+            .bind(&hash_api_key(&api_key))
+            .bind(database)
+            .fetch_optional(pool)
+            .await
+            .map_err(|_| InsertError::InvalidApiKey)?;
 
-            match exists {
-                Some(_) => return Err(InsertError::DatabaseNotFound),
+            match validation_check {
+                Some(_) => return Err(InsertError::RequestLimitExceeded),
                 None => return Err(InsertError::DatabaseNotFound),
             }
         }
