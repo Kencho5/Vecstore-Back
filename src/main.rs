@@ -1,3 +1,6 @@
+#[global_allocator]
+static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
+
 mod auth;
 mod loaders;
 mod middleware;
@@ -31,13 +34,13 @@ async fn main() {
     .unwrap();
 
     let state = AppState {
-        clip_model,
-        clip_config,
+        clip_model: Arc::new(clip_model),
+        clip_config: Arc::new(clip_config),
         pinecone_indexes,
-        tokenizer,
+        tokenizer: Arc::new(tokenizer),
         pool,
         google_client,
-        nsfw_model,
+        nsfw_model: Arc::new(nsfw_model),
         task_queue: tx,
         paddle,
     };

@@ -35,7 +35,9 @@ pub async fn search_handler(
                     .await
                     .map_err(|_| SearchImageError::MissingData)?;
                 text = Some(
-                    String::from_utf8(bytes.to_vec()).map_err(|_| SearchImageError::MissingData)?,
+                    std::str::from_utf8(&bytes)
+                        .map_err(|_| SearchImageError::MissingData)?
+                        .to_string(),
                 );
             }
             "database" => {
@@ -44,7 +46,9 @@ pub async fn search_handler(
                     .await
                     .map_err(|_| SearchImageError::MissingData)?;
                 database = Some(
-                    String::from_utf8(bytes.to_vec()).map_err(|_| SearchImageError::MissingData)?,
+                    std::str::from_utf8(&bytes)
+                        .map_err(|_| SearchImageError::MissingData)?
+                        .to_string(),
                 );
             }
             "metadata" => {
@@ -53,7 +57,9 @@ pub async fn search_handler(
                     .await
                     .map_err(|_| SearchImageError::MissingData)?;
                 metadata = Some(
-                    String::from_utf8(bytes.to_vec()).map_err(|_| SearchImageError::MissingData)?,
+                    std::str::from_utf8(&bytes)
+                        .map_err(|_| SearchImageError::MissingData)?
+                        .to_string(),
                 );
             }
             _ => {} // Ignore unknown fields
@@ -63,7 +69,7 @@ pub async fn search_handler(
     let database = database.ok_or(SearchImageError::MissingData)?;
 
     // Validate user and increment request count in one call
-    let validation_result = validate_user_and_increment(&state.pool, api_key, database.clone())
+    let validation_result = validate_user_and_increment(&state.pool, api_key, &database)
         .await
         .map_err(|_| SearchImageError::InvalidApiKey)?;
 

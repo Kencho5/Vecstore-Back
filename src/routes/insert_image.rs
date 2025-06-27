@@ -32,18 +32,27 @@ pub async fn insert_image_handler(
             }
             "filename" => {
                 let bytes = field.bytes().await.map_err(|_| InsertError::MissingData)?;
-                filename =
-                    Some(String::from_utf8(bytes.to_vec()).map_err(|_| InsertError::MissingData)?);
+                filename = Some(
+                    std::str::from_utf8(&bytes)
+                        .map_err(|_| InsertError::MissingData)?
+                        .to_string(),
+                );
             }
             "database" => {
                 let bytes = field.bytes().await.map_err(|_| InsertError::MissingData)?;
-                database =
-                    Some(String::from_utf8(bytes.to_vec()).map_err(|_| InsertError::MissingData)?);
+                database = Some(
+                    std::str::from_utf8(&bytes)
+                        .map_err(|_| InsertError::MissingData)?
+                        .to_string(),
+                );
             }
             "metadata" => {
                 let bytes = field.bytes().await.map_err(|_| InsertError::MissingData)?;
-                metadata =
-                    Some(String::from_utf8(bytes.to_vec()).map_err(|_| InsertError::MissingData)?);
+                metadata = Some(
+                    std::str::from_utf8(&bytes)
+                        .map_err(|_| InsertError::MissingData)?
+                        .to_string(),
+                );
             }
 
             _ => {} // Ignore unknown fields
@@ -55,7 +64,7 @@ pub async fn insert_image_handler(
     let database = database.ok_or(InsertError::MissingData)?;
 
     let validation_result =
-        validate_user_and_increment(&state.pool, api_key, database.clone()).await?;
+        validate_user_and_increment(&state.pool, api_key, &database).await?;
 
     let image_vectors = extract_image_features(&state, image_data).await?;
 
@@ -64,7 +73,7 @@ pub async fn insert_image_handler(
         vectors: image_vectors,
         filename: Some(filename),
         metadata,
-        database: database.clone(),
+        database,
         region: validation_result.region,
     };
 

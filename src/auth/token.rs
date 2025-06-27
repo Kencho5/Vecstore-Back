@@ -1,4 +1,9 @@
 use crate::prelude::*;
+use std::sync::LazyLock;
+
+static SECRET_KEY: LazyLock<String> = LazyLock::new(|| {
+    env::var("SECRET_KEY").expect("Secret key not set")
+});
 
 pub async fn create_token(
     user_id: i32,
@@ -16,11 +21,10 @@ pub async fn create_token(
         plan_names,
     };
 
-    let key = env::var("SECRET_KEY").expect("Secret key not set");
     encode(
         &Header::default(),
         &claims,
-        &EncodingKey::from_secret(key.as_ref()),
+        &EncodingKey::from_secret(SECRET_KEY.as_ref()),
     )
     .map_err(|_| AuthError::TokenCreation)
 }
@@ -34,10 +38,9 @@ pub async fn validate_token(headers: HeaderMap) -> Result<Claims, AuthError> {
         return Err(AuthError::InvalidToken);
     }
 
-    let key = env::var("SECRET_KEY").expect("Secret key not set");
     let token_data = decode::<Claims>(
         &token.unwrap(),
-        &DecodingKey::from_secret(key.as_ref()),
+        &DecodingKey::from_secret(SECRET_KEY.as_ref()),
         &Validation::default(),
     )
     .map_err(|_| AuthError::InvalidToken)?;

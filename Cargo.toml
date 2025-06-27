@@ -25,6 +25,7 @@ hex = "0.4.3"
 sha2 = "0.10.9"
 futures = "0.3.31"
 paddle-rust-sdk = "0.11.0"
+jemallocator = "0.5"
 
 # ML
 candle-core = "0.9.1"

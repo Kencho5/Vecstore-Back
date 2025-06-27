@@ -32,14 +32,14 @@ pub async fn nsfw_detector_handler(
     let image_data = image_data.ok_or(NsfwError::MissingData)?;
 
     let image = load_image::load_image(image_data, 224);
-    let nsfw = predict(state.nsfw_model, image.unwrap()).map_err(|_| NsfwError::ImageProcessing)?;
+    let nsfw = predict(&*state.nsfw_model, image.unwrap()).map_err(|_| NsfwError::ImageProcessing)?;
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;
 
     Ok(Json(NsfwBody::new(nsfw == 1, total_time_ms)))
 }
 
-fn predict(model: Model, input: Tensor) -> Result<i8, Box<dyn std::error::Error>> {
+fn predict(model: &Model, input: Tensor) -> Result<i8, Box<dyn std::error::Error>> {
     let logits = model.forward(&input)?.squeeze(0)?;
     let scores = logits.to_vec1::<f32>()?;
 

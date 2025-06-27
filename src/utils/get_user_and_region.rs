@@ -10,7 +10,7 @@ pub struct UserValidationResult {
 pub async fn validate_user_and_increment(
     pool: &PgPool,
     api_key: String,
-    database: String,
+    database: &str,
 ) -> Result<UserValidationResult, InsertError> {
     let db_info_result: Option<(i32, String)> = sqlx::query_as(
         "SELECT ak.owner_id, d.db_type 
@@ -19,7 +19,7 @@ pub async fn validate_user_and_increment(
          WHERE ak.key = $1 AND d.name = $2",
     )
     .bind(&hash_api_key(&api_key))
-    .bind(&database)
+    .bind(database)
     .fetch_optional(pool)
     .await
     .map_err(|_| InsertError::InvalidApiKey)?;
@@ -35,7 +35,7 @@ pub async fn validate_user_and_increment(
          WHERE name = $1 AND owner_id = $2
          RETURNING region, requests - 1 as previous_requests",
     )
-    .bind(&database)
+    .bind(database)
     .bind(user_id)
     .fetch_optional(pool)
     .await
@@ -46,7 +46,7 @@ pub async fn validate_user_and_increment(
         None => {
             let exists: Option<(i32,)> =
                 sqlx::query_as("SELECT requests FROM databases WHERE name = $1 AND owner_id = $2")
-                    .bind(&database)
+                    .bind(database)
                     .bind(user_id)
                     .fetch_optional(pool)
                     .await

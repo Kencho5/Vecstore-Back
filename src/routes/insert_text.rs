@@ -6,7 +6,7 @@ pub async fn insert_text_handler(
     Json(payload): Json<InsertTextPayload>,
 ) -> Result<(), InsertError> {
     let validation_result =
-        validate_user_and_increment(&state.pool, api_key, payload.database.clone()).await?;
+        validate_user_and_increment(&state.pool, api_key, &payload.database).await?;
 
     let user_id = validation_result.user_id;
 

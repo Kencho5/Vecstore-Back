@@ -2,13 +2,13 @@ use crate::prelude::*;
 
 #[derive(Clone)]
 pub struct AppState {
-    pub clip_model: clip::ClipModel,
-    pub clip_config: clip::ClipConfig,
+    pub clip_model: Arc<clip::ClipModel>,
+    pub clip_config: Arc<clip::ClipConfig>,
     pub pinecone_indexes: Arc<Mutex<PineconeIndexes>>,
-    pub tokenizer: Tokenizer,
+    pub tokenizer: Arc<Tokenizer>,
     pub pool: PgPool,
     pub google_client: AsyncClient,
-    pub nsfw_model: Model,
+    pub nsfw_model: Arc<Model>,
     pub task_queue: mpsc::UnboundedSender<BackgroundTask>,
     pub paddle: Paddle,
 }
