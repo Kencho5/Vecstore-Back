@@ -5,12 +5,11 @@ pub async fn save_usage_logs(pool: PgPool, user_id: i32) -> Result<(), Dashboard
 
     sqlx::query(
         r#"
-        INSERT INTO usage_logs (user_id, usage_date, credits_used, requests)
-        VALUES ($1, $2, 1, 1)
+        INSERT INTO usage_logs (user_id, usage_date, credits_used)
+        VALUES ($1, $2, 1)
         ON CONFLICT (user_id, usage_date)
         DO UPDATE SET
-            credits_used = usage_logs.credits_used + 1,
-            requests = usage_logs.requests + 1
+            credits_used = usage_logs.credits_used + 1
         "#,
     )
     .bind(user_id)

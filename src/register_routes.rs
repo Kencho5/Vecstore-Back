@@ -40,7 +40,7 @@ fn dashboard_routes() -> Router<AppState> {
         )
         .route("/user-credits", get(user_credits::user_credits_handler))
         .route("/portal-url", get(portal_url::portal_url_handler))
-        .route("/usage", get(usage::usage_handler))
+        .route("/usage-logs", get(usage::usage_handler))
         .route_layer(middleware::from_fn(validate_headers))
 }
 

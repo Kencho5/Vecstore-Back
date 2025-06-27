@@ -85,7 +85,7 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
         }
         BackgroundTask::SaveUsageLogs { pool, user_id } => {
             if let Err(e) = save_usage_logs(pool, user_id).await {
-                eprintln!("Failed to increment requests: {:?}", e);
+                eprintln!("Failed to save logs: {:?}", e);
             }
         }
     }
