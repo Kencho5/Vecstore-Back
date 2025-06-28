@@ -56,10 +56,16 @@ fn auth_routes() -> Router<AppState> {
 }
 
 fn payment_routes() -> Router<AppState> {
-    Router::new().route(
-        "/payments-webhook",
-        post(payments_webhook::payments_webhook_handler),
-    )
+    Router::new()
+        .route(
+            "/payments-webhook",
+            post(payments_webhook::payments_webhook_handler),
+        )
+        .route("/verify-email", post(verify_email::verify_email_handler))
+        .route(
+            "/verify-email-code",
+            post(verify_email::verify_email_code_handler),
+        )
 }
 
 fn health() -> Router<AppState> {

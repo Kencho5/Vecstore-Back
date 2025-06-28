@@ -26,6 +26,8 @@ pub use uuid::Uuid;
 pub use aws_config::{BehaviorVersion, Region};
 pub use aws_sdk_bedrockruntime::config::Credentials;
 pub use aws_sdk_bedrockruntime::Client as BedrockClient;
+pub use aws_sdk_sesv2::types::{Body, Content, Destination, EmailContent, Message};
+pub use aws_sdk_sesv2::Error;
 
 // Axum framework
 pub use axum::{

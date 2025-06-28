@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-pub async fn load_bedrock_client() -> BedrockClient {
+pub async fn load_aws_clients() -> (BedrockClient, aws_sdk_sesv2::Client) {
     let aws_access_key = env::var("AWS_ACCESS_KEY_ID").expect("AWS_ACCESS_KEY_ID not found");
     let aws_secret_key =
         env::var("AWS_SECRET_ACCESS_KEY").expect("AWS_SECRET_ACCESS_KEY not found");
@@ -14,11 +14,13 @@ pub async fn load_bedrock_client() -> BedrockClient {
         "env-credentials",
     );
 
-    let aws_config = aws_config::defaults(BehaviorVersion::latest())
+    let bedrock_client = aws_config::defaults(BehaviorVersion::latest())
         .region(Region::new(aws_region))
         .credentials_provider(credentials)
         .load()
         .await;
 
-    BedrockClient::new(&aws_config)
+    let ses_client = aws_sdk_sesv2::Client::new(&bedrock_client);
+
+    (BedrockClient::new(&bedrock_client), ses_client)
 }
