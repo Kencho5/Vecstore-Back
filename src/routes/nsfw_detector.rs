@@ -30,11 +30,10 @@ pub async fn nsfw_detector_handler(
         }
     }
 
-    let image_data = image_data.ok_or(ApiError::MissingData)?;
-
-    let image = load_image::load_image(image_data, 224);
-    let nsfw =
-        predict(&*state.nsfw_model, image.unwrap()).map_err(|_| ApiError::ImageProcessing)?;
+    //let image_data = image_data.ok_or(ApiError::MissingData)?;
+    //let nsfw =
+    //    predict(&*state.nsfw_model, image.unwrap()).map_err(|_| ApiError::ImageProcessing)?;
+    let nsfw = 1;
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;
 
@@ -43,7 +42,6 @@ pub async fn nsfw_detector_handler(
         .map_err(|_| ApiError::Unforseen)?;
 
     let logs_task = BackgroundTask::SaveUsageLogs {
-        pool: state.pool,
         user_id: validation_result.user_id,
     };
 
@@ -56,18 +54,4 @@ pub async fn nsfw_detector_handler(
         time: total_time_ms,
         credits_left: validation_result.credits_left,
     }))
-}
-
-fn predict(model: &Model, input: Tensor) -> Result<i8, Box<dyn std::error::Error>> {
-    let logits = model.forward(&input)?.squeeze(0)?;
-    let scores = logits.to_vec1::<f32>()?;
-
-    let pred = scores
-        .iter()
-        .enumerate()
-        .max_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(std::cmp::Ordering::Equal))
-        .map(|(idx, _)| idx)
-        .unwrap_or(0);
-
-    Ok(pred as i8)
 }

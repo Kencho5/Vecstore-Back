@@ -10,7 +10,7 @@ def search_with_text_only():
     
     # Use files parameter to send multipart data
     files = {
-        'text': (None, 'dog'),
+        'text': 'car',
         'database': (None, DATABASE)
     }
     headers = {"Authorization": API_KEY}
@@ -52,7 +52,7 @@ def search_with_single_metadata_filter():
     
     # Search for images with only category = "landscape"
     metadata_filter = {
-        "category": "animal"
+        "category": "cars"
     }
     
     files = {
@@ -114,9 +114,9 @@ if __name__ == "__main__":
     print("Testing search functionality with metadata filtering\n")
     
     # Run all test cases
-    # search_with_text_only()
+    search_with_text_only()
     # search_with_metadata_filter()
-    search_with_single_metadata_filter()
+    # search_with_single_metadata_filter()
     # search_with_invalid_metadata()
     # search_with_nonexistent_metadata()
     

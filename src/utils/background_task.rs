@@ -3,16 +3,23 @@ use futures::stream::{FuturesUnordered, StreamExt};
 
 #[derive(Debug)]
 pub enum BackgroundTask {
-    InsertVectors {
+    InsertImageVectors {
         user_id: i32,
-        vectors: Vec<f32>,
+        image_data: Vec<u8>,
+        filename: Option<String>,
+        metadata: Option<String>,
+        database: String,
+        region: String,
+    },
+    InsertTextVectors {
+        user_id: i32,
+        text: String,
         filename: Option<String>,
         metadata: Option<String>,
         database: String,
         region: String,
     },
     SaveUsageLogs {
-        pool: PgPool,
         user_id: i32,
     },
 }
@@ -66,9 +73,9 @@ pub async fn process_task_queue(
 
 async fn process_single_task(task: BackgroundTask, state: WorkerState) {
     match task {
-        BackgroundTask::InsertVectors {
+        BackgroundTask::InsertImageVectors {
             user_id,
-            vectors,
+            image_data,
             filename,
             metadata,
             database,
@@ -77,14 +84,39 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
             let indexes = state.pinecone_indexes.lock().await;
             let index = indexes.get_index_by_region(&region).unwrap();
 
+            let vectors = extract_image_features(&state.bedrock_client, image_data)
+                .await
+                .unwrap();
+
             if let Err(e) =
                 insert_vectors(user_id, index, vectors, filename, metadata, database).await
             {
                 eprintln!("Failed to insert vectors: {:?}", e);
             }
         }
-        BackgroundTask::SaveUsageLogs { pool, user_id } => {
-            if let Err(e) = save_usage_logs(pool, user_id).await {
+        BackgroundTask::InsertTextVectors {
+            user_id,
+            text,
+            filename,
+            metadata,
+            database,
+            region,
+        } => {
+            let indexes = state.pinecone_indexes.lock().await;
+            let index = indexes.get_index_by_region(&region).unwrap();
+
+            let vectors = extract_text_features(&state.bedrock_client, text)
+                .await
+                .unwrap();
+
+            if let Err(e) =
+                insert_vectors(user_id, index, vectors, filename, metadata, database).await
+            {
+                eprintln!("Failed to insert text vectors: {:?}", e);
+            }
+        }
+        BackgroundTask::SaveUsageLogs { user_id } => {
+            if let Err(e) = save_usage_logs(state.pool.clone(), user_id).await {
                 eprintln!("Failed to save logs: {:?}", e);
             }
         }

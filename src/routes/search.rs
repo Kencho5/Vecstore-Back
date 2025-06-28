@@ -61,11 +61,11 @@ pub async fn search_handler(
     let validation_result = validate_user_and_increment(&state.pool, api_key, &database).await?;
 
     let vectors = if let Some(image_bytes) = image_data {
-        extract_image_features(&state, image_bytes)
+        extract_image_features(&state.bedrock_client, image_bytes)
             .await
             .map_err(|_| ApiError::ModelInference)?
     } else if let Some(text_content) = text {
-        extract_text_features(&state, text_content).await?
+        extract_text_features(&state.bedrock_client, text_content).await?
     } else {
         return Err(ApiError::MissingData); // Neither image nor text provided
     };
@@ -83,7 +83,6 @@ pub async fn search_handler(
     let total_time_ms = total_start.elapsed().as_millis() as u64;
 
     let logs_task = BackgroundTask::SaveUsageLogs {
-        pool: state.pool,
         user_id: validation_result.user_id,
     };
 

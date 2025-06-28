@@ -6,4 +6,3 @@ pub mod hash_api_key;
 pub mod insert_vectors;
 pub mod save_usage;
 pub mod search_vectors;
-pub mod tokenizer;

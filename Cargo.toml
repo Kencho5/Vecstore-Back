@@ -36,13 +36,11 @@ sha2 = "0.10.9"
 futures = "0.3.31"
 paddle-rust-sdk = "0.11.0"
 jemallocator = "0.5"
+aws-config = { version = "1.1.7", features = ["behavior-version-latest"] }
 
 # ML
-candle-core = "0.9.1"
-candle-nn = "0.9.1"
-candle-transformers = "0.9.1"
 anyhow = "1.0"
-hf-hub = "0.3"
 image = "0.25.6"
-tokenizers = "0.15"
 pinecone-sdk = "0.1.2"
+base64 = "0.22.1"
+aws-sdk-bedrockruntime = "1.93.0"

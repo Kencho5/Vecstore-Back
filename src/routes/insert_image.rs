@@ -5,6 +5,8 @@ pub async fn insert_image_handler(
     State(state): State<AppState>,
     mut multipart: Multipart,
 ) -> Result<Json<InsertImageBody>, ApiError> {
+    let total_start = Instant::now();
+
     let mut image_data: Option<Vec<u8>> = None;
     let mut filename: Option<String> = None;
     let mut database: Option<String> = None;
@@ -62,13 +64,9 @@ pub async fn insert_image_handler(
 
     let validation_result = validate_user_and_increment(&state.pool, api_key, &database).await?;
 
-    let total_start = Instant::now();
-
-    let image_vectors = extract_image_features(&state, image_data).await?;
-
-    let insert_task = BackgroundTask::InsertVectors {
+    let insert_task = BackgroundTask::InsertImageVectors {
         user_id: validation_result.user_id,
-        vectors: image_vectors,
+        image_data,
         filename: Some(filename),
         metadata,
         database,
@@ -76,7 +74,6 @@ pub async fn insert_image_handler(
     };
 
     let logs_task = BackgroundTask::SaveUsageLogs {
-        pool: state.pool,
         user_id: validation_result.user_id,
     };
 

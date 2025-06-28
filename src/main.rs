@@ -18,11 +18,8 @@ async fn main() {
     dotenv().ok();
     tracing_subscriber::fmt().with_max_level(Level::INFO).init();
 
-    let (clip_model, clip_config) = load_model::load_clip_model().unwrap();
-    let nsfw_model = load_model::load_nsfw_model().unwrap();
     let pinecone_indexes = init_pinecone::init_pinecone().await;
     let pinecone_indexes = Arc::new(Mutex::new(pinecone_indexes));
-    let tokenizer = get_tokenizer(None).expect("Failed to get tokenizer");
     let pool = init_db::init_db().await;
     let google_client =
         AsyncClient::new(env::var("GOOGLE_CLIENT_ID").expect("Google client id not found"));
@@ -32,22 +29,21 @@ async fn main() {
         Paddle::SANDBOX,
     )
     .unwrap();
+    let bedrock_client = Arc::new(aws_client::load_bedrock_client().await);
 
     let state = AppState {
-        clip_model: Arc::new(clip_model),
-        clip_config: Arc::new(clip_config),
         pinecone_indexes,
-        tokenizer: Arc::new(tokenizer),
-        pool,
+        pool: pool.clone(),
         google_client,
-        nsfw_model: Arc::new(nsfw_model),
         task_queue: tx,
         paddle,
+        bedrock_client: bedrock_client.clone(),
     };
 
     let worker_state = WorkerState {
-        //pool: state.pool.clone(),
+        pool: pool.clone(),
         pinecone_indexes: state.pinecone_indexes.clone(),
+        bedrock_client: bedrock_client.clone(),
     };
 
     tokio::spawn(async move {

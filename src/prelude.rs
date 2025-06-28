@@ -18,10 +18,14 @@ pub use serde::{Deserialize, Serialize};
 pub use serde_json::json;
 pub use sqlx::postgres::{PgPool, PgPoolOptions};
 pub use std::sync::Arc;
-pub use tokenizers::Tokenizer;
 pub use tokio::sync::{mpsc, Mutex};
 pub use tower_http::cors::CorsLayer;
 pub use uuid::Uuid;
+
+// AWS
+pub use aws_config::{BehaviorVersion, Region};
+pub use aws_sdk_bedrockruntime::config::Credentials;
+pub use aws_sdk_bedrockruntime::Client as BedrockClient;
 
 // Axum framework
 pub use axum::{
@@ -30,14 +34,6 @@ pub use axum::{
     response::{IntoResponse, Response},
     routing::{delete, get, post},
     Extension, Json, Router,
-};
-
-// Candle ML framework
-pub use candle_core::{DType, Device, Tensor};
-pub use candle_nn::VarBuilder;
-pub use candle_transformers::models::{
-    clip,
-    vit::{Config, Model},
 };
 
 // Pinecone SDK
@@ -55,6 +51,6 @@ pub use crate::{
     structs::{api_struct::*, app_state::*, auth_struct::*, payment_struct::*, pinecone_struct::*},
     utils::{
         background_task::*, extract_features::*, get_customer_id::*, get_user_and_region::*,
-        hash_api_key::*, insert_vectors::*, save_usage::*, search_vectors::*, tokenizer::*,
+        hash_api_key::*, insert_vectors::*, save_usage::*, search_vectors::*,
     },
 };

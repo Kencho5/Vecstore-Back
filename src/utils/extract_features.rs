@@ -1,46 +1,84 @@
 use crate::prelude::*;
+use aws_sdk_bedrockruntime::primitives::Blob;
+use base64::{engine::general_purpose, Engine as _};
+use serde_json::{json, Value};
 
 pub async fn extract_image_features(
-    state: &AppState,
+    bedrock_client: &BedrockClient,
     image_data: Vec<u8>,
 ) -> Result<Vec<f32>, ApiError> {
-    let image = load_image::load_image(image_data, state.clip_config.image_size)
-        .map_err(|_| ApiError::ImageProcessing)?;
+    let base64_image = general_purpose::STANDARD.encode(&image_data);
 
-    let image_features = state
-        .clip_model
-        .get_image_features(&image)
-        .map_err(|_| ApiError::ModelInference)?;
+    let body = json!({
+        "inputImage": base64_image,
+        "embeddingConfig": {
+            "outputEmbeddingLength": 384
+        }
+    });
 
-    let image_vector = image_features
-        .flatten_all()
-        .map_err(|_| ApiError::ImageProcessing)?
-        .to_vec1::<f32>()
-        .map_err(|_| ApiError::ImageProcessing)?;
-    Ok(image_vector)
+    let body_bytes = serde_json::to_vec(&body).map_err(|_| ApiError::ImageProcessing)?;
+
+    let response = bedrock_client
+        .invoke_model()
+        .model_id("amazon.titan-embed-image-v1")
+        .content_type("application/json")
+        .body(Blob::new(body_bytes))
+        .send()
+        .await
+        .map_err(|e| {
+            eprintln!("Bedrock error: {:?}", e);
+            ApiError::Unforseen
+        })?;
+
+    let response_body = response.body().as_ref();
+    let response_json: Value =
+        serde_json::from_slice(response_body).map_err(|_| ApiError::ModelInference)?;
+
+    let embedding = response_json["embedding"]
+        .as_array()
+        .ok_or(ApiError::ModelInference)?
+        .iter()
+        .map(|v| v.as_f64().unwrap_or(0.0) as f32)
+        .collect::<Vec<f32>>();
+
+    Ok(embedding)
 }
 
-pub async fn extract_text_features(state: &AppState, text: String) -> Result<Vec<f32>, ApiError> {
-    let tokenizer = &state.tokenizer;
+pub async fn extract_text_features(
+    bedrock_client: &BedrockClient,
+    text: String,
+) -> Result<Vec<f32>, ApiError> {
+    let body = json!({
+        "inputText": text,
+        "embeddingConfig": {
+            "outputEmbeddingLength": 384
+        }
+    });
 
-    let encoding = tokenizer
-        .encode(text, true)
-        .map_err(|_| ApiError::ModelInference)?;
-    let tokens = encoding.get_ids().to_vec();
+    let body_bytes = serde_json::to_vec(&body).map_err(|_| ApiError::Unforseen)?;
 
-    let input_ids =
-        Tensor::new(vec![tokens], &Device::Cpu).map_err(|_| ApiError::ModelInference)?;
+    let response = bedrock_client
+        .invoke_model()
+        .model_id("amazon.titan-embed-image-v1")
+        .content_type("application/json")
+        .body(Blob::new(body_bytes))
+        .send()
+        .await
+        .map_err(|e| {
+            eprintln!("Bedrock text embedding error: {:?}", e);
+            ApiError::Unforseen
+        })?;
 
-    let text_features = state
-        .clip_model
-        .get_text_features(&input_ids)
-        .map_err(|_| ApiError::ModelInference)?;
+    let response_body = response.body().as_ref();
+    let response_json: Value =
+        serde_json::from_slice(response_body).map_err(|_| ApiError::ModelInference)?;
 
-    let text_vector = text_features
-        .flatten_all()
-        .map_err(|_| ApiError::ModelInference)?
-        .to_vec1::<f32>()
-        .map_err(|_| ApiError::ModelInference)?;
+    let embedding = response_json["embedding"]
+        .as_array()
+        .ok_or(ApiError::Unforseen)?
+        .iter()
+        .map(|v| v.as_f64().unwrap_or(0.0) as f32)
+        .collect::<Vec<f32>>();
 
-    Ok(text_vector)
+    Ok(embedding)
 }

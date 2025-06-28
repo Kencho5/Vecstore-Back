@@ -12,13 +12,9 @@ pub async fn insert_text_handler(
 
     let user_id = validation_result.user_id;
 
-    let text_vectors = extract_text_features(&state, payload.text)
-        .await
-        .map_err(|_| ApiError::ModelInference)?;
-
-    let insert_task = BackgroundTask::InsertVectors {
+    let insert_task = BackgroundTask::InsertTextVectors {
         user_id,
-        vectors: text_vectors,
+        text: payload.text,
         filename: None,
         database: payload.database,
         region: validation_result.region,
@@ -26,7 +22,6 @@ pub async fn insert_text_handler(
     };
 
     let logs_task = BackgroundTask::SaveUsageLogs {
-        pool: state.pool,
         user_id: validation_result.user_id,
     };
 
