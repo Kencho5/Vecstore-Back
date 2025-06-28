@@ -1,10 +1,14 @@
 use crate::prelude::*;
 use crate::structs::insert_struct::*;
 
-#[derive(Debug, Clone)]
 pub struct UserValidationResult {
     pub user_id: i32,
     pub region: String,
+    pub credits_left: i32,
+}
+
+pub struct UserNsfwValidationResult {
+    pub user_id: i32,
     pub credits_left: i32,
 }
 
@@ -67,6 +71,56 @@ pub async fn validate_user_and_increment(
     Ok(UserValidationResult {
         user_id,
         region,
+        credits_left,
+    })
+}
+
+pub async fn validate_nsfw_request(
+    pool: &PgPool,
+    api_key: String,
+) -> Result<UserNsfwValidationResult, InsertError> {
+    let result: Option<(i32, i32)> = sqlx::query_as(
+        "WITH validated_user AS (
+           SELECT owner_id FROM api_keys WHERE key = $1
+         ),
+         updated_credits AS (
+           UPDATE users 
+           SET credits = credits - 1 
+           WHERE id = (SELECT owner_id FROM validated_user) AND credits > 0
+           RETURNING id, credits
+         )
+         SELECT id, credits FROM updated_credits",
+    )
+    .bind(&hash_api_key(&api_key))
+    .fetch_optional(pool)
+    .await
+    .map_err(|e| {
+        dbg!(e);
+        InsertError::DatabaseInsert
+    })?;
+
+    let (user_id, credits_left) = match result {
+        Some((id, credits)) => (id, credits),
+        None => {
+            let validation_check: Option<(i32,)> = sqlx::query_as(
+                "SELECT owner_id 
+                 FROM api_keys
+                 WHERE key = $1",
+            )
+            .bind(&hash_api_key(&api_key))
+            .fetch_optional(pool)
+            .await
+            .map_err(|_| InsertError::InvalidApiKey)?;
+
+            match validation_check {
+                Some(_) => return Err(InsertError::RequestLimitExceeded),
+                None => return Err(InsertError::DatabaseNotFound),
+            }
+        }
+    };
+
+    Ok(UserNsfwValidationResult {
+        user_id,
         credits_left,
     })
 }

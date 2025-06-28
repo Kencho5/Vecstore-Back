@@ -1,6 +1,7 @@
 use crate::{prelude::*, structs::nsfw_struct::*};
 
 pub async fn nsfw_detector_handler(
+    Extension(api_key): Extension<String>,
     State(state): State<AppState>,
     mut multipart: Multipart,
 ) -> Result<Json<NsfwBody>, NsfwError> {
@@ -32,11 +33,29 @@ pub async fn nsfw_detector_handler(
     let image_data = image_data.ok_or(NsfwError::MissingData)?;
 
     let image = load_image::load_image(image_data, 224);
-    let nsfw = predict(&*state.nsfw_model, image.unwrap()).map_err(|_| NsfwError::ImageProcessing)?;
+    let nsfw =
+        predict(&*state.nsfw_model, image.unwrap()).map_err(|_| NsfwError::ImageProcessing)?;
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;
 
-    Ok(Json(NsfwBody::new(nsfw == 1, total_time_ms)))
+    let validation_result = validate_nsfw_request(&state.pool, api_key)
+        .await
+        .map_err(|_| NsfwError::Unforseen)?;
+
+    let logs_task = BackgroundTask::SaveUsageLogs {
+        pool: state.pool,
+        user_id: validation_result.user_id,
+    };
+
+    if state.task_queue.send(logs_task).is_err() {
+        eprintln!("Failed to send logs_task");
+    }
+
+    Ok(Json(NsfwBody::new(
+        nsfw == 1,
+        total_time_ms,
+        validation_result.credits_left,
+    )))
 }
 
 fn predict(model: &Model, input: Tensor) -> Result<i8, Box<dyn std::error::Error>> {

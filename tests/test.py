@@ -1,151 +1,208 @@
 import requests
-import sys
+import time
+from multiprocessing import Process, Value, Lock
+import json
 
-API_KEY = "f9b5f0b6c1d6efd3c5861e0ea261a5864c6456b9b956130355cc46f543da42b7"
+API_KEY = "62d80151c294f137be9cf22a932dbb9c59e72a651a123641263ef45c5d2eb201"
+BASE_URL = "http://localhost:3000"
+
+# Test data
+IMAGE_URL = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/2019_Toyota_Corolla_Icon_Tech_VVT-i_Hybrid_1.8.jpg/960px-2019_Toyota_Corolla_Icon_Tech_VVT-i_Hybrid_1.8.jpg"
+NSFW_IMAGE_URL = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTCHo3CkaH0oRY3MvrEN0xgn-x_Lsn3Lm3lVQ&s"
+TEXT_CONTENT = "When Tony Stark, an industrialist, is captured, he constructs a high-tech armoured suit to escape."
+DATABASE = "vecstore"
+TEXT_DATABASE = "vecstore-text"
 
 def get_image_data(url):
-    """Download image from URL and return the binary data"""
     try:
-        response = requests.get(url)
-        response.raise_for_status()
-        return response.content
-    except requests.exceptions.RequestException as e:
-        print(f"Error downloading image: {e}")
+        r = requests.get(url)
+        r.raise_for_status()
+        return r.content
+    except:
         return None
 
-def get_filename_from_url(url):
-    """Extract filename from URL or generate a default one"""
-    try:
-        filename = url.split('/')[-1].split('?')[0]  # Remove query params
-        if '.' not in filename:
-            filename = "image.jpg"  # Default if no extension found
-        return filename
-    except:
-        return "image.jpg"
+def search_worker(counter, limit, lock, start_time):
+    while True:
+        with lock:
+            if counter.value >= limit:
+                return
+            counter.value += 1
+            current = counter.value
 
-def insert_image():
-    print("=== INSERT IMAGE ===")
-    image_url = input("Enter image URL: ").strip()
-    if not image_url:
-        print("No URL provided!")
-        return
-    
-    img_data = get_image_data(image_url)
+        files = {
+            'text': (None, 'dog'),
+            'database': (None, DATABASE)
+        }
+        headers = {"Authorization": API_KEY}
+        
+        try:
+            res = requests.post(f"{BASE_URL}/search", headers=headers, files=files)
+            if res.headers.get('content-type', '').startswith('application/json'):
+                print(f"{current}/{limit} | Status: {res.status_code} | Response: {json.dumps(res.json(), indent=2)}")
+            else:
+                print(f"{current}/{limit} | Status: {res.status_code} | Response: {res.text}")
+        except Exception as e:
+            print(f"{current}/{limit} | Error: {e}")
+
+        if current == limit:
+            duration = time.time() - start_time.value
+            print(f"\nCompleted {limit} search requests in {duration:.2f} seconds")
+
+def insert_image_worker(counter, limit, lock, start_time):
+    img_data = get_image_data(IMAGE_URL)
     if not img_data:
+        print("Failed to get image data")
         return
-    
-    filename = input(f"Enter filename: ").strip()
-    if not filename:
-        filename = get_filename_from_url(image_url)
-    
-    database = input("Enter database name (or press Enter for 'vecstore'): ").strip()
-    if not database:
-        database = 'vecstore'
 
-    data = {
-        'filename': filename,
-        'database': database
-    }
+    while True:
+        with lock:
+            if counter.value >= limit:
+                return
+            counter.value += 1
+            current = counter.value
 
-    files = {
-        'image': (filename, img_data, 'image/jpeg')
-    }
+        data = {'filename': 'test.jpg', 'database': DATABASE, 'metadata': '{"category": "cars"}'}
+        files = {'image': ('test.jpg', img_data, 'image/jpeg')}
+        headers = {"Authorization": API_KEY}
+        
+        try:
+            res = requests.post(f"{BASE_URL}/insert-image", headers=headers, data=data, files=files)
+            if res.headers.get('content-type', '').startswith('application/json'):
+                print(f"{current}/{limit} | Status: {res.status_code} | Response: {json.dumps(res.json(), indent=2)}")
+            else:
+                print(f"{current}/{limit} | Status: {res.status_code} | Response: {res.text}")
+        except Exception as e:
+            print(f"{current}/{limit} | Error: {e}")
 
-    headers = {
-        "Authorization": API_KEY
-    }
+        if current == limit:
+            duration = time.time() - start_time.value
+            print(f"\nCompleted {limit} image inserts in {duration:.2f} seconds")
 
-    print("Inserting image...")
-    res = requests.post("http://localhost:3000/insert-image", headers=headers, data=data, files=files)
-    print(f"Insert - Status: {res.status_code}, Response: {res.text}")
+def insert_text_worker(counter, limit, lock, start_time):
+    while True:
+        with lock:
+            if counter.value >= limit:
+                return
+            counter.value += 1
+            current = counter.value
 
-def search_by_text():
-    print("=== SEARCH BY TEXT ===")
-    
-    text_query = input("Enter search text: ").strip()
-    if not text_query:
-        print("No search text provided!")
-        return
-    
-    database = input("Enter database name (or press Enter for 'vecstore'): ").strip()
-    if not database:
-        database = 'vecstore'
+        payload = {
+            "text": TEXT_CONTENT,
+            "database": TEXT_DATABASE, 
+            'metadata': '{"category": "movies"}'
+        }
+        headers = {
+            "Authorization": API_KEY,
+            "Content-Type": "application/json"
+        }
+        
+        try:
+            res = requests.post(f"{BASE_URL}/insert-text", headers=headers, json=payload)
+            if res.headers.get('content-type', '').startswith('application/json'):
+                print(f"{current}/{limit} | Status: {res.status_code} | Response: {json.dumps(res.json(), indent=2)}")
+            else:
+                print(f"{current}/{limit} | Status: {res.status_code} | Response: {res.text}")
+        except Exception as e:
+            print(f"{current}/{limit} | Error: {e}")
 
-    data = {
-        'database': database,
-        'text': text_query
-    }
+        if current == limit:
+            duration = time.time() - start_time.value
+            print(f"\nCompleted {limit} text inserts in {duration:.2f} seconds")
 
-    headers = {
-        "Authorization": API_KEY
-    }
-
-    print("Searching...")
-    res = requests.post("http://localhost:3000/search", headers=headers, files=data)
-    results = res.json().get("matches", [])
-    print(f"\n🔍 Matches ({len(results)}):")
-    for i, match in enumerate(results, 1):
-        print(f"{i}. 📄 {match['filename']} — Score: {match['score']}")
-
-def search_by_image():
-    print("=== SEARCH BY IMAGE ===")
-    
-    image_url = input("Enter image URL: ").strip()
-    if not image_url:
-        print("No URL provided!")
-        return
-    
-    img_data = get_image_data(image_url)
+def nsfw_worker(counter, limit, lock, start_time):
+    img_data = get_image_data(NSFW_IMAGE_URL)
     if not img_data:
+        print("Failed to get image data")
         return
+
+    while True:
+        with lock:
+            if counter.value >= limit:
+                return
+            counter.value += 1
+            current = counter.value
+
+        files = {'image': (None, img_data, 'image/jpeg')}
+        headers = {"Authorization": API_KEY}
+        
+        try:
+            res = requests.post(f"{BASE_URL}/nsfw", headers=headers, files=files)
+            if res.headers.get('content-type', '').startswith('application/json'):
+                print(f"{current}/{limit} | Status: {res.status_code} | Response: {json.dumps(res.json(), indent=2)}")
+            else:
+                print(f"{current}/{limit} | Status: {res.status_code} | Response: {res.text}")
+        except Exception as e:
+            print(f"{current}/{limit} | Error: {e}")
+
+        if current == limit:
+            duration = time.time() - start_time.value
+            print(f"\nCompleted {limit} NSFW checks in {duration:.2f} seconds")
+
+def run_test(route, num_requests, num_threads):
+    print(f"\nStarting {route} test with {num_requests} requests using {num_threads} threads...")
     
-    database = input("Enter database name (or press Enter for 'vecstore'): ").strip()
-    if not database:
-        database = 'vecstore'
+    counter = Value('i', 0)
+    lock = Lock()
+    start_time = Value('d', time.time())
 
-    data = {
-        'database': database
+    worker_map = {
+        'search': search_worker,
+        'insert-image': insert_image_worker,
+        'insert-text': insert_text_worker,
+        'nsfw': nsfw_worker
     }
 
-    files = {
-        'image': (get_filename_from_url(image_url), img_data, 'image/jpeg')
-    }
+    worker_func = worker_map.get(route)
+    if not worker_func:
+        print(f"Unknown route: {route}")
+        return
 
-    headers = {
-        "Authorization": API_KEY
-    }
-
-    print("Searching by image...")
-    res = requests.post("http://localhost:3000/search", headers=headers, data=data, files=files)
-    results = res.json().get("matches", [])
-    print(f"\n🔍 Matches ({len(results)}):")
-    for i, match in enumerate(results, 1):
-        print(f"{i}. 📄 {match['filename']} — Score: {match['score']}")
+    processes = [
+        Process(target=worker_func, args=(counter, num_requests, lock, start_time))
+        for _ in range(num_threads)
+    ]
+    
+    for p in processes:
+        p.start()
+    for p in processes:
+        p.join()
 
 def main():
-    print("🖼️  Image Vector Database CLI")
-    print("=" * 30)
-    print("Choose an option:")
-    print("1. Insert image")
-    print("2. Search by text")
-    print("3. Search by image")
-    print("4. Exit")
+    print("=== Unified API Load Testing Tool ===")
+    print("Available routes:")
+    print("1. search")
+    print("2. insert-image") 
+    print("3. insert-text")
+    print("4. nsfw")
     
-    while True:
-        choice = input("\nEnter your choice (1-4): ").strip()
+    try:
+        choice = int(input("\nSelect route (1-4): "))
+        routes = ['search', 'insert-image', 'insert-text', 'nsfw']
         
-        if choice == '1':
-            insert_image()
-        elif choice == '2':
-            search_by_text()
-        elif choice == '3':
-            search_by_image()
-        elif choice == '4':
-            print("Goodbye!")
-            sys.exit(0)
-        else:
-            print("Invalid choice. Please enter 1, 2, 3, or 4.")
+        if choice < 1 or choice > 4:
+            print("Invalid choice. Please select 1-4")
+            return
+            
+        route = routes[choice - 1]
         
+        num_requests = int(input("Enter number of requests: "))
+        if num_requests <= 0:
+            print("Number of requests must be positive")
+            return
+            
+        num_threads = int(input("Enter number of threads: "))
+        if num_threads <= 0:
+            print("Number of threads must be positive")
+            return
+        
+        run_test(route, num_requests, num_threads)
+        
+    except ValueError:
+        print("Please enter valid numbers")
+    except KeyboardInterrupt:
+        print("\nTest interrupted by user")
+    except Exception as e:
+        print(f"Error: {e}")
 
 if __name__ == "__main__":
     main()
