@@ -1,10 +1,10 @@
-use crate::{prelude::*, structs::nsfw_struct::*};
+use crate::prelude::*;
 
 pub async fn nsfw_detector_handler(
     Extension(api_key): Extension<String>,
     State(state): State<AppState>,
     mut multipart: Multipart,
-) -> Result<Json<NsfwBody>, NsfwError> {
+) -> Result<Json<NsfwBody>, ApiError> {
     let total_start = Instant::now();
 
     let mut image_data: Option<Vec<u8>> = None;
@@ -12,7 +12,7 @@ pub async fn nsfw_detector_handler(
     while let Some(field) = multipart
         .next_field()
         .await
-        .map_err(|_| NsfwError::MissingData)?
+        .map_err(|_| ApiError::MissingData)?
     {
         let field_name = field.name().unwrap_or("").to_string();
 
@@ -22,7 +22,7 @@ pub async fn nsfw_detector_handler(
                     field
                         .bytes()
                         .await
-                        .map_err(|_| NsfwError::MissingData)?
+                        .map_err(|_| ApiError::MissingData)?
                         .to_vec(),
                 );
             }
@@ -30,17 +30,17 @@ pub async fn nsfw_detector_handler(
         }
     }
 
-    let image_data = image_data.ok_or(NsfwError::MissingData)?;
+    let image_data = image_data.ok_or(ApiError::MissingData)?;
 
     let image = load_image::load_image(image_data, 224);
     let nsfw =
-        predict(&*state.nsfw_model, image.unwrap()).map_err(|_| NsfwError::ImageProcessing)?;
+        predict(&*state.nsfw_model, image.unwrap()).map_err(|_| ApiError::ImageProcessing)?;
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;
 
     let validation_result = validate_nsfw_request(&state.pool, api_key)
         .await
-        .map_err(|_| NsfwError::Unforseen)?;
+        .map_err(|_| ApiError::Unforseen)?;
 
     let logs_task = BackgroundTask::SaveUsageLogs {
         pool: state.pool,
@@ -51,11 +51,11 @@ pub async fn nsfw_detector_handler(
         eprintln!("Failed to send logs_task");
     }
 
-    Ok(Json(NsfwBody::new(
-        nsfw == 1,
-        total_time_ms,
-        validation_result.credits_left,
-    )))
+    Ok(Json(NsfwBody {
+        nsfw: nsfw == 1,
+        time: total_time_ms,
+        credits_left: validation_result.credits_left,
+    }))
 }
 
 fn predict(model: &Model, input: Tensor) -> Result<i8, Box<dyn std::error::Error>> {

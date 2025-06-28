@@ -52,7 +52,7 @@ pub use crate::{
     loaders::*,
     middleware::{api_middleware::*, auth_middleware::*},
     routes::{auth::*, dashboard::*, payments::*},
-    structs::{app_state::*, auth_struct::*, payment_struct::*, pinecone_struct::*},
+    structs::{api_struct::*, app_state::*, auth_struct::*, payment_struct::*, pinecone_struct::*},
     utils::{
         background_task::*, extract_features::*, get_customer_id::*, get_user_and_region::*,
         hash_api_key::*, insert_vectors::*, save_usage::*, search_vectors::*, tokenizer::*,

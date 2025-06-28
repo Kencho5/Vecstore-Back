@@ -1,10 +1,10 @@
-use crate::{prelude::*, structs::insert_struct::*};
+use crate::prelude::*;
 
 pub async fn insert_text_handler(
     Extension(api_key): Extension<String>,
     State(state): State<AppState>,
     Json(payload): Json<InsertTextPayload>,
-) -> Result<Json<InsertTextResponse>, InsertError> {
+) -> Result<Json<InsertTextResponse>, ApiError> {
     let validation_result =
         validate_user_and_increment(&state.pool, api_key, &payload.database).await?;
 
@@ -14,7 +14,7 @@ pub async fn insert_text_handler(
 
     let text_vectors = extract_text_features(&state, payload.text)
         .await
-        .map_err(|_| InsertError::ModelInference)?;
+        .map_err(|_| ApiError::ModelInference)?;
 
     let insert_task = BackgroundTask::InsertVectors {
         user_id,

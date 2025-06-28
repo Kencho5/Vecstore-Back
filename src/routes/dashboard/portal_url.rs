@@ -18,7 +18,7 @@ pub async fn portal_url_handler(
         .await
         .unwrap();
 
-    Ok(Json(PortalUrlBody::new(
-        portal_url.data.urls.general.overview,
-    )))
+    Ok(Json(PortalUrlBody {
+        url: portal_url.data.urls.general.overview,
+    }))
 }

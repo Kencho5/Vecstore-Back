@@ -1,11 +1,10 @@
 use crate::prelude::*;
-use crate::structs::insert_struct::*;
 
 pub async fn insert_image_handler(
     Extension(api_key): Extension<String>,
     State(state): State<AppState>,
     mut multipart: Multipart,
-) -> Result<Json<InsertImageBody>, InsertError> {
+) -> Result<Json<InsertImageBody>, ApiError> {
     let mut image_data: Option<Vec<u8>> = None;
     let mut filename: Option<String> = None;
     let mut database: Option<String> = None;
@@ -14,7 +13,7 @@ pub async fn insert_image_handler(
     while let Some(field) = multipart
         .next_field()
         .await
-        .map_err(|_| InsertError::MissingData)?
+        .map_err(|_| ApiError::MissingData)?
     {
         let field_name = field.name().unwrap_or("").to_string();
 
@@ -24,31 +23,31 @@ pub async fn insert_image_handler(
                     field
                         .bytes()
                         .await
-                        .map_err(|_| InsertError::MissingData)?
+                        .map_err(|_| ApiError::MissingData)?
                         .to_vec(),
                 );
             }
             "filename" => {
-                let bytes = field.bytes().await.map_err(|_| InsertError::MissingData)?;
+                let bytes = field.bytes().await.map_err(|_| ApiError::MissingData)?;
                 filename = Some(
                     std::str::from_utf8(&bytes)
-                        .map_err(|_| InsertError::MissingData)?
+                        .map_err(|_| ApiError::MissingData)?
                         .to_string(),
                 );
             }
             "database" => {
-                let bytes = field.bytes().await.map_err(|_| InsertError::MissingData)?;
+                let bytes = field.bytes().await.map_err(|_| ApiError::MissingData)?;
                 database = Some(
                     std::str::from_utf8(&bytes)
-                        .map_err(|_| InsertError::MissingData)?
+                        .map_err(|_| ApiError::MissingData)?
                         .to_string(),
                 );
             }
             "metadata" => {
-                let bytes = field.bytes().await.map_err(|_| InsertError::MissingData)?;
+                let bytes = field.bytes().await.map_err(|_| ApiError::MissingData)?;
                 metadata = Some(
                     std::str::from_utf8(&bytes)
-                        .map_err(|_| InsertError::MissingData)?
+                        .map_err(|_| ApiError::MissingData)?
                         .to_string(),
                 );
             }
@@ -57,9 +56,9 @@ pub async fn insert_image_handler(
         }
     }
 
-    let image_data = image_data.ok_or(InsertError::MissingData)?;
-    let filename = filename.ok_or(InsertError::MissingData)?;
-    let database = database.ok_or(InsertError::MissingData)?;
+    let image_data = image_data.ok_or(ApiError::MissingData)?;
+    let filename = filename.ok_or(ApiError::MissingData)?;
+    let database = database.ok_or(ApiError::MissingData)?;
 
     let validation_result = validate_user_and_increment(&state.pool, api_key, &database).await?;
 
@@ -91,8 +90,8 @@ pub async fn insert_image_handler(
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;
 
-    Ok(Json(InsertImageBody::new(
-        format!("{}ms", total_time_ms),
-        validation_result.credits_left,
-    )))
+    Ok(Json(InsertImageBody {
+        time: format!("{}ms", total_time_ms),
+        credits_left: validation_result.credits_left,
+    }))
 }

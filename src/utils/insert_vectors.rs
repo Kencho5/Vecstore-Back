@@ -1,5 +1,4 @@
 use crate::prelude::*;
-use crate::structs::insert_struct::*;
 
 pub async fn insert_vectors(
     user_id: i32,
@@ -8,7 +7,7 @@ pub async fn insert_vectors(
     filename: Option<String>,
     metadata: Option<String>,
     database: String,
-) -> Result<(), InsertError> {
+) -> Result<(), ApiError> {
     let mut fields = BTreeMap::new();
 
     if let Some(filename_value) = filename {
@@ -47,7 +46,7 @@ pub async fn insert_vectors(
                     }
                 }
             }
-            Err(_) => return Err(InsertError::InvalidMetadata),
+            Err(_) => return Err(ApiError::InvalidMetadata),
         }
     }
 
@@ -64,7 +63,7 @@ pub async fn insert_vectors(
     index
         .upsert(&vectors, &namespace.into())
         .await
-        .map_err(|_| InsertError::DatabaseInsert)?;
+        .map_err(|_| ApiError::DatabaseInsert)?;
 
     Ok(())
 }

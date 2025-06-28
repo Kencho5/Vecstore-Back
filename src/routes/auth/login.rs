@@ -14,7 +14,7 @@ pub async fn login_handler(
         .await
         .map_err(|_| AuthError::InvalidToken)?;
 
-    Ok(Json(AuthResponse::new(token)))
+    Ok(Json(AuthResponse { token }))
 }
 
 pub async fn login_google_handler(
@@ -35,5 +35,5 @@ pub async fn login_google_handler(
         .await
         .map_err(|_| AuthError::InvalidToken)?;
 
-    Ok(Json(AuthResponse::new(token)))
+    Ok(Json(AuthResponse { token }))
 }

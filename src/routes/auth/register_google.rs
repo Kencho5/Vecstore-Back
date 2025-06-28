@@ -27,5 +27,5 @@ pub async fn register_google_handler(
         .await
         .map_err(|_| AuthError::InvalidToken)?;
 
-    Ok(Json(AuthResponse::new(token)))
+    Ok(Json(AuthResponse { token }))
 }

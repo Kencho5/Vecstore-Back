@@ -23,5 +23,5 @@ pub async fn register_handler(
         .await
         .map_err(|_| AuthError::TokenCreation)?;
 
-    Ok(Json(AuthResponse::new(token)))
+    Ok(Json(AuthResponse { token }))
 }

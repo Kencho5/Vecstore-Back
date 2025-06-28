@@ -1,5 +1,4 @@
 use crate::prelude::*;
-use crate::structs::search_struct::*;
 
 pub async fn search_vectors_with_region(
     state: &AppState,
@@ -8,7 +7,7 @@ pub async fn search_vectors_with_region(
     database: &String,
     region: &String,
     metadata_filter: Option<String>,
-) -> Result<SearchResults, SearchImageError> {
+) -> Result<SearchResults, ApiError> {
     let indexes = state.pinecone_indexes.lock().await;
     let index = indexes.get_index_by_region(region).unwrap();
     let mut index = index.lock().await;
@@ -22,7 +21,7 @@ async fn search_vectors_impl(
     database: &String,
     index: &mut Index,
     metadata_filter: Option<String>,
-) -> Result<SearchResults, SearchImageError> {
+) -> Result<SearchResults, ApiError> {
     // Parse metadata filter if provided
     let filter = if let Some(metadata_str) = metadata_filter {
         match serde_json::from_str::<serde_json::Value>(&metadata_str) {
@@ -52,10 +51,10 @@ async fn search_vectors_impl(
                     }
                     Some(Metadata { fields })
                 } else {
-                    return Err(SearchImageError::InvalidMetadata);
+                    return Err(ApiError::InvalidMetadata);
                 }
             }
-            Err(_) => return Err(SearchImageError::InvalidMetadata),
+            Err(_) => return Err(ApiError::InvalidMetadata),
         }
     } else {
         None
@@ -72,7 +71,7 @@ async fn search_vectors_impl(
             Some(true),
         )
         .await
-        .map_err(|_| SearchImageError::Unforseen)?;
+        .map_err(|_| ApiError::Unforseen)?;
 
     // Convert QueryResponse to SearchResults
     let search_response = SearchResults {

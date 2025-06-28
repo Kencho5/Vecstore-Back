@@ -1,5 +1,4 @@
 use crate::prelude::*;
-use crate::structs::insert_struct::*;
 
 pub struct UserValidationResult {
     pub user_id: i32,
@@ -16,7 +15,7 @@ pub async fn validate_user_and_increment(
     pool: &PgPool,
     api_key: String,
     database: &str,
-) -> Result<UserValidationResult, InsertError> {
+) -> Result<UserValidationResult, ApiError> {
     let result: Option<(i32, String, i32)> = sqlx::query_as(
         "WITH validated_user AS (
            SELECT ak.owner_id, d.db_type, d.region
@@ -44,7 +43,7 @@ pub async fn validate_user_and_increment(
     .bind(database)
     .fetch_optional(pool)
     .await
-    .map_err(|_| InsertError::DatabaseInsert)?;
+    .map_err(|_| ApiError::DatabaseInsert)?;
 
     let (user_id, region, credits_left) = match result {
         Some((id, reg, credits)) => (id, reg, credits),
@@ -59,11 +58,11 @@ pub async fn validate_user_and_increment(
             .bind(database)
             .fetch_optional(pool)
             .await
-            .map_err(|_| InsertError::InvalidApiKey)?;
+            .map_err(|_| ApiError::InvalidApiKey)?;
 
             match validation_check {
-                Some(_) => return Err(InsertError::RequestLimitExceeded),
-                None => return Err(InsertError::DatabaseNotFound),
+                Some(_) => return Err(ApiError::RequestLimitExceeded),
+                None => return Err(ApiError::DatabaseNotFound),
             }
         }
     };
@@ -78,7 +77,7 @@ pub async fn validate_user_and_increment(
 pub async fn validate_nsfw_request(
     pool: &PgPool,
     api_key: String,
-) -> Result<UserNsfwValidationResult, InsertError> {
+) -> Result<UserNsfwValidationResult, ApiError> {
     let result: Option<(i32, i32)> = sqlx::query_as(
         "WITH validated_user AS (
            SELECT owner_id FROM api_keys WHERE key = $1
@@ -96,7 +95,7 @@ pub async fn validate_nsfw_request(
     .await
     .map_err(|e| {
         dbg!(e);
-        InsertError::DatabaseInsert
+        ApiError::DatabaseInsert
     })?;
 
     let (user_id, credits_left) = match result {
@@ -110,11 +109,11 @@ pub async fn validate_nsfw_request(
             .bind(&hash_api_key(&api_key))
             .fetch_optional(pool)
             .await
-            .map_err(|_| InsertError::InvalidApiKey)?;
+            .map_err(|_| ApiError::InvalidApiKey)?;
 
             match validation_check {
-                Some(_) => return Err(InsertError::RequestLimitExceeded),
-                None => return Err(InsertError::DatabaseNotFound),
+                Some(_) => return Err(ApiError::RequestLimitExceeded),
+                None => return Err(ApiError::DatabaseNotFound),
             }
         }
     };

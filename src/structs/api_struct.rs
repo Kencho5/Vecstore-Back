@@ -1,21 +1,10 @@
 use crate::prelude::*;
 
 //IMAGE
-#[derive(Deserialize, Serialize)]
-pub struct SearchImagePayload {
-    pub text: String,
-}
-
 #[derive(Serialize)]
 pub struct InsertImageBody {
     pub time: String,
     pub credits_left: i32,
-}
-
-impl InsertImageBody {
-    pub fn new(time: String, credits_left: i32) -> Self {
-        Self { time, credits_left }
-    }
 }
 
 //TEXT
@@ -32,8 +21,50 @@ pub struct InsertTextResponse {
     pub credits_left: i32,
 }
 
+//SEARCH
+#[derive(Deserialize, Serialize)]
+pub struct SearchImagePayload {
+    pub text: Option<String>,
+    pub image: Option<String>,
+    pub database: String,
+    pub metadata: Option<String>,
+}
+
+#[derive(Serialize)]
+pub struct SearchResponse {
+    pub results: Vec<SearchMatch>,
+    pub time: String,
+    pub credits_left: i32,
+}
+
+#[derive(Serialize)]
+pub struct SearchResults {
+    pub matches: Vec<SearchMatch>,
+}
+
+#[derive(Serialize)]
+pub struct SearchMatch {
+    pub id: String,
+    pub score: String,
+    pub metadata: Option<HashMap<String, String>>,
+}
+
+//NSFW
+#[derive(Deserialize, Serialize)]
+pub struct NsfwPayload {
+    pub image: String,
+}
+
+#[derive(Serialize)]
+pub struct NsfwBody {
+    pub nsfw: bool,
+    pub time: u64,
+    pub credits_left: i32,
+}
+
 #[derive(Debug)]
-pub enum InsertError {
+pub enum ApiError {
+    Unforseen,
     ImageProcessing,
     ModelInference,
     DatabaseNotFound,
@@ -44,32 +75,35 @@ pub enum InsertError {
     InvalidMetadata,
 }
 
-impl IntoResponse for InsertError {
+impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
         let (status, error_message) = match self {
-            InsertError::ImageProcessing => {
+            ApiError::Unforseen => {
+                (StatusCode::BAD_REQUEST, "Unforseen error. Contact support")
+            }
+            ApiError::ImageProcessing => {
                 (StatusCode::BAD_REQUEST, "Failed to process image")
             }
-            InsertError::ModelInference => {
+            ApiError::ModelInference => {
                 (StatusCode::INTERNAL_SERVER_ERROR, "Model inference failed")
             }
-            InsertError::DatabaseNotFound => (
+            ApiError::DatabaseNotFound => (
                 StatusCode::SERVICE_UNAVAILABLE,
                 "Database not found",
             ),
-            InsertError::DatabaseInsert => (
+            ApiError::DatabaseInsert => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "Failed to insert into database",
             ),
-            InsertError::MissingData => {
+            ApiError::MissingData => {
                 (StatusCode::INTERNAL_SERVER_ERROR, "Missing api data")
             }
-            InsertError::InvalidApiKey => (StatusCode::UNAUTHORIZED, "Invalid API key"),
-            InsertError::RequestLimitExceeded => (
+            ApiError::InvalidApiKey => (StatusCode::UNAUTHORIZED, "Invalid API key"),
+            ApiError::RequestLimitExceeded => (
                 StatusCode::UNAUTHORIZED,
                 "Monthly API request limit exceeded. Upgrade your plan or contact sales to increase your limit.",
             ),
-            InsertError::InvalidMetadata => (
+            ApiError::InvalidMetadata => (
                 StatusCode::BAD_REQUEST,
                 "Invalid metadata format. Must be valid JSON.",
             ),

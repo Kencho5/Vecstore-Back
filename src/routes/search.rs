@@ -1,11 +1,10 @@
 use crate::prelude::*;
-use crate::structs::search_struct::*;
 
 pub async fn search_handler(
     Extension(api_key): Extension<String>,
     State(state): State<AppState>,
     mut multipart: Multipart,
-) -> Result<Json<SearchResponse>, SearchImageError> {
+) -> Result<Json<SearchResponse>, ApiError> {
     let total_start = Instant::now();
 
     let mut image_data: Option<Vec<u8>> = None;
@@ -16,7 +15,7 @@ pub async fn search_handler(
     while let Some(field) = multipart
         .next_field()
         .await
-        .map_err(|_| SearchImageError::MissingData)?
+        .map_err(|_| ApiError::MissingData)?
     {
         let field_name = field.name().unwrap_or("").to_string();
         match field_name.as_str() {
@@ -25,40 +24,31 @@ pub async fn search_handler(
                     field
                         .bytes()
                         .await
-                        .map_err(|_| SearchImageError::MissingData)?
+                        .map_err(|_| ApiError::MissingData)?
                         .to_vec(),
                 );
             }
             "text" => {
-                let bytes = field
-                    .bytes()
-                    .await
-                    .map_err(|_| SearchImageError::MissingData)?;
+                let bytes = field.bytes().await.map_err(|_| ApiError::MissingData)?;
                 text = Some(
                     std::str::from_utf8(&bytes)
-                        .map_err(|_| SearchImageError::MissingData)?
+                        .map_err(|_| ApiError::MissingData)?
                         .to_string(),
                 );
             }
             "database" => {
-                let bytes = field
-                    .bytes()
-                    .await
-                    .map_err(|_| SearchImageError::MissingData)?;
+                let bytes = field.bytes().await.map_err(|_| ApiError::MissingData)?;
                 database = Some(
                     std::str::from_utf8(&bytes)
-                        .map_err(|_| SearchImageError::MissingData)?
+                        .map_err(|_| ApiError::MissingData)?
                         .to_string(),
                 );
             }
             "metadata" => {
-                let bytes = field
-                    .bytes()
-                    .await
-                    .map_err(|_| SearchImageError::MissingData)?;
+                let bytes = field.bytes().await.map_err(|_| ApiError::MissingData)?;
                 metadata = Some(
                     std::str::from_utf8(&bytes)
-                        .map_err(|_| SearchImageError::MissingData)?
+                        .map_err(|_| ApiError::MissingData)?
                         .to_string(),
                 );
             }
@@ -66,20 +56,18 @@ pub async fn search_handler(
         }
     }
 
-    let database = database.ok_or(SearchImageError::MissingData)?;
+    let database = database.ok_or(ApiError::MissingData)?;
 
-    let validation_result = validate_user_and_increment(&state.pool, api_key, &database)
-        .await
-        .map_err(|_| SearchImageError::InvalidApiKey)?;
+    let validation_result = validate_user_and_increment(&state.pool, api_key, &database).await?;
 
     let vectors = if let Some(image_bytes) = image_data {
         extract_image_features(&state, image_bytes)
             .await
-            .map_err(|_| SearchImageError::ModelInference)?
+            .map_err(|_| ApiError::ModelInference)?
     } else if let Some(text_content) = text {
         extract_text_features(&state, text_content).await?
     } else {
-        return Err(SearchImageError::MissingData); // Neither image nor text provided
+        return Err(ApiError::MissingData); // Neither image nor text provided
     };
 
     let results = search_vectors_with_region(

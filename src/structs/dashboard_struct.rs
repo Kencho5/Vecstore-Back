@@ -81,12 +81,6 @@ pub struct UserCredits {
     pub credits: i32,
 }
 
-impl PortalUrlBody {
-    pub fn new(url: String) -> Self {
-        Self { url }
-    }
-}
-
 #[derive(Debug)]
 pub enum DashboardError {
     Unforseen,
