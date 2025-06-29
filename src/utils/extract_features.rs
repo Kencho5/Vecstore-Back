@@ -7,8 +7,10 @@ pub async fn extract_image_features(
     bedrock_client: &BedrockClient,
     image_data: Vec<u8>,
 ) -> Result<Vec<f32>, ApiError> {
-    let base64_image = general_purpose::STANDARD.encode(&image_data);
+    // Resize image before encoding
+    let resized_image_data = resize_image(image_data)?;
 
+    let base64_image = general_purpose::STANDARD.encode(&resized_image_data);
     let body = json!({
         "inputImage": base64_image,
         "embeddingConfig": {
@@ -17,7 +19,6 @@ pub async fn extract_image_features(
     });
 
     let body_bytes = serde_json::to_vec(&body).map_err(|_| ApiError::ImageProcessing)?;
-
     let response = bedrock_client
         .invoke_model()
         .model_id("amazon.titan-embed-image-v1")
@@ -33,7 +34,6 @@ pub async fn extract_image_features(
     let response_body = response.body().as_ref();
     let response_json: Value =
         serde_json::from_slice(response_body).map_err(|_| ApiError::ModelInference)?;
-
     let embedding = response_json["embedding"]
         .as_array()
         .ok_or(ApiError::ModelInference)?

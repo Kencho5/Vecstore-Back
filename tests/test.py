@@ -30,8 +30,8 @@ def search_worker(counter, limit, lock, start_time):
             current = counter.value
 
         files = {
-            'text': (None, 'dog'),
-            'database': (None, DATABASE)
+            'text': 'girl holding a guitar',
+            'database':  DATABASE
         }
         headers = {"Authorization": API_KEY}
         

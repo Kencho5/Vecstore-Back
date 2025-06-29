@@ -6,7 +6,6 @@ pub use std::{
 };
 
 // External crates
-pub use anyhow::Result;
 pub use chrono::{DateTime, Duration, NaiveDate, NaiveDateTime, Utc};
 pub use dotenv::dotenv;
 pub use google_oauth::AsyncClient;
@@ -52,6 +51,6 @@ pub use crate::{
     structs::{api_struct::*, app_state::*, auth_struct::*, payment_struct::*, pinecone_struct::*},
     utils::{
         background_task::*, extract_features::*, get_customer_id::*, get_user_and_region::*,
-        hash_api_key::*, insert_vectors::*, save_usage::*, search_vectors::*,
+        hash_api_key::*, insert_vectors::*, resize_image::*, save_usage::*, search_vectors::*,
     },
 };
