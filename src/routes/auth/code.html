@@ -1,93 +1,326 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
-    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+    <meta name="supported-color-schemes" content="light" />
+    <title>Verification Code</title>
+    <!--[if mso]>
+      <style type="text/css">
+        table,
+        td {
+          border-collapse: collapse;
+          mso-table-lspace: 0pt;
+          mso-table-rspace: 0pt;
+        }
+        img {
+          -ms-interpolation-mode: bicubic;
+        }
+        p,
+        a,
+        li,
+        td,
+        blockquote {
+          mso-line-height-rule: exactly;
+        }
+      </style>
+    <![endif]-->
+    <style type="text/css">
+      /* Base styles */
+      body,
+      p {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+
+      /* Client-specific adjustments */
+      body,
+      table,
+      td,
+      a {
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+      }
+      table,
+      td {
+        mso-table-lspace: 0pt;
+        mso-table-rspace: 0pt;
+      }
+      img {
+        -ms-interpolation-mode: bicubic;
+        border: 0;
+        height: auto;
+        line-height: 100%;
+        outline: none;
+        text-decoration: none;
+      }
+
+      /* Responsive styles */
+      @media screen and (max-width: 525px) {
+        .container {
+          width: 100% !important;
+          max-width: 100% !important;
+        }
+        .content {
+          padding: 24px !important;
+        }
+        .code {
+          font-size: 26px !important;
+          letter-spacing: 4px !important;
+        }
+        .code-container {
+          padding: 14px 10px !important;
+        }
+      }
+    </style>
   </head>
-  <body
-    style="
-      margin: 0;
-      padding: 0;
-      font-family:
-        -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto,
-        Helvetica, Arial, sans-serif;
-      background-color: #f6f6f6;
-      color: #151515;
-    "
-  >
-    <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px">
-      <div
-        style="
-          background-color: #ffffff;
-          border-radius: 12px;
-          padding: 40px;
-          box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
-        "
-      >
-        <div style="text-align: center; margin-bottom: 32px">
-          <img
-            src="https://staging.furito.com/logoFull.png"
-            alt="Furito"
-            width="160"
-          />
-        </div>
-
-        <h1
-          style="
-            margin: 0 0 16px;
-            font-size: 24px;
-            font-weight: 600;
-            text-align: center;
-            color: #3d3d3d;
-          "
-        >
-          დაადასტურე შენი ელ. ფოსტა
-        </h1>
-
-        <p
-          style="
-            margin: 0 0 24px;
-            font-size: 16px;
-            line-height: 24px;
-            text-align: center;
-            color: #6d6d6d;
-          "
-        >
-          შეიყვანე ეს კოდი ვერიფიკაციის გასავლელად
-        </p>
-
-        <div
-          style="
-            background-color: #fff5ed;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 32px;
-            text-align: center;
-          "
-        >
-          <span
-            style="
-              font-family: monospace;
-              font-size: 32px;
-              font-weight: 600;
-              letter-spacing: 4px;
-              color: #fd590d;
-            "
-            >{{verification_code}}</span
-          >
-        </div>
-        <p
-          style="margin: 0; font-size: 14px; text-align: center; color: #888888"
-        >
-          თუ შენ არ მოგითხოვია ეს კოდი, შეგიძლია დააიგნორო ეს მესიჯი.
-        </p>
-      </div>
-
-      <div style="text-align: center; padding-top: 24px">
-        <p style="margin: 0; font-size: 12px; color: #888888">
-          © 2025 Furito. All rights reserved.
-        </p>
-      </div>
+  <body style="margin: 0; padding: 0; width: 100%; background-color: #fafaf9">
+    <div style="display: none; max-height: 0px; overflow: hidden">
+      Your verification code for Vecstore: 123456
     </div>
+    <div style="display: none; max-height: 0px; overflow: hidden">
+      &nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌
+    </div>
+
+    <!-- Main Container -->
+    <table
+      role="presentation"
+      width="100%"
+      cellspacing="0"
+      cellpadding="0"
+      border="0"
+      align="center"
+      style="width: 100%; max-width: 100%; background-color: #fafaf9"
+    >
+      <tr>
+        <td align="center" style="padding: 40px 10px">
+          <!-- Email Container -->
+          <table
+            role="presentation"
+            width="480"
+            cellspacing="0"
+            cellpadding="0"
+            border="0"
+            align="center"
+            style="
+              width: 480px;
+              max-width: 480px;
+              background-color: #fafaf9;
+              margin: 0 auto;
+            "
+          >
+            <!-- Logo Text Instead of Image -->
+            <tr>
+              <td align="center" style="padding-bottom: 20px">
+                <table
+                  role="presentation"
+                  cellspacing="0"
+                  cellpadding="0"
+                  border="0"
+                >
+                  <tr>
+                    <td
+                      align="center"
+                      style="
+                        font-size: 24px;
+                        font-weight: 700;
+                        color: #c04a7f;
+                        letter-spacing: -0.01em;
+                        padding: 5px 0;
+                      "
+                    >
+                      VECSTORE
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Card -->
+            <tr>
+              <td>
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellspacing="0"
+                  cellpadding="0"
+                  border="0"
+                  style="
+                    background-color: #ffffff;
+                    border-radius: 12px;
+                    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+                    width: 100%;
+                  "
+                >
+                  <!-- Header -->
+                  <tr>
+                    <td
+                      align="center"
+                      style="
+                        padding: 28px 0;
+                        background-color: #c04a7f;
+                        background: linear-gradient(
+                          135deg,
+                          #c04a7f 0%,
+                          #a93869 100%
+                        );
+                        border-radius: 12px 12px 0 0;
+                      "
+                    >
+                      <table
+                        role="presentation"
+                        cellspacing="0"
+                        cellpadding="0"
+                        border="0"
+                      >
+                        <tr>
+                          <td
+                            align="center"
+                            style="
+                              font-size: 18px;
+                              font-weight: 600;
+                              color: #ffffff;
+                              letter-spacing: -0.01em;
+                            "
+                          >
+                            Verification Code
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+
+                  <!-- Content - All in one table cell with no separate sections -->
+                  <tr>
+                    <td align="center" style="padding: 40px 32px">
+                      <!-- Verification Message -->
+                      <p
+                        style="
+                          margin: 0 0 32px;
+                          font-size: 16px;
+                          line-height: 24px;
+                          color: #57534e;
+                          text-align: center;
+                        "
+                      >
+                        Please enter this code to verify your account:
+                      </p>
+
+                      <!-- Code Box -->
+                      <div
+                        style="
+                          margin-bottom: 32px;
+                          background: linear-gradient(
+                            135deg,
+                            #f9ebf1 0%,
+                            #fcf5f8 100%
+                          );
+                          border-radius: 10px;
+                          border: 1px solid #f3d7e3;
+                          padding: 20px 24px;
+                          display: inline-block;
+                        "
+                      >
+                        <span
+                          style="
+                            font-family: monospace;
+                            font-size: 36px;
+                            font-weight: 700;
+                            letter-spacing: 8px;
+                            color: #8c2954;
+                          "
+                          >123456</span
+                        >
+                      </div>
+
+                      <!-- Important Information -->
+                      <table
+                        role="presentation"
+                        width="100%"
+                        cellspacing="0"
+                        cellpadding="0"
+                        border="0"
+                        style="margin-bottom: 24px"
+                      >
+                        <tr>
+                          <td
+                            align="center"
+                            style="
+                              padding: 12px;
+                              background-color: #f5f0ee;
+                              border-radius: 8px;
+                            "
+                          >
+                            <p
+                              style="
+                                margin: 0;
+                                font-size: 15px;
+                                line-height: 22px;
+                                color: #57534e;
+                                text-align: center;
+                              "
+                            >
+                              If you didn't request this code, you can safely
+                              ignore this email.
+                            </p>
+                          </td>
+                        </tr>
+                      </table>
+
+                      <!-- Support Information -->
+                      <table
+                        role="presentation"
+                        width="100%"
+                        cellspacing="0"
+                        cellpadding="0"
+                        border="0"
+                        style="margin-top: 8px"
+                      >
+                        <tr>
+                          <td
+                            align="center"
+                            style="
+                              padding: 12px;
+                              background-color: #f5f9ff;
+                              border-radius: 8px;
+                              border: 1px solid #d6e7fd;
+                            "
+                          >
+                            <p
+                              style="
+                                margin: 0;
+                                font-size: 15px;
+                                line-height: 22px;
+                                color: #57534e;
+                                text-align: center;
+                              "
+                            >
+                              <strong>Need help?</strong>
+                              <a
+                                href="mailto:support@vecstore.app"
+                                style="
+                                  color: #6fa2f5;
+                                  text-decoration: none;
+                                  font-weight: 500;
+                                "
+                                >Contact our support team</a
+                              >
+                            </p>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
   </body>
 </html>
