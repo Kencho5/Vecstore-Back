@@ -8,8 +8,7 @@ pub async fn search_vectors_with_region(
     region: &String,
     metadata_filter: Option<String>,
 ) -> Result<SearchResults, ApiError> {
-    let indexes = state.pinecone_indexes.lock().await;
-    let index = indexes.get_index_by_region(region).unwrap();
+    let index = state.pinecone_indexes.get_index_by_region(region).unwrap();
     let mut index = index.lock().await;
 
     search_vectors_impl(vectors, user_id, database, &mut index, metadata_filter).await

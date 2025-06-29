@@ -81,8 +81,7 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
             database,
             region,
         } => {
-            let indexes = state.pinecone_indexes.lock().await;
-            let index = indexes.get_index_by_region(&region).unwrap();
+            let index = state.pinecone_indexes.get_index_by_region(&region).unwrap();
 
             let vectors = extract_image_features(&state.bedrock_client, image_data)
                 .await
@@ -102,8 +101,7 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
             database,
             region,
         } => {
-            let indexes = state.pinecone_indexes.lock().await;
-            let index = indexes.get_index_by_region(&region).unwrap();
+            let index = state.pinecone_indexes.get_index_by_region(&region).unwrap();
 
             let vectors = extract_text_features(&state.bedrock_client, text)
                 .await

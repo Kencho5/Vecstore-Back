@@ -9,12 +9,12 @@ pub async fn init_pinecone() -> PineconeIndexes {
         .client()
         .expect("Failed to create Pinecone instance");
 
-    let image_us_east = pinecone
+    let us_east = pinecone
         .index(&env::var("US_EAST_INDEX").expect("Pinecone index not found"))
         .await
         .unwrap();
 
     PineconeIndexes {
-        us_east: Arc::new(Mutex::new(image_us_east)),
+        us_east: Arc::new(Mutex::new(us_east)),
     }
 }

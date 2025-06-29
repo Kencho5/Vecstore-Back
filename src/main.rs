@@ -19,7 +19,6 @@ async fn main() {
     tracing_subscriber::fmt().with_max_level(Level::INFO).init();
 
     let pinecone_indexes = init_pinecone::init_pinecone().await;
-    let pinecone_indexes = Arc::new(Mutex::new(pinecone_indexes));
     let pool = init_db::init_db().await;
     let google_client =
         AsyncClient::new(env::var("GOOGLE_CLIENT_ID").expect("Google client id not found"));

@@ -2,7 +2,7 @@ use crate::prelude::*;
 
 #[derive(Clone)]
 pub struct AppState {
-    pub pinecone_indexes: Arc<Mutex<PineconeIndexes>>,
+    pub pinecone_indexes: PineconeIndexes,
     pub pool: PgPool,
     pub google_client: AsyncClient,
     pub task_queue: mpsc::UnboundedSender<BackgroundTask>,
@@ -14,6 +14,6 @@ pub struct AppState {
 #[derive(Clone)]
 pub struct WorkerState {
     pub pool: PgPool,
-    pub pinecone_indexes: Arc<Mutex<PineconeIndexes>>,
+    pub pinecone_indexes: PineconeIndexes,
     pub bedrock_client: BedrockClient,
 }
