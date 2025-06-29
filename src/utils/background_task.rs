@@ -81,16 +81,18 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
             database,
             region,
         } => {
-            let index = state.pinecone_indexes.get_index_by_region(&region).unwrap();
+            if let Some(index) = state.pinecone_indexes.get_index_by_region(&region).await {
+                let vectors = extract_image_features(&state.bedrock_client, image_data)
+                    .await
+                    .unwrap();
 
-            let vectors = extract_image_features(&state.bedrock_client, image_data)
-                .await
-                .unwrap();
-
-            if let Err(e) =
-                insert_vectors(user_id, index, vectors, filename, metadata, database).await
-            {
-                eprintln!("Failed to insert vectors: {:?}", e);
+                if let Err(e) =
+                    insert_vectors(user_id, index, vectors, filename, metadata, database).await
+                {
+                    eprintln!("Failed to insert vectors: {:?}", e);
+                }
+            } else {
+                eprintln!("Failed to get index for region: {}", region);
             }
         }
         BackgroundTask::InsertTextVectors {
@@ -101,16 +103,18 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
             database,
             region,
         } => {
-            let index = state.pinecone_indexes.get_index_by_region(&region).unwrap();
+            if let Some(index) = state.pinecone_indexes.get_index_by_region(&region).await {
+                let vectors = extract_text_features(&state.bedrock_client, text)
+                    .await
+                    .unwrap();
 
-            let vectors = extract_text_features(&state.bedrock_client, text)
-                .await
-                .unwrap();
-
-            if let Err(e) =
-                insert_vectors(user_id, index, vectors, filename, metadata, database).await
-            {
-                eprintln!("Failed to insert text vectors: {:?}", e);
+                if let Err(e) =
+                    insert_vectors(user_id, index, vectors, filename, metadata, database).await
+                {
+                    eprintln!("Failed to insert text vectors: {:?}", e);
+                }
+            } else {
+                eprintln!("Failed to get index for region: {}", region);
             }
         }
         BackgroundTask::SaveUsageLogs { user_id } => {

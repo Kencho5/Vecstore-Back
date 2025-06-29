@@ -17,8 +17,7 @@ pub use pwhash::bcrypt;
 pub use serde::{Deserialize, Serialize};
 pub use serde_json::json;
 pub use sqlx::postgres::{PgPool, PgPoolOptions};
-pub use std::sync::Arc;
-pub use tokio::sync::{mpsc, Mutex};
+pub use tokio::sync::mpsc;
 pub use tower_http::cors::CorsLayer;
 pub use uuid::Uuid;
 

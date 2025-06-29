@@ -5,7 +5,8 @@ pub async fn index_data_handler(
     State(state): State<AppState>,
     Json(payload): Json<GetDbPayload>,
 ) -> Result<Json<NamespaceStats>, DashboardError> {
-    let mut index = state.pinecone_indexes.us_east.lock().await;
+    let mut index = state.pinecone_indexes.get_index_by_region("us-east").await
+        .ok_or(DashboardError::Unforseen)?;
 
     let stats = index
         .describe_index_stats(None)

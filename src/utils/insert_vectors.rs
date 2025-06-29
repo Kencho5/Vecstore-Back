@@ -2,7 +2,7 @@ use crate::prelude::*;
 
 pub async fn insert_vectors(
     user_id: i32,
-    index: Arc<Mutex<Index>>,
+    mut index: Index,
     vectors: Vec<f32>,
     filename: Option<String>,
     metadata: Option<String>,
@@ -59,7 +59,6 @@ pub async fn insert_vectors(
     }];
     let namespace = format!("{}-{}", user_id, database);
 
-    let mut index = index.lock().await;
     index
         .upsert(&vectors, &namespace.into())
         .await
