@@ -3,42 +3,61 @@ name = "vecstore-back"
 version = "0.1.0"
 edition = "2021"
 
-[profile.release]
-opt-level = 3
-lto = "thin"
-codegen-units = 1
-panic = "abort"
-strip = true
-
 [profile.dev]
 opt-level = 1
 
+[profile.release]
+codegen-units = 1
+lto = "thin"
+opt-level = 3
+panic = "abort"
+strip = true
+
 [dependencies]
-# WEBSERVER
-tokio = { version = "1", features = ["full", "rt-multi-thread"] }
-serde_json = "1.0.140"
-serde = { version = "1.0", features = ["derive"] }
+# Web Framework & HTTP
 axum = { version = "0.8.4", features = ["multipart"] }
-tower-http = { version = "0.5.0", features = ["cors"] }
 http = "1.1.0"
+tokio = { version = "1", features = ["full", "rt-multi-thread"] }
+tower-http = { version = "0.5.0", features = ["cors"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0.140"
+
+# Database
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "chrono"] }
+
+# Authentication & Security
+google-oauth = "1.11.3"
+jsonwebtoken = "9.3.0"
+pwhash = "1"
+
+# AWS Services
+aws-config = { version = "1.1.7", features = ["behavior-version-latest"] }
+aws-sdk-bedrockruntime = "1.93.0"
+aws-sdk-rekognition = "1.77.0"
+aws-sdk-sesv2 = "1.65.0"
+
+# AI & Vector Store
+pinecone-sdk = "0.1.2"
+
+# Utilities
+base64 = "0.22.1"
+chrono = { version = "0.4.39", features = ["serde"] }
+dotenv = "0.15.0"
+futures = "0.3.31"
+hex = "0.4.3"
+image = "0.25.6"
+rand = "0.9.1"
+sha2 = "0.10.9"
+uuid = { version = "1.0", features = ["v4"] }
+
+# Logging
 tracing = "0.1"
 tracing-subscriber = { version = "0.3" }
-dotenv = "0.15.0"
-sqlx = { version = "0.7", features = ["runtime-tokio-rustls",  "postgres", "chrono"] }
-uuid = { version = "1.0", features = ["v4"] }
-google-oauth = "1.11.3"
-pwhash = "1"
-jsonwebtoken = "9.3.0"
-chrono = { version = "0.4.39", features = ["serde"] }
-rand = "0.9.1"
-hex = "0.4.3"
-sha2 = "0.10.9"
-futures = "0.3.31"
-paddle-rust-sdk = "0.11.0"
+
+# Performance & Memory
 jemallocator = "0.5"
-aws-config = { version = "1.1.7", features = ["behavior-version-latest"] }
-aws-sdk-sesv2 = "1.65.0"
-image = "0.25.6"
-pinecone-sdk = "0.1.2"
-base64 = "0.22.1"
-aws-sdk-bedrockruntime = "1.93.0"
+
+# Payment Processing
+paddle-rust-sdk = "0.11.0"

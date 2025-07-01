@@ -55,11 +55,24 @@ pub struct NsfwPayload {
     pub image: String,
 }
 
+#[derive(Deserialize, Serialize)]
+pub struct NsfwFile {
+    pub nsfw: Vec<f32>,
+    pub not_nsfw: Vec<f32>,
+}
+
 #[derive(Serialize)]
 pub struct NsfwBody {
     pub nsfw: bool,
     pub time: u64,
     pub credits_left: i32,
+    pub labels: Vec<ModerationLabel>,
+}
+
+#[derive(Serialize)]
+pub struct ModerationLabel {
+    pub label: String,
+    pub confidence: String,
 }
 
 #[derive(Debug)]

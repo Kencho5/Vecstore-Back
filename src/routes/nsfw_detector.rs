@@ -6,7 +6,6 @@ pub async fn nsfw_detector_handler(
     mut multipart: Multipart,
 ) -> Result<Json<NsfwBody>, ApiError> {
     let total_start = Instant::now();
-
     let mut image_data: Option<Vec<u8>> = None;
 
     while let Some(field) = multipart
@@ -15,7 +14,6 @@ pub async fn nsfw_detector_handler(
         .map_err(|_| ApiError::MissingData)?
     {
         let field_name = field.name().unwrap_or("").to_string();
-
         match field_name.as_str() {
             "image" | "file" => {
                 image_data = Some(
@@ -26,17 +24,39 @@ pub async fn nsfw_detector_handler(
                         .to_vec(),
                 );
             }
-            _ => {} // Ignore unknown fields
+            _ => {}
         }
     }
 
-    //let image_data = image_data.ok_or(ApiError::MissingData)?;
-    //let nsfw =
-    //    predict(&*state.nsfw_model, image.unwrap()).map_err(|_| ApiError::ImageProcessing)?;
-    let nsfw = 1;
+    let image_data = image_data.ok_or(ApiError::MissingData)?;
+
+    let image = aws_sdk_rekognition::types::Image::builder()
+        .bytes(image_data.into())
+        .build();
+
+    let result = state
+        .rekognition_client
+        .detect_moderation_labels()
+        .image(image)
+        .send()
+        .await
+        .map_err(|_| ApiError::Unforseen)?;
+
+    let moderation_labels = result.moderation_labels();
+
+    let labels: Vec<ModerationLabel> = moderation_labels
+        .iter()
+        .map(|label| ModerationLabel {
+            label: label.name().unwrap_or("Unknown").to_string(),
+            confidence: format!("{:.1}%", label.confidence().unwrap_or(0.0)),
+        })
+        .collect();
+
+    let nsfw = moderation_labels
+        .iter()
+        .any(|label| label.name().map_or(false, is_nsfw_label));
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;
-
     let validation_result = validate_nsfw_request(&state.pool, api_key)
         .await
         .map_err(|_| ApiError::Unforseen)?;
@@ -50,8 +70,16 @@ pub async fn nsfw_detector_handler(
     }
 
     Ok(Json(NsfwBody {
-        nsfw: nsfw == 1,
+        nsfw,
         time: total_time_ms,
         credits_left: validation_result.credits_left,
+        labels,
     }))
+}
+
+fn is_nsfw_label(label_name: &str) -> bool {
+    matches!(
+        label_name,
+        "Explicit Nudity" | "Nudity" | "Sexual Activity" | "Graphic Violence" | "Violence"
+    )
 }

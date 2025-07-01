@@ -22,10 +22,12 @@ pub use uuid::Uuid;
 
 // AWS
 pub use aws_config::{BehaviorVersion, Region};
-pub use aws_sdk_bedrockruntime::config::Credentials;
-pub use aws_sdk_bedrockruntime::Client as BedrockClient;
-pub use aws_sdk_sesv2::types::{Body, Content, Destination, EmailContent, Message};
-pub use aws_sdk_sesv2::Error;
+pub use aws_sdk_bedrockruntime::{config::Credentials, Client as BedrockClient};
+pub use aws_sdk_rekognition::Client as RekognitionClient;
+pub use aws_sdk_sesv2::{
+    types::{Body, Content, Destination, EmailContent, Message},
+    Client as SesClient, Error,
+};
 
 // Axum framework
 pub use axum::{

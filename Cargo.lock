@@ -299,6 +299,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "aws-sdk-rekognition"
+version = "1.77.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5a969746641e2136a28beb5fc3aebb0e7ad08f449651026b14ca2865fab6af6d"
+dependencies = [
+ "aws-credential-types",
+ "aws-runtime",
+ "aws-smithy-async",
+ "aws-smithy-http",
+ "aws-smithy-json",
+ "aws-smithy-runtime",
+ "aws-smithy-runtime-api",
+ "aws-smithy-types",
+ "aws-types",
+ "bytes",
+ "fastrand",
+ "http 0.2.12",
+ "regex-lite",
+ "tracing",
+]
+
+[[package]]
 name = "aws-sdk-sesv2"
 version = "1.84.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4867,6 +4889,7 @@ version = "0.1.0"
 dependencies = [
  "aws-config",
  "aws-sdk-bedrockruntime",
+ "aws-sdk-rekognition",
  "aws-sdk-sesv2",
  "axum 0.8.4",
  "base64 0.22.1",

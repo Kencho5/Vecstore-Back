@@ -11,7 +11,7 @@ def get_image_data(url):
         return None
 
 API_KEY = "62d80151c294f137be9cf22a932dbb9c59e72a651a123641263ef45c5d2eb201"
-IMAGE_URL = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTCHo3CkaH0oRY3MvrEN0xgn-x_Lsn3Lm3lVQ&s"
+IMAGE_URL = "https://thumbs.dreamstime.com/b/nude-girl-naked-woman-woods-37896255.jpg"
 IMG_DATA = get_image_data(IMAGE_URL)
 
 def check_nsfw_loop(counter, limit, lock, start_time):

@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-pub async fn load_aws_clients() -> (BedrockClient, aws_sdk_sesv2::Client) {
+pub async fn load_aws_clients() -> (BedrockClient, SesClient, RekognitionClient) {
     let aws_access_key = env::var("AWS_ACCESS_KEY_ID").expect("AWS_ACCESS_KEY_ID not found");
     let aws_secret_key =
         env::var("AWS_SECRET_ACCESS_KEY").expect("AWS_SECRET_ACCESS_KEY not found");
@@ -14,13 +14,15 @@ pub async fn load_aws_clients() -> (BedrockClient, aws_sdk_sesv2::Client) {
         "env-credentials",
     );
 
-    let bedrock_client = aws_config::defaults(BehaviorVersion::latest())
+    let config = aws_config::defaults(BehaviorVersion::latest())
         .region(Region::new(aws_region))
         .credentials_provider(credentials)
         .load()
         .await;
 
-    let ses_client = aws_sdk_sesv2::Client::new(&bedrock_client);
+    let ses_client = aws_sdk_sesv2::Client::new(&config);
+    let bedrock_client = BedrockClient::new(&config);
+    let rekognition_client = RekognitionClient::new(&config);
 
-    (BedrockClient::new(&bedrock_client), ses_client)
+    (bedrock_client, ses_client, rekognition_client)
 }

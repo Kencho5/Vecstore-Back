@@ -28,7 +28,7 @@ async fn main() {
         Paddle::SANDBOX,
     )
     .unwrap();
-    let (bedrock_client, ses_client) = aws_client::load_aws_clients().await;
+    let (bedrock_client, ses_client, rekognition_client) = aws_client::load_aws_clients().await;
 
     let state = AppState {
         pinecone_indexes,
@@ -38,6 +38,7 @@ async fn main() {
         paddle,
         bedrock_client: bedrock_client.clone(),
         ses_client,
+        rekognition_client,
     };
 
     let worker_state = WorkerState {

@@ -8,7 +8,8 @@ pub struct AppState {
     pub task_queue: mpsc::UnboundedSender<BackgroundTask>,
     pub paddle: Paddle,
     pub bedrock_client: BedrockClient,
-    pub ses_client: aws_sdk_sesv2::Client,
+    pub ses_client: SesClient,
+    pub rekognition_client: RekognitionClient,
 }
 
 #[derive(Clone)]
