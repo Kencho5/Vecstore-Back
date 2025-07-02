@@ -18,13 +18,18 @@ async fn main() {
     dotenv().ok();
     tracing_subscriber::fmt().with_max_level(Level::INFO).init();
 
+    let frontend_url = env::var("FRONTEND_URL").expect("Frontend url not set");
     let (pool, neon_eu, neon_us_west, neon_us_east) = init_db::init_db().await;
     let google_client =
         AsyncClient::new(env::var("GOOGLE_CLIENT_ID").expect("Google client id not found"));
     let (tx, rx) = mpsc::unbounded_channel::<BackgroundTask>();
     let paddle = Paddle::new(
         std::env::var("PADDLE_API_KEY").expect("Paddle API key not found"),
-        Paddle::SANDBOX,
+        if env::var("ENVIRONMENT").unwrap_or_default() == "DEV" {
+            Paddle::SANDBOX
+        } else {
+            Paddle::PRODUCTION
+        },
     )
     .unwrap();
     let (bedrock_client, ses_client, rekognition_client) = aws_client::load_aws_clients().await;
@@ -55,7 +60,7 @@ async fn main() {
     let app = register_routes::create_router()
         .layer(
             CorsLayer::new()
-                .allow_origin("http://localhost:4200".parse::<HeaderValue>().unwrap())
+                .allow_origin(frontend_url.parse::<HeaderValue>().unwrap())
                 .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
                 .allow_headers([http::header::CONTENT_TYPE, http::header::AUTHORIZATION]),
         )

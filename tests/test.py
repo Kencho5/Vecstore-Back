@@ -3,8 +3,9 @@ import time
 from multiprocessing import Process, Value, Lock
 import json
 
-API_KEY = "62d80151c294f137be9cf22a932dbb9c59e72a651a123641263ef45c5d2eb201"
-BASE_URL = "http://localhost:3000"
+API_KEY = "465ba0efc5cc046732b13451fe9d2b215440c3035a0ab1bac652290785ab54fd"
+# BASE_URL = "http://localhost:3000"
+BASE_URL = "https://api.vecstore.app"
 
 # Test data
 IMAGE_URL = "https://carfromjapan.com/wp-content/uploads/2023/09/buying-a-black-car.jpg"
