@@ -20,6 +20,9 @@ pub struct Database {
     pub name: String,
     pub region: String,
     pub requests: i32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[sqlx(default)]
+    pub record_count: Option<i64>,
 }
 
 //INDEX

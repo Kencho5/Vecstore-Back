@@ -8,7 +8,6 @@ pub async fn insert_image_handler(
     let total_start = Instant::now();
 
     let mut image_data: Option<Vec<u8>> = None;
-    let mut filename: Option<String> = None;
     let mut database: Option<String> = None;
     let mut metadata: Option<String> = None;
 
@@ -27,14 +26,6 @@ pub async fn insert_image_handler(
                         .await
                         .map_err(|_| ApiError::MissingData)?
                         .to_vec(),
-                );
-            }
-            "filename" => {
-                let bytes = field.bytes().await.map_err(|_| ApiError::MissingData)?;
-                filename = Some(
-                    std::str::from_utf8(&bytes)
-                        .map_err(|_| ApiError::MissingData)?
-                        .to_string(),
                 );
             }
             "database" => {
@@ -59,7 +50,6 @@ pub async fn insert_image_handler(
     }
 
     let image_data = image_data.ok_or(ApiError::MissingData)?;
-    let filename = filename.ok_or(ApiError::MissingData)?;
     let database = database.ok_or(ApiError::MissingData)?;
 
     let validation_result = validate_user_and_increment(&state.pool, api_key, &database).await?;
@@ -67,7 +57,6 @@ pub async fn insert_image_handler(
     let insert_task = BackgroundTask::InsertImageVectors {
         user_id: validation_result.user_id,
         image_data,
-        filename: Some(filename),
         metadata,
         database,
         region: validation_result.region,

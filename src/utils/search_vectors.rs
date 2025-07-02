@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use sqlx::Row;
 
 pub async fn search_vectors_with_region(
     state: &AppState,
@@ -8,98 +9,73 @@ pub async fn search_vectors_with_region(
     region: &String,
     metadata_filter: Option<String>,
 ) -> Result<SearchResults, ApiError> {
-    let mut index = state.pinecone_indexes.get_index_by_region(region).await
+    let pool = state
+        .neon_pools
+        .get_pool_by_region(region)
         .ok_or(ApiError::Unforseen)?;
 
-    search_vectors_impl(vectors, user_id, database, &mut index, metadata_filter).await
+    search_vectors_impl(vectors, user_id, database, pool, metadata_filter).await
 }
 
 async fn search_vectors_impl(
     vectors: Vec<f32>,
     user_id: i32,
     database: &String,
-    index: &mut Index,
+    pool: &PgPool,
     metadata_filter: Option<String>,
 ) -> Result<SearchResults, ApiError> {
-    // Parse metadata filter if provided
-    let filter = if let Some(metadata_str) = metadata_filter {
-        match serde_json::from_str::<serde_json::Value>(&metadata_str) {
-            Ok(json_value) => {
-                if let Some(obj) = json_value.as_object() {
-                    let mut fields = BTreeMap::new();
-                    for (key, value) in obj {
-                        let pinecone_value = match value {
-                            serde_json::Value::String(s) => Value {
-                                kind: Some(Kind::StringValue(s.clone())),
-                            },
-                            serde_json::Value::Number(n) => {
-                                if let Some(f) = n.as_f64() {
-                                    Value {
-                                        kind: Some(Kind::NumberValue(f)),
-                                    }
-                                } else {
-                                    continue;
-                                }
-                            }
-                            serde_json::Value::Bool(b) => Value {
-                                kind: Some(Kind::BoolValue(*b)),
-                            },
-                            _ => continue,
-                        };
-                        fields.insert(key.clone(), pinecone_value);
-                    }
-                    Some(Metadata { fields })
-                } else {
-                    return Err(ApiError::InvalidMetadata);
-                }
-            }
-            Err(_) => return Err(ApiError::InvalidMetadata),
-        }
-    } else {
-        None
-    };
+    let tenant = format!("{}-{}", user_id, database);
 
-    let response: QueryResponse = index
-        .query_by_value(
-            vectors,
-            None,
-            3,
-            &Namespace::from(format!("{}-{}", user_id, database)),
-            filter,
-            None,
-            Some(true),
+    let rows = if let Some(metadata_str) = metadata_filter {
+        let metadata_json: serde_json::Value =
+            serde_json::from_str(&metadata_str).map_err(|_| ApiError::InvalidMetadata)?;
+        
+        sqlx::query(
+            "SELECT vector_id, embedding <=> $1::vector AS distance, metadata FROM vectors WHERE tenant = $2 AND metadata @> $3 ORDER BY distance LIMIT 3"
         )
+        .bind(&vectors)
+        .bind(&tenant)
+        .bind(&metadata_json)
+        .fetch_all(pool)
         .await
-        .map_err(|_| ApiError::Unforseen)?;
+    } else {
+        sqlx::query(
+            "SELECT vector_id, embedding <=> $1::vector AS distance, metadata FROM vectors WHERE tenant = $2 ORDER BY distance LIMIT 3"
+        )
+        .bind(&vectors)
+        .bind(&tenant)
+        .fetch_all(pool)
+        .await
+    }
+    .map_err(|_| {
+        ApiError::DatabaseError
+    })?;
 
-    // Convert QueryResponse to SearchResults
-    let search_response = SearchResults {
-        matches: response
-            .matches
-            .into_iter()
-            .map(|m| {
-                let metadata = m.metadata.map(|md| {
-                    md.fields
-                        .into_iter()
-                        .filter_map(|(k, v)| {
-                            if let Some(Kind::StringValue(s)) = v.kind {
-                                Some((k, s))
-                            } else {
-                                None
-                            }
-                        })
-                        .collect()
-                });
-                let id = m.id;
+    let matches = rows
+        .into_iter()
+        .map(|row| {
+            let vector_id: String = row.get("vector_id");
+            let distance: f64 = row.get("distance");
+            let metadata: Option<serde_json::Value> = row.get("metadata");
 
-                SearchMatch {
-                    id,
-                    score: format!("{:.2}%", m.score * 100.0),
-                    metadata,
-                }
-            })
-            .collect(),
-    };
+            // Convert distance to similarity score (1 - distance, clamped to 0-1)
+            let similarity = (1.0 - distance).max(0.0).min(1.0);
 
-    Ok(search_response)
+            let metadata_map = metadata.and_then(|m| {
+                m.as_object().map(|obj| {
+                    obj.iter()
+                        .filter_map(|(k, v)| v.as_str().map(|s| (k.clone(), s.to_string())))
+                        .collect::<std::collections::HashMap<String, String>>()
+                })
+            });
+
+            SearchMatch {
+                id: vector_id,
+                score: format!("{:.2}%", similarity * 100.0),
+                metadata: metadata_map,
+            }
+        })
+        .collect();
+
+    Ok(SearchResults { matches })
 }

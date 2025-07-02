@@ -1,9 +1,5 @@
 // Standard library
-pub use std::{
-    collections::{BTreeMap, HashMap},
-    env,
-    time::Instant,
-};
+pub use std::{collections::HashMap, env, time::Instant};
 
 // External crates
 pub use chrono::{DateTime, Duration, NaiveDate, NaiveDateTime, Utc};
@@ -38,19 +34,13 @@ pub use axum::{
     Extension, Json, Router,
 };
 
-// Pinecone SDK
-pub use pinecone_sdk::{
-    models::{Kind, Metadata, Namespace, QueryResponse, Value, Vector},
-    pinecone::{data::Index, PineconeClientConfig},
-};
-
 // Local crate modules
 pub use crate::{
     auth::token::*,
     loaders::*,
     middleware::{api_middleware::*, auth_middleware::*},
     routes::{auth::*, dashboard::*, payments::*},
-    structs::{api_struct::*, app_state::*, auth_struct::*, payment_struct::*, pinecone_struct::*},
+    structs::{api_struct::*, app_state::*, auth_struct::*, neon_struct::*, payment_struct::*},
     utils::{
         background_task::*, extract_features::*, get_customer_id::*, get_user_and_region::*,
         hash_api_key::*, insert_vectors::*, resize_image::*, save_usage::*, search_vectors::*,

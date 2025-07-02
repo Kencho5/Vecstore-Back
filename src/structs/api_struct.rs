@@ -80,6 +80,7 @@ pub enum ApiError {
     Unforseen,
     ImageProcessing,
     ModelInference,
+    DatabaseError,
     DatabaseNotFound,
     DatabaseInsert,
     MissingData,
@@ -100,6 +101,10 @@ impl IntoResponse for ApiError {
             ApiError::ModelInference => {
                 (StatusCode::INTERNAL_SERVER_ERROR, "Model inference failed")
             }
+            ApiError::DatabaseError=> (
+                StatusCode::BAD_REQUEST,
+                "Database error",
+            ),
             ApiError::DatabaseNotFound => (
                 StatusCode::SERVICE_UNAVAILABLE,
                 "Database not found",

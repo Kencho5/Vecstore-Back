@@ -28,13 +28,13 @@ def search_with_metadata_filter():
     
     # Search for images with category = "landscape" and featured = true
     metadata_filter = {
-        "category": "animal",
+        "category": "cars",
     }
     
     files = {
-        'text': (None, 'landscape nature'),
-        'database': (None, DATABASE),
-        'metadata': (None, json.dumps(metadata_filter))
+        'text': "lamborghini",
+        'database':  DATABASE,
+        'metadata': json.dumps(metadata_filter)
     }
     headers = {"Authorization": API_KEY}
     
@@ -42,7 +42,7 @@ def search_with_metadata_filter():
     print(f"Status: {response.status_code}")
     print(f"Response content: {response.text}")
     if response.headers.get('content-type', '').startswith('application/json'):
-        print(f"Response JSON: {response.json()}")
+        print(f"Response JSON: {json.dumps(response.json(),indent=2)}")
     else:
         print("Response is not JSON")
 
@@ -114,8 +114,8 @@ if __name__ == "__main__":
     print("Testing search functionality with metadata filtering\n")
     
     # Run all test cases
-    search_with_text_only()
-    # search_with_metadata_filter()
+    # search_with_text_only()
+    search_with_metadata_filter()
     # search_with_single_metadata_filter()
     # search_with_invalid_metadata()
     # search_with_nonexistent_metadata()

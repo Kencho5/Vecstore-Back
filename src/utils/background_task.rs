@@ -6,7 +6,6 @@ pub enum BackgroundTask {
     InsertImageVectors {
         user_id: i32,
         image_data: Vec<u8>,
-        filename: Option<String>,
         metadata: Option<String>,
         database: String,
         region: String,
@@ -14,7 +13,6 @@ pub enum BackgroundTask {
     InsertTextVectors {
         user_id: i32,
         text: String,
-        filename: Option<String>,
         metadata: Option<String>,
         database: String,
         region: String,
@@ -76,19 +74,16 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
         BackgroundTask::InsertImageVectors {
             user_id,
             image_data,
-            filename,
             metadata,
             database,
             region,
         } => {
-            if let Some(index) = state.pinecone_indexes.get_index_by_region(&region).await {
+            if let Some(pool) = state.neon_pools.get_pool_by_region(&region) {
                 let vectors = extract_image_features(&state.bedrock_client, image_data)
                     .await
                     .unwrap();
 
-                if let Err(e) =
-                    insert_vectors(user_id, index, vectors, filename, metadata, database).await
-                {
+                if let Err(e) = insert_vectors(pool, user_id, vectors, metadata, database).await {
                     eprintln!("Failed to insert vectors: {:?}", e);
                 }
             } else {
@@ -98,20 +93,17 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
         BackgroundTask::InsertTextVectors {
             user_id,
             text,
-            filename,
             metadata,
             database,
             region,
         } => {
-            if let Some(index) = state.pinecone_indexes.get_index_by_region(&region).await {
+            if let Some(pool) = state.neon_pools.get_pool_by_region(&region) {
                 let vectors = extract_text_features(&state.bedrock_client, text)
                     .await
                     .unwrap();
 
-                if let Err(e) =
-                    insert_vectors(user_id, index, vectors, filename, metadata, database).await
-                {
-                    eprintln!("Failed to insert text vectors: {:?}", e);
+                if let Err(e) = insert_vectors(pool, user_id, vectors, metadata, database).await {
+                    eprintln!("Failed to insert vectors: {:?}", e);
                 }
             } else {
                 eprintln!("Failed to get index for region: {}", region);

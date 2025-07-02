@@ -15,7 +15,6 @@ pub async fn insert_text_handler(
     let insert_task = BackgroundTask::InsertTextVectors {
         user_id,
         text: payload.text,
-        filename: None,
         database: payload.database,
         region: validation_result.region,
         metadata: payload.metadata,

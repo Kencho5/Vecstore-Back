@@ -7,7 +7,7 @@ API_KEY = "62d80151c294f137be9cf22a932dbb9c59e72a651a123641263ef45c5d2eb201"
 BASE_URL = "http://localhost:3000"
 
 # Test data
-IMAGE_URL = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/2019_Toyota_Corolla_Icon_Tech_VVT-i_Hybrid_1.8.jpg/960px-2019_Toyota_Corolla_Icon_Tech_VVT-i_Hybrid_1.8.jpg"
+IMAGE_URL = "https://carfromjapan.com/wp-content/uploads/2023/09/buying-a-black-car.jpg"
 NSFW_IMAGE_URL = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/2019_Toyota_Corolla_Icon_Tech_VVT-i_Hybrid_1.8.jpg/960px-2019_Toyota_Corolla_Icon_Tech_VVT-i_Hybrid_1.8.jpg"
 TEXT_CONTENT = "When Tony Stark, an industrialist, is captured, he constructs a high-tech armoured suit to escape."
 DATABASE = "vecstore"
@@ -30,7 +30,7 @@ def search_worker(counter, limit, lock, start_time):
             current = counter.value
 
         files = {
-            'text': 'girl holding a guitar',
+            'text': 'dog',
             'database':  DATABASE
         }
         headers = {"Authorization": API_KEY}
@@ -61,7 +61,7 @@ def insert_image_worker(counter, limit, lock, start_time):
             counter.value += 1
             current = counter.value
 
-        data = {'filename': 'test.jpg', 'database': DATABASE, 'metadata': '{"category": "cars"}'}
+        data = {'database': DATABASE, 'metadata': '{"category": "cars", "color": "black"}'}
         files = {'image': ('test.jpg', img_data, 'image/jpeg')}
         headers = {"Authorization": API_KEY}
         

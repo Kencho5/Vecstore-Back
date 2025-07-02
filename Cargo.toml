@@ -38,9 +38,6 @@ aws-sdk-bedrockruntime = "1.93.0"
 aws-sdk-rekognition = "1.77.0"
 aws-sdk-sesv2 = "1.65.0"
 
-# AI & Vector Store
-pinecone-sdk = "0.1.2"
-
 # Utilities
 base64 = "0.22.1"
 chrono = { version = "0.4.39", features = ["serde"] }
