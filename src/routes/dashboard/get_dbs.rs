@@ -4,11 +4,27 @@ pub async fn get_dbs_handler(
     Extension(claims): Extension<Claims>,
     State(state): State<AppState>,
 ) -> Result<Json<Vec<Database>>, DashboardError> {
-    let dbs = sqlx::query_as::<_, Database>("SELECT * FROM databases WHERE owner_id = $1")
+    let mut dbs = sqlx::query_as::<_, Database>("SELECT * FROM databases WHERE owner_id = $1")
         .bind(&claims.user_id)
         .fetch_all(&state.pool)
         .await
         .map_err(|_| DashboardError::Unforseen)?;
+
+    for db in &mut dbs {
+        let neon_pool = state
+            .neon_pools
+            .get_pool_by_region(&db.region)
+            .ok_or(DashboardError::Unforseen)?;
+
+        let tenant = format!("{}-{}", claims.user_id, db.name);
+        let record_count: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM vectors WHERE tenant = $1")
+            .bind(&tenant)
+            .fetch_one(neon_pool)
+            .await
+            .map_err(|_| DashboardError::Unforseen)?;
+
+        db.record_count = Some(record_count.0);
+    }
 
     Ok(Json(dbs))
 }
@@ -32,7 +48,6 @@ pub async fn get_db_handler(
         .ok_or(DashboardError::Unforseen)?;
 
     let tenant = format!("{}-{}", claims.user_id, result.name);
-
     let record_count: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM vectors WHERE tenant = $1")
         .bind(&tenant)
         .fetch_one(neon_pool)
@@ -40,6 +55,5 @@ pub async fn get_db_handler(
         .map_err(|_| DashboardError::Unforseen)?;
 
     result.record_count = Some(record_count.0);
-
     Ok(Json(result))
 }
