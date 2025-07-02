@@ -18,7 +18,7 @@ async fn main() {
     dotenv().ok();
     tracing_subscriber::fmt().with_max_level(Level::INFO).init();
 
-    let (pool, neon_eu) = init_db::init_db().await;
+    let (pool, neon_eu, neon_us_west, neon_us_east) = init_db::init_db().await;
     let google_client =
         AsyncClient::new(env::var("GOOGLE_CLIENT_ID").expect("Google client id not found"));
     let (tx, rx) = mpsc::unbounded_channel::<BackgroundTask>();
@@ -29,7 +29,7 @@ async fn main() {
     .unwrap();
     let (bedrock_client, ses_client, rekognition_client) = aws_client::load_aws_clients().await;
 
-    let neon_pools = NeonPools::new(neon_eu.clone());
+    let neon_pools = NeonPools::new(neon_eu.clone(), neon_us_west, neon_us_east);
 
     let state = AppState {
         pool: pool.clone(),
