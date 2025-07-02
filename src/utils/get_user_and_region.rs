@@ -48,21 +48,33 @@ pub async fn validate_user_and_increment(
     let (user_id, region, credits_left) = match result {
         Some((id, reg, credits)) => (id, reg, credits),
         None => {
-            let validation_check: Option<(i32,)> = sqlx::query_as(
-                "SELECT ak.owner_id 
-                 FROM api_keys ak
-                 JOIN databases d ON d.owner_id = ak.owner_id
-                 WHERE ak.key = $1 AND d.name = $2",
-            )
-            .bind(&hash_api_key(&api_key))
-            .bind(database)
-            .fetch_optional(pool)
-            .await
-            .map_err(|_| ApiError::InvalidApiKey)?;
+            let api_key_check: Option<(i32,)> =
+                sqlx::query_as("SELECT owner_id FROM api_keys WHERE key = $1")
+                    .bind(&hash_api_key(&api_key))
+                    .fetch_optional(pool)
+                    .await
+                    .map_err(|_| ApiError::InvalidApiKey)?;
 
-            match validation_check {
-                Some(_) => return Err(ApiError::RequestLimitExceeded),
-                None => return Err(ApiError::DatabaseNotFound),
+            match api_key_check {
+                Some(_) => {
+                    let db_check: Option<(i32,)> = sqlx::query_as(
+                        "SELECT ak.owner_id 
+                         FROM api_keys ak
+                         JOIN databases d ON d.owner_id = ak.owner_id
+                         WHERE ak.key = $1 AND d.name = $2",
+                    )
+                    .bind(&hash_api_key(&api_key))
+                    .bind(database)
+                    .fetch_optional(pool)
+                    .await
+                    .map_err(|_| ApiError::DatabaseInsert)?;
+
+                    match db_check {
+                        Some(_) => return Err(ApiError::RequestLimitExceeded),
+                        None => return Err(ApiError::DatabaseNotFound),
+                    }
+                }
+                None => return Err(ApiError::InvalidApiKey),
             }
         }
     };
@@ -93,10 +105,7 @@ pub async fn validate_nsfw_request(
     .bind(&hash_api_key(&api_key))
     .fetch_optional(pool)
     .await
-    .map_err(|e| {
-        dbg!(e);
-        ApiError::DatabaseInsert
-    })?;
+    .map_err(|_| ApiError::DatabaseInsert)?;
 
     let (user_id, credits_left) = match result {
         Some((id, credits)) => (id, credits),
@@ -113,7 +122,7 @@ pub async fn validate_nsfw_request(
 
             match validation_check {
                 Some(_) => return Err(ApiError::RequestLimitExceeded),
-                None => return Err(ApiError::DatabaseNotFound),
+                None => return Err(ApiError::InvalidApiKey),
             }
         }
     };

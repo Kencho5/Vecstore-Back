@@ -4,8 +4,8 @@ from multiprocessing import Process, Value, Lock
 import json
 
 API_KEY = "465ba0efc5cc046732b13451fe9d2b215440c3035a0ab1bac652290785ab54fd"
-# BASE_URL = "http://localhost:3000"
-BASE_URL = "https://api.vecstore.app"
+BASE_URL = "http://localhost:3000"
+# BASE_URL = "https://api.vecstore.app"
 
 # Test data
 IMAGE_URL = "https://carfromjapan.com/wp-content/uploads/2023/09/buying-a-black-car.jpg"

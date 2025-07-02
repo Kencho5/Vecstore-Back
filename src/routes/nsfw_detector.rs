@@ -57,9 +57,7 @@ pub async fn nsfw_detector_handler(
         .any(|label| label.name().map_or(false, is_nsfw_label));
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;
-    let validation_result = validate_nsfw_request(&state.pool, api_key)
-        .await
-        .map_err(|_| ApiError::Unforseen)?;
+    let validation_result = validate_nsfw_request(&state.pool, api_key).await?;
 
     let logs_task = BackgroundTask::SaveUsageLogs {
         user_id: validation_result.user_id,
