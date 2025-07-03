@@ -87,7 +87,7 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
                     eprintln!("Failed to insert vectors: {:?}", e);
                 }
             } else {
-                eprintln!("Failed to get index for region: {}", region);
+                eprintln!("Failed to get pool for region: {}", region);
             }
         }
         BackgroundTask::InsertTextVectors {
@@ -106,7 +106,7 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
                     eprintln!("Failed to insert vectors: {:?}", e);
                 }
             } else {
-                eprintln!("Failed to get index for region: {}", region);
+                eprintln!("Failed to get pool for region: {}", region);
             }
         }
         BackgroundTask::SaveUsageLogs { user_id } => {
