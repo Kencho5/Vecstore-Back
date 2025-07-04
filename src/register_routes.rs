@@ -16,6 +16,10 @@ fn api_routes() -> Router<AppState> {
         .route("/insert-text", post(insert_text::insert_text_handler))
         .route("/search", post(search::search_handler))
         .route("/nsfw", post(nsfw_detector::nsfw_detector_handler))
+        .route(
+            "/delete-document",
+            post(delete_document::delete_document_handler),
+        )
         .route_layer(middleware::from_fn(api_middleware))
 }
 

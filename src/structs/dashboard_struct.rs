@@ -44,6 +44,13 @@ pub struct DatabaseDocument {
     pub created_at: NaiveDateTime,
 }
 
+//DELETE DOCUMENT
+#[derive(Deserialize, Serialize)]
+pub struct DeleteDocumentPayload {
+    pub name: String,
+    pub document_id: String,
+}
+
 //INDEX
 #[derive(Deserialize, Serialize)]
 pub struct NamespaceStats {
@@ -112,6 +119,7 @@ pub enum DashboardError {
     ApiKeyExists,
     ApiKeyCreationLimit,
     MissingSubscription,
+    NotFound,
 }
 
 impl IntoResponse for DashboardError {
@@ -132,6 +140,7 @@ impl IntoResponse for DashboardError {
                 StatusCode::UNAUTHORIZED,
                 "Appropriate subscription not found",
             ),
+            DashboardError::NotFound => (StatusCode::NOT_FOUND, "Not found"),
         };
 
         let body = Json(json!({

@@ -1,5 +1,6 @@
 pub mod auth;
 pub mod dashboard;
+pub mod delete_document;
 pub mod health;
 pub mod insert_image;
 pub mod insert_text;
