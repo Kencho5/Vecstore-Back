@@ -14,6 +14,18 @@ pub struct GetDbPayload {
     pub name: String,
 }
 
+#[derive(Deserialize, Serialize)]
+pub struct GetDbDocumentsPayload {
+    pub name: String,
+    pub page: i32,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct DocumentsPayload {
+    pub name: String,
+    pub vector_id: String,
+}
+
 #[derive(Deserialize, Serialize, sqlx::FromRow)]
 pub struct Database {
     pub db_type: String,
@@ -23,6 +35,13 @@ pub struct Database {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[sqlx(default)]
     pub record_count: Option<i64>,
+}
+
+#[derive(Deserialize, Serialize, sqlx::FromRow)]
+pub struct DatabaseDocument {
+    pub vector_id: String,
+    pub metadata: serde_json::Value,
+    pub created_at: NaiveDateTime,
 }
 
 //INDEX

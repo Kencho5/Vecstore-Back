@@ -24,6 +24,15 @@ fn dashboard_routes() -> Router<AppState> {
         .route("/add-db", post(add_db::add_db_handler))
         .route("/get-dbs", get(get_dbs::get_dbs_handler))
         .route("/get-db", post(get_dbs::get_db_handler))
+        .route("/get-db-documents", post(get_dbs::get_db_documents_handler))
+        .route(
+            "/delete-db-document",
+            post(delete_db_document::delete_db_document_handler),
+        )
+        .route(
+            "/search-document",
+            post(search_document::search_document_handler),
+        )
         .route(
             "/create-api-key",
             post(create_api_key::create_api_key_handler),

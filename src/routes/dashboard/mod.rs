@@ -1,9 +1,11 @@
 pub mod add_db;
 pub mod create_api_key;
 pub mod delete_api_key;
+pub mod delete_db_document;
 pub mod get_api_keys;
 pub mod get_dbs;
 pub mod list_transactions;
 pub mod portal_url;
+pub mod search_document;
 pub mod usage;
 pub mod user_credits;

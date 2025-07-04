@@ -3,7 +3,7 @@ import time
 from multiprocessing import Process, Value, Lock
 import json
 
-API_KEY = "465ba0efc5cc046732b13451fe9d2b215440c3035a0ab1bac652290785ab54fd"
+API_KEY = "fc5d11c93d23207c35636a3b92c43b555e6a5950e9690e0c3e48e86d6d3c4ffc"
 BASE_URL = "http://localhost:3000"
 # BASE_URL = "https://api.vecstore.app"
 
