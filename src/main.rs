@@ -34,7 +34,7 @@ async fn main() {
     .unwrap();
     let (bedrock_client, ses_client, rekognition_client) = aws_client::load_aws_clients().await;
 
-    let neon_pools = NeonPools::new(neon_eu.clone(), neon_us_west, neon_us_east);
+    let neon_pools = NeonPools::new(neon_us_east, neon_us_west, neon_eu);
 
     let state = AppState {
         pool: pool.clone(),
