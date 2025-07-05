@@ -27,7 +27,7 @@ pub use aws_sdk_sesv2::{
 
 // Axum framework
 pub use axum::{
-    extract::{Multipart, Request, State},
+    extract::{Request, State},
     middleware,
     response::{IntoResponse, Response},
     routing::{delete, get, post},

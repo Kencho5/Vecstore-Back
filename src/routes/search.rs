@@ -1,82 +1,39 @@
 use crate::prelude::*;
+use base64::Engine;
 
 pub async fn search_handler(
     Extension(api_key): Extension<String>,
     State(state): State<AppState>,
-    mut multipart: Multipart,
+    Json(payload): Json<SearchPayload>,
 ) -> Result<Json<SearchResponse>, ApiError> {
     let total_start = Instant::now();
 
-    let mut image_data: Option<Vec<u8>> = None;
-    let mut text: Option<String> = None;
-    let mut database: Option<String> = None;
-    let mut metadata: Option<String> = None;
+    let validation_result =
+        validate_user_and_increment(&state.pool, api_key, &payload.database).await?;
 
-    while let Some(field) = multipart
-        .next_field()
-        .await
-        .map_err(|_| ApiError::MissingData)?
-    {
-        let field_name = field.name().unwrap_or("").to_string();
-        match field_name.as_str() {
-            "image" | "file" => {
-                image_data = Some(
-                    field
-                        .bytes()
-                        .await
-                        .map_err(|_| ApiError::MissingData)?
-                        .to_vec(),
-                );
-            }
-            "text" => {
-                let bytes = field.bytes().await.map_err(|_| ApiError::MissingData)?;
-                text = Some(
-                    std::str::from_utf8(&bytes)
-                        .map_err(|_| ApiError::MissingData)?
-                        .to_string(),
-                );
-            }
-            "database" => {
-                let bytes = field.bytes().await.map_err(|_| ApiError::MissingData)?;
-                database = Some(
-                    std::str::from_utf8(&bytes)
-                        .map_err(|_| ApiError::MissingData)?
-                        .to_string(),
-                );
-            }
-            "metadata" => {
-                let bytes = field.bytes().await.map_err(|_| ApiError::MissingData)?;
-                metadata = Some(
-                    std::str::from_utf8(&bytes)
-                        .map_err(|_| ApiError::MissingData)?
-                        .to_string(),
-                );
-            }
-            _ => {} // Ignore unknown fields
-        }
-    }
-
-    let database = database.ok_or(ApiError::MissingData)?;
-
-    let validation_result = validate_user_and_increment(&state.pool, api_key, &database).await?;
-
-    let vectors = if let Some(image_bytes) = image_data {
+    let vectors = if let Some(base64_image) = payload.image {
+        let image_bytes = base64::engine::general_purpose::STANDARD
+            .decode(&base64_image)
+            .map_err(|_| ApiError::ImageProcessing)?;
         extract_image_features(&state.bedrock_client, image_bytes)
             .await
             .map_err(|_| ApiError::ModelInference)?
-    } else if let Some(text_content) = text {
+    } else if validation_result.db_type == "image" {
+        let text_content = payload.text.ok_or(ApiError::MissingData)?;
         extract_text_features(&state.bedrock_client, text_content).await?
+    } else if let Some(text_content) = payload.text {
+        extract_text_features_multilingual(&state.bedrock_client, text_content).await?
     } else {
-        return Err(ApiError::MissingData); // Neither image nor text provided
+        return Err(ApiError::MissingData);
     };
 
     let results = search_vectors_with_region(
         &state,
         vectors,
         validation_result.user_id,
-        &database,
+        &payload.database,
         &validation_result.region,
-        metadata,
+        payload.metadata,
     )
     .await?;
 

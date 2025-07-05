@@ -1,34 +1,17 @@
 use crate::prelude::*;
+use base64::Engine;
 
 pub async fn nsfw_detector_handler(
     Extension(api_key): Extension<String>,
     State(state): State<AppState>,
-    mut multipart: Multipart,
+    Json(payload): Json<NsfwPayload>,
 ) -> Result<Json<NsfwBody>, ApiError> {
     let total_start = Instant::now();
-    let mut image_data: Option<Vec<u8>> = None;
 
-    while let Some(field) = multipart
-        .next_field()
-        .await
-        .map_err(|_| ApiError::MissingData)?
-    {
-        let field_name = field.name().unwrap_or("").to_string();
-        match field_name.as_str() {
-            "image" | "file" => {
-                image_data = Some(
-                    field
-                        .bytes()
-                        .await
-                        .map_err(|_| ApiError::MissingData)?
-                        .to_vec(),
-                );
-            }
-            _ => {}
-        }
-    }
-
-    let image_data = image_data.ok_or(ApiError::MissingData)?;
+    // Decode base64 image
+    let image_data = base64::engine::general_purpose::STANDARD
+        .decode(&payload.image)
+        .map_err(|_| ApiError::ImageProcessing)?;
 
     let image = aws_sdk_rekognition::types::Image::builder()
         .bytes(image_data.into())

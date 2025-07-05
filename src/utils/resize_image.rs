@@ -3,11 +3,13 @@ use image::{GenericImageView, ImageFormat, ImageReader};
 use std::io::Cursor;
 
 pub fn resize_image(image_data: Vec<u8>) -> Result<Vec<u8>, ApiError> {
-    let img = ImageReader::new(Cursor::new(image_data))
+    let reader = ImageReader::new(Cursor::new(&image_data))
         .with_guessed_format()
-        .map_err(|_| ApiError::ImageProcessing)?
-        .decode()
         .map_err(|_| ApiError::ImageProcessing)?;
+
+    let original_format = reader.format().unwrap_or(ImageFormat::Jpeg);
+
+    let img = reader.decode().map_err(|_| ApiError::ImageProcessing)?;
 
     let (width, height) = img.dimensions();
     let max_dimension = 768;
@@ -25,7 +27,7 @@ pub fn resize_image(image_data: Vec<u8>) -> Result<Vec<u8>, ApiError> {
 
     let mut buffer = Vec::new();
     resized
-        .write_to(&mut Cursor::new(&mut buffer), ImageFormat::Jpeg)
+        .write_to(&mut Cursor::new(&mut buffer), original_format)
         .map_err(|_| ApiError::ImageProcessing)?;
 
     Ok(buffer)

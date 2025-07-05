@@ -7,7 +7,7 @@ pub async fn search_vectors_with_region(
     user_id: i32,
     database: &String,
     region: &String,
-    metadata_filter: Option<String>,
+    metadata_filter: Option<serde_json::Value>,
 ) -> Result<SearchResults, ApiError> {
     let pool = state
         .neon_pools
@@ -22,14 +22,11 @@ async fn search_vectors_impl(
     user_id: i32,
     database: &String,
     pool: &PgPool,
-    metadata_filter: Option<String>,
+    metadata_filter: Option<serde_json::Value>,
 ) -> Result<SearchResults, ApiError> {
     let tenant = format!("{}-{}", user_id, database);
 
-    let rows = if let Some(metadata_str) = metadata_filter {
-        let metadata_json: serde_json::Value =
-            serde_json::from_str(&metadata_str).map_err(|_| ApiError::InvalidMetadata)?;
-        
+    let rows = if let Some(metadata_json) = metadata_filter {
         sqlx::query(
             "SELECT vector_id, embedding <=> $1::vector AS distance, metadata FROM vectors WHERE tenant = $2 AND metadata @> $3 ORDER BY distance LIMIT 3"
         )

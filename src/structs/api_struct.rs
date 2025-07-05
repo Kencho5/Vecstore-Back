@@ -1,6 +1,13 @@
 use crate::prelude::*;
 
 //IMAGE
+#[derive(Deserialize, Serialize)]
+pub struct InsertImagePayload {
+    pub image: String,
+    pub database: String,
+    pub metadata: Option<serde_json::Value>,
+}
+
 #[derive(Serialize)]
 pub struct InsertImageBody {
     pub time: String,
@@ -12,7 +19,7 @@ pub struct InsertImageBody {
 pub struct InsertTextPayload {
     pub text: String,
     pub database: String,
-    pub metadata: Option<String>,
+    pub metadata: Option<serde_json::Value>,
 }
 
 #[derive(Serialize)]
@@ -23,11 +30,11 @@ pub struct InsertTextResponse {
 
 //SEARCH
 #[derive(Deserialize, Serialize)]
-pub struct SearchImagePayload {
+pub struct SearchPayload {
     pub text: Option<String>,
     pub image: Option<String>,
     pub database: String,
-    pub metadata: Option<String>,
+    pub metadata: Option<serde_json::Value>,
 }
 
 #[derive(Serialize)]
@@ -86,7 +93,6 @@ pub enum ApiError {
     MissingData,
     InvalidApiKey,
     RequestLimitExceeded,
-    InvalidMetadata,
 }
 
 impl IntoResponse for ApiError {
@@ -120,10 +126,6 @@ impl IntoResponse for ApiError {
             ApiError::RequestLimitExceeded => (
                 StatusCode::UNAUTHORIZED,
                 "Monthly API request limit exceeded. Upgrade your plan or contact sales to increase your limit.",
-            ),
-            ApiError::InvalidMetadata => (
-                StatusCode::BAD_REQUEST,
-                "Invalid metadata format. Must be valid JSON.",
             ),
         };
 

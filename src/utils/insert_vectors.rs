@@ -4,21 +4,16 @@ pub async fn insert_vectors(
     pool: &PgPool,
     user_id: i32,
     vectors: Vec<f32>,
-    metadata: Option<String>,
+    metadata: Option<serde_json::Value>,
     database: String,
 ) -> Result<(), ApiError> {
     let mut metadata_json = serde_json::json!({});
 
     if let Some(custom_metadata) = metadata {
-        match serde_json::from_str::<serde_json::Value>(&custom_metadata) {
-            Ok(json_value) => {
-                if let Some(obj) = json_value.as_object() {
-                    for (key, value) in obj {
-                        metadata_json[key] = value.clone();
-                    }
-                }
+        if let Some(obj) = custom_metadata.as_object() {
+            for (key, value) in obj {
+                metadata_json[key] = value.clone();
             }
-            Err(_) => return Err(ApiError::InvalidMetadata),
         }
     }
 

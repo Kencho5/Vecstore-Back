@@ -4,6 +4,7 @@ pub struct UserValidationResult {
     pub user_id: i32,
     pub region: String,
     pub credits_left: i32,
+    pub db_type: String,
 }
 
 pub struct UserRegionResult {
@@ -21,7 +22,7 @@ pub async fn validate_user_and_increment(
     api_key: String,
     database: &str,
 ) -> Result<UserValidationResult, ApiError> {
-    let result: Option<(i32, String, i32)> = sqlx::query_as(
+    let result: Option<(i32, String, i32, String)> = sqlx::query_as(
         "WITH validated_user AS (
            SELECT ak.owner_id, d.db_type, d.region
            FROM api_keys ak
@@ -38,9 +39,9 @@ pub async fn validate_user_and_increment(
            UPDATE databases 
            SET requests = requests + 1 
            WHERE name = $2 AND owner_id = (SELECT owner_id FROM validated_user)
-           RETURNING owner_id, region
+           RETURNING owner_id, region, db_type
          )
-         SELECT ud.owner_id, ud.region, uc.credits
+         SELECT ud.owner_id, ud.region, uc.credits, ud.db_type
          FROM updated_db ud
          JOIN updated_credits uc ON ud.owner_id = uc.id",
     )
@@ -50,8 +51,8 @@ pub async fn validate_user_and_increment(
     .await
     .map_err(|_| ApiError::DatabaseInsert)?;
 
-    let (user_id, region, credits_left) = match result {
-        Some((id, reg, credits)) => (id, reg, credits),
+    let (user_id, region, credits_left, db_type) = match result {
+        Some((id, reg, credits, db_type)) => (id, reg, credits, db_type),
         None => {
             let api_key_check: Option<(i32,)> =
                 sqlx::query_as("SELECT owner_id FROM api_keys WHERE key = $1")
@@ -88,6 +89,7 @@ pub async fn validate_user_and_increment(
         user_id,
         region,
         credits_left,
+        db_type,
     })
 }
 

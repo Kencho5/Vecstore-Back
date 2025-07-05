@@ -1,19 +1,20 @@
 use crate::prelude::*;
 use futures::stream::{FuturesUnordered, StreamExt};
+use base64::Engine;
 
 #[derive(Debug)]
 pub enum BackgroundTask {
     InsertImageVectors {
         user_id: i32,
-        image_data: Vec<u8>,
-        metadata: Option<String>,
+        base64_image: String,
+        metadata: Option<serde_json::Value>,
         database: String,
         region: String,
     },
     InsertTextVectors {
         user_id: i32,
         text: String,
-        metadata: Option<String>,
+        metadata: Option<serde_json::Value>,
         database: String,
         region: String,
     },
@@ -73,13 +74,21 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
     match task {
         BackgroundTask::InsertImageVectors {
             user_id,
-            image_data,
+            base64_image,
             metadata,
             database,
             region,
         } => {
             if let Some(pool) = state.neon_pools.get_pool_by_region(&region) {
-                let vectors = extract_image_features(&state.bedrock_client, image_data)
+                let image_bytes = match base64::engine::general_purpose::STANDARD.decode(&base64_image) {
+                    Ok(bytes) => bytes,
+                    Err(e) => {
+                        eprintln!("Failed to decode base64 image: {:?}", e);
+                        return;
+                    }
+                };
+                
+                let vectors = extract_image_features(&state.bedrock_client, image_bytes)
                     .await
                     .unwrap();
 
@@ -98,7 +107,7 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
             region,
         } => {
             if let Some(pool) = state.neon_pools.get_pool_by_region(&region) {
-                let vectors = extract_text_features(&state.bedrock_client, text)
+                let vectors = extract_text_features_multilingual(&state.bedrock_client, text)
                     .await
                     .unwrap();
 
