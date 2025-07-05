@@ -3,8 +3,10 @@ import json
 import base64
 from io import BytesIO
 
-API_KEY = "fc5d11c93d23207c35636a3b92c43b555e6a5950e9690e0c3e48e86d6d3c4ffc"
-BASE_URL = "http://localhost:3000"
+# API_KEY = "fc5d11c93d23207c35636a3b92c43b555e6a5950e9690e0c3e48e86d6d3c4ffc"
+# BASE_URL = "http://localhost:3000"
+API_KEY = "f18718512e82150f1c813d750ebd0340a6198635a7b3650ed3077b69fc97725f"
+BASE_URL = "https://api.vecstore.app"
 
 # Test data
 RED_CAR_IMAGE_URL = "https://robbreport.com/wp-content/uploads/2016/09/lamborghini_huracan_slideshow_lead.jpg?w=772"
@@ -83,9 +85,9 @@ def test_insert_texts():
     
     # Insert fast red car text
     payload = {
-        "text": "a red car which is fast",
+        "text": "macbook pro 2019",
         "database": TEXT_DATABASE,
-        "metadata": {"color": "red", "speed": "fast"}
+        "metadata": {"brand": "apple"}
     }
     headers = {"Authorization": API_KEY, "Content-Type": "application/json"}
     
@@ -101,9 +103,9 @@ def test_insert_texts():
     
     # Insert slow blue car text
     payload = {
-        "text": "a blue car which is slow",
+        "text": "windows laptop 2020",
         "database": TEXT_DATABASE,
-        "metadata": {"color": "blue", "speed": "slow"}
+        "metadata": {"company": "microsoft"}
     }
     
     try:
@@ -161,9 +163,9 @@ def test_search_text():
     print("\n=== Testing Text Search ===")
     
     payload = {
-        "text": "fast car",
+        "text": "laptop made by apple",
         "database": TEXT_DATABASE,
-        "metadata": {"speed": "fast"}
+        # "metadata": {"speed": "fast"}
     }
     headers = {"Authorization": API_KEY, "Content-Type": "application/json"}
     
