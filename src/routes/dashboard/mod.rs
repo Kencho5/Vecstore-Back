@@ -7,5 +7,6 @@ pub mod get_dbs;
 pub mod list_transactions;
 pub mod portal_url;
 pub mod search_document;
+pub mod upload_files;
 pub mod usage;
 pub mod user_credits;

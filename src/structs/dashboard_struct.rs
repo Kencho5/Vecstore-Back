@@ -110,6 +110,21 @@ pub struct UserCredits {
     pub credits: i32,
 }
 
+//UPLOAD FILES
+#[derive(Deserialize, Serialize)]
+pub struct UploadFilesPayload {
+    pub files: Vec<File>,
+    pub files_type: String,
+    pub name: String,
+    pub region: String,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct File {
+    pub data: String,
+    pub name: String,
+}
+
 #[derive(Debug)]
 pub enum DashboardError {
     Unforseen,

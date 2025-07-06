@@ -58,6 +58,7 @@ async fn main() {
     });
 
     let app = register_routes::create_router()
+        .layer(DefaultBodyLimit::max(10 * 1_000_000))
         .layer(
             CorsLayer::new()
                 .allow_origin(frontend_url.parse::<HeaderValue>().unwrap())

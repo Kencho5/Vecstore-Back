@@ -2,6 +2,7 @@
 pub use std::{collections::HashMap, env, time::Instant};
 
 // External crates
+pub use base64::Engine;
 pub use chrono::{DateTime, Duration, NaiveDate, NaiveDateTime, Utc};
 pub use dotenv::dotenv;
 pub use google_oauth::AsyncClient;
@@ -27,7 +28,7 @@ pub use aws_sdk_sesv2::{
 
 // Axum framework
 pub use axum::{
-    extract::{Request, State},
+    extract::{DefaultBodyLimit, Request, State},
     middleware,
     response::{IntoResponse, Response},
     routing::{delete, get, post},

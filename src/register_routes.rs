@@ -37,6 +37,7 @@ fn dashboard_routes() -> Router<AppState> {
             "/search-document",
             post(search_document::search_document_handler),
         )
+        .route("/upload-files", post(upload_files::upload_files_handler))
         .route(
             "/create-api-key",
             post(create_api_key::create_api_key_handler),

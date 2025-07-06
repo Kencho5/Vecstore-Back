@@ -1,6 +1,5 @@
 use crate::prelude::*;
 use futures::stream::{FuturesUnordered, StreamExt};
-use base64::Engine;
 
 #[derive(Debug)]
 pub enum BackgroundTask {
@@ -80,14 +79,15 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
             region,
         } => {
             if let Some(pool) = state.neon_pools.get_pool_by_region(&region) {
-                let image_bytes = match base64::engine::general_purpose::STANDARD.decode(&base64_image) {
-                    Ok(bytes) => bytes,
-                    Err(e) => {
-                        eprintln!("Failed to decode base64 image: {:?}", e);
-                        return;
-                    }
-                };
-                
+                let image_bytes =
+                    match base64::engine::general_purpose::STANDARD.decode(&base64_image) {
+                        Ok(bytes) => bytes,
+                        Err(e) => {
+                            eprintln!("Failed to decode base64 image: {:?}", e);
+                            return;
+                        }
+                    };
+
                 let vectors = extract_image_features(&state.bedrock_client, image_bytes)
                     .await
                     .unwrap();

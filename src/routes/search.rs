@@ -1,5 +1,4 @@
 use crate::prelude::*;
-use base64::Engine;
 
 pub async fn search_handler(
     Extension(api_key): Extension<String>,
