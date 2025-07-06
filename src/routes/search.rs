@@ -33,6 +33,8 @@ pub async fn search_handler(
         &payload.database,
         &validation_result.region,
         payload.metadata,
+        payload.page,
+        payload.limit,
     )
     .await?;
 

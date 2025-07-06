@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use crate::structs::dashboard_struct::DashboardError;
 
 pub struct UserValidationResult {
     pub user_id: i32,
@@ -192,4 +193,27 @@ pub async fn validate_nsfw_request(
         user_id,
         credits_left,
     })
+}
+
+pub async fn deduct_credits(
+    pool: &PgPool,
+    user_id: i32,
+    file_count: usize,
+) -> Result<i32, DashboardError> {
+    let result: Option<(i32,)> = sqlx::query_as(
+        "UPDATE users 
+         SET credits = credits - $1 
+         WHERE id = $2 AND credits >= $1
+         RETURNING credits",
+    )
+    .bind(file_count as i32)
+    .bind(user_id)
+    .fetch_optional(pool)
+    .await
+    .map_err(|_| DashboardError::Unforseen)?;
+
+    match result {
+        Some((credits_left,)) => Ok(credits_left),
+        None => Err(DashboardError::NotEnoughCredits),
+    }
 }

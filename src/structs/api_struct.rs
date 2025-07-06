@@ -35,6 +35,8 @@ pub struct SearchPayload {
     pub image: Option<String>,
     pub database: String,
     pub metadata: Option<serde_json::Value>,
+    pub page: Option<u32>,
+    pub limit: Option<u32>,
 }
 
 #[derive(Serialize)]

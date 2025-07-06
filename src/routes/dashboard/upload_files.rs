@@ -6,6 +6,10 @@ pub async fn upload_files_handler(
     State(state): State<AppState>,
     Json(payload): Json<UploadFilesPayload>,
 ) -> Result<StatusCode, DashboardError> {
+    let file_count = payload.files.len();
+
+    deduct_credits(&state.pool, claims.user_id, file_count).await?;
+
     let pool = state
         .neon_pools
         .get_pool_by_region(&payload.region)
@@ -24,6 +28,16 @@ pub async fn upload_files_handler(
         }
         "pdf" => {
             upload_pdfs(
+                payload.files,
+                pool,
+                claims.user_id,
+                state.bedrock_client,
+                payload.name,
+            )
+            .await?
+        }
+        "text" => {
+            upload_text(
                 payload.files,
                 pool,
                 claims.user_id,
@@ -80,6 +94,29 @@ async fn upload_pdfs(
         let clean_text = text.replace('\n', " ");
 
         let vectors = extract_text_features_multilingual(&bedrock_client, clean_text)
+            .await
+            .unwrap();
+
+        let metadata = Some(serde_json::json!({
+            "filename": file.name
+        }));
+
+        insert_vectors(pool, user_id, vectors, metadata, database.clone())
+            .await
+            .map_err(|_| DashboardError::Unforseen)?;
+    }
+    Ok(())
+}
+
+async fn upload_text(
+    files: Vec<File>,
+    pool: &PgPool,
+    user_id: i32,
+    bedrock_client: BedrockClient,
+    database: String,
+) -> Result<(), DashboardError> {
+    for file in files {
+        let vectors = extract_text_features_multilingual(&bedrock_client, file.data)
             .await
             .unwrap();
 

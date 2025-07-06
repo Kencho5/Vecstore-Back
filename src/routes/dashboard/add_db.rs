@@ -9,7 +9,7 @@ pub async fn add_db_handler(
         .validate()
         .map_err(|_| DashboardError::MissingData)?;
 
-    let result = sqlx::query(
+    sqlx::query(
         "
         INSERT INTO databases(name, db_type, region, owner_id)
         VALUES($1, $2, $3, $4)
@@ -23,10 +23,6 @@ pub async fn add_db_handler(
     .execute(&state.pool)
     .await
     .map_err(|_| DashboardError::DatabaseExists)?;
-
-    if result.rows_affected() == 0 {
-        return Err(DashboardError::MissingSubscription);
-    }
 
     Ok(StatusCode::OK)
 }

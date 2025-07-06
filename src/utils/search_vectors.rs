@@ -8,13 +8,15 @@ pub async fn search_vectors_with_region(
     database: &String,
     region: &String,
     metadata_filter: Option<serde_json::Value>,
+    page: Option<u32>,
+    limit: Option<u32>,
 ) -> Result<SearchResults, ApiError> {
     let pool = state
         .neon_pools
         .get_pool_by_region(region)
         .ok_or(ApiError::Unforseen)?;
 
-    search_vectors_impl(vectors, user_id, database, pool, metadata_filter).await
+    search_vectors_impl(vectors, user_id, database, pool, metadata_filter, page, limit).await
 }
 
 async fn search_vectors_impl(
@@ -23,24 +25,34 @@ async fn search_vectors_impl(
     database: &String,
     pool: &PgPool,
     metadata_filter: Option<serde_json::Value>,
+    page: Option<u32>,
+    limit: Option<u32>,
 ) -> Result<SearchResults, ApiError> {
     let tenant = format!("{}-{}", user_id, database);
 
+    let page = page.unwrap_or(1);
+    let limit = limit.unwrap_or(10).min(100) as i64; // Default 10, max 100
+    let offset = ((page - 1) * (limit as u32)) as i64;
+
     let rows = if let Some(metadata_json) = metadata_filter {
         sqlx::query(
-            "SELECT vector_id, embedding <=> $1::vector AS distance, metadata FROM vectors WHERE tenant = $2 AND metadata @> $3 ORDER BY distance LIMIT 3"
+            "SELECT vector_id, embedding <=> $1::vector AS distance, metadata FROM vectors WHERE tenant = $2 AND metadata @> $3 ORDER BY distance LIMIT $4 OFFSET $5"
         )
         .bind(&vectors)
         .bind(&tenant)
         .bind(&metadata_json)
+        .bind(limit)
+        .bind(offset)
         .fetch_all(pool)
         .await
     } else {
         sqlx::query(
-            "SELECT vector_id, embedding <=> $1::vector AS distance, metadata FROM vectors WHERE tenant = $2 ORDER BY distance LIMIT 3"
+            "SELECT vector_id, embedding <=> $1::vector AS distance, metadata FROM vectors WHERE tenant = $2 ORDER BY distance LIMIT $3 OFFSET $4"
         )
         .bind(&vectors)
         .bind(&tenant)
+        .bind(limit)
+        .bind(offset)
         .fetch_all(pool)
         .await
     }

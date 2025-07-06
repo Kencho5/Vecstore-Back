@@ -21,7 +21,7 @@ pub async fn delete_db_document_handler(
     let tenant = format!("{}-{}", claims.user_id, result.name);
     sqlx::query("DELETE FROM vectors WHERE tenant = $1 AND vector_id = $2")
         .bind(&tenant)
-        .bind(&payload.vector_id)
+        .bind(&payload.data)
         .fetch_all(neon_pool)
         .await
         .map_err(|_| DashboardError::Unforseen)?;

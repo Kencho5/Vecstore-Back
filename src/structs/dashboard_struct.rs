@@ -22,8 +22,11 @@ pub struct GetDbDocumentsPayload {
 
 #[derive(Deserialize, Serialize)]
 pub struct DocumentsPayload {
+    pub data: String,
+    pub db_type: String,
     pub name: String,
-    pub vector_id: String,
+    pub search_type: String,
+    pub region: String,
 }
 
 #[derive(Deserialize, Serialize, sqlx::FromRow)]
@@ -133,7 +136,7 @@ pub enum DashboardError {
     DatabaseExists,
     ApiKeyExists,
     ApiKeyCreationLimit,
-    MissingSubscription,
+    NotEnoughCredits,
     NotFound,
 }
 
@@ -151,9 +154,9 @@ impl IntoResponse for DashboardError {
                 StatusCode::TOO_MANY_REQUESTS,
                 "Maximum limit of 10 api keys reached",
             ),
-            DashboardError::MissingSubscription => (
+            DashboardError::NotEnoughCredits => (
                 StatusCode::UNAUTHORIZED,
-                "Appropriate subscription not found",
+                "Not enough credits. Visit billing to purchase more",
             ),
             DashboardError::NotFound => (StatusCode::NOT_FOUND, "Not found"),
         };
