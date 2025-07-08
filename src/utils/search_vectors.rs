@@ -16,7 +16,16 @@ pub async fn search_vectors_with_region(
         .get_pool_by_region(region)
         .ok_or(ApiError::Unforseen)?;
 
-    search_vectors_impl(vectors, user_id, database, pool, metadata_filter, page, limit).await
+    search_vectors_impl(
+        vectors,
+        user_id,
+        database,
+        pool,
+        metadata_filter,
+        page,
+        limit,
+    )
+    .await
 }
 
 async fn search_vectors_impl(
@@ -34,23 +43,27 @@ async fn search_vectors_impl(
     let limit = limit.unwrap_or(10).min(100) as i64; // Default 10, max 100
     let offset = ((page - 1) * (limit as u32)) as i64;
 
+    let distance_threshold = 0.65;
+
     let rows = if let Some(metadata_json) = metadata_filter {
         sqlx::query(
-            "SELECT vector_id, embedding <=> $1::vector AS distance, metadata FROM vectors WHERE tenant = $2 AND metadata @> $3 ORDER BY distance LIMIT $4 OFFSET $5"
+            "SELECT vector_id, embedding <=> $1::vector AS distance, metadata FROM vectors WHERE tenant = $2 AND metadata @> $3 AND (embedding <=> $1::vector) < $4 ORDER BY distance LIMIT $5 OFFSET $6"
         )
         .bind(&vectors)
         .bind(&tenant)
         .bind(&metadata_json)
+        .bind(distance_threshold)
         .bind(limit)
         .bind(offset)
         .fetch_all(pool)
         .await
     } else {
         sqlx::query(
-            "SELECT vector_id, embedding <=> $1::vector AS distance, metadata FROM vectors WHERE tenant = $2 ORDER BY distance LIMIT $3 OFFSET $4"
+            "SELECT vector_id, embedding <=> $1::vector AS distance, metadata FROM vectors WHERE tenant = $2 AND (embedding <=> $1::vector) < $3 ORDER BY distance LIMIT $4 OFFSET $5"
         )
         .bind(&vectors)
         .bind(&tenant)
+        .bind(distance_threshold)
         .bind(limit)
         .bind(offset)
         .fetch_all(pool)
@@ -67,7 +80,6 @@ async fn search_vectors_impl(
             let distance: f64 = row.get("distance");
             let metadata: Option<serde_json::Value> = row.get("metadata");
 
-            // Convert distance to similarity score (1 - distance, clamped to 0-1)
             let similarity = (1.0 - distance).max(0.0).min(1.0);
 
             let metadata_map = metadata.and_then(|m| {
