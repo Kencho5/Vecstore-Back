@@ -92,7 +92,7 @@ async fn search_vectors_impl(
 
             SearchMatch {
                 vector_id,
-                score: format!("{:.2}%", similarity * 100.0),
+                score: format!("{:.1}%", similarity * 100.0),
                 metadata: metadata_map,
             }
         })
