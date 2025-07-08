@@ -3,8 +3,8 @@ use crate::prelude::*;
 pub async fn init_db() -> (PgPool, PgPool, PgPool, PgPool) {
     let db_url = env::var("DB_URL").expect("DB url not set");
     let neon_eu_url = env::var("NEON_EU").expect("Neon EU url not set");
-    let neon_us_east_url = env::var("NEON_US_EAST").expect("Neon EU url not set");
-    let neon_us_west_url = env::var("NEON_US_WEST").expect("Neon EU url not set");
+    let neon_us_east_url = env::var("NEON_US_EAST").expect("Neon US East url not set");
+    let neon_us_west_url = env::var("NEON_US_WEST").expect("Neon US West url not set");
 
     let pool = PgPoolOptions::new()
         .max_connections(100)
