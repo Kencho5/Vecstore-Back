@@ -91,7 +91,7 @@ async fn search_vectors_impl(
             });
 
             SearchMatch {
-                id: vector_id,
+                vector_id,
                 score: format!("{:.2}%", similarity * 100.0),
                 metadata: metadata_map,
             }

@@ -98,11 +98,12 @@ async fn search_by_text(
         .matches
         .into_iter()
         .map(|match_result| DatabaseDocument {
-            vector_id: match_result.id,
+            vector_id: match_result.vector_id,
             metadata: match_result
                 .metadata
                 .map(|m| serde_json::to_value(m).unwrap_or(serde_json::Value::Null))
                 .unwrap_or(serde_json::Value::Null),
+            score: Some(match_result.score),
             created_at: chrono::Utc::now().naive_utc(),
         })
         .collect();
@@ -136,11 +137,13 @@ async fn search_by_image(
         .matches
         .into_iter()
         .map(|match_result| DatabaseDocument {
-            vector_id: match_result.id,
+            vector_id: match_result.vector_id,
             metadata: match_result
                 .metadata
                 .map(|m| serde_json::to_value(m).unwrap_or(serde_json::Value::Null))
                 .unwrap_or(serde_json::Value::Null),
+            score: Some(match_result.score),
+
             created_at: chrono::Utc::now().naive_utc(),
         })
         .collect();

@@ -53,7 +53,7 @@ pub struct SearchResults {
 
 #[derive(Serialize)]
 pub struct SearchMatch {
-    pub id: String,
+    pub vector_id: String,
     pub score: String,
     pub metadata: Option<HashMap<String, String>>,
 }
