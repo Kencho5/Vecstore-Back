@@ -7,10 +7,7 @@ pub async fn delete_document_handler(
 ) -> Result<StatusCode, DashboardError> {
     let result = validate_user(&state.pool, api_key, &payload.name)
         .await
-        .map_err(|e| {
-            dbg!(e);
-            DashboardError::Unforseen
-        })?;
+        .map_err(|_| DashboardError::Unforseen)?;
 
     let neon_pool = state
         .neon_pools

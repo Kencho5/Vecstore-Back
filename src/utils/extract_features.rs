@@ -69,7 +69,7 @@ pub async fn extract_text_features(
 
 pub async fn extract_text_features_multilingual(
     bedrock_client: &BedrockClient,
-    text: String,
+    text: &String,
 ) -> Result<Vec<f32>, ApiError> {
     let body = json!({
         "inputText": text,

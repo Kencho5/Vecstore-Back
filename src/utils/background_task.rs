@@ -92,7 +92,9 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
                     .await
                     .unwrap();
 
-                if let Err(e) = insert_vectors(pool, user_id, vectors, metadata, database).await {
+                if let Err(e) =
+                    insert_vectors(pool, user_id, vectors, metadata, database, None).await
+                {
                     eprintln!("Failed to insert vectors: {:?}", e);
                 }
             } else {
@@ -107,11 +109,13 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
             region,
         } => {
             if let Some(pool) = state.neon_pools.get_pool_by_region(&region) {
-                let vectors = extract_text_features_multilingual(&state.bedrock_client, text)
+                let vectors = extract_text_features_multilingual(&state.bedrock_client, &text)
                     .await
                     .unwrap();
 
-                if let Err(e) = insert_vectors(pool, user_id, vectors, metadata, database).await {
+                if let Err(e) =
+                    insert_vectors(pool, user_id, vectors, metadata, database, Some(text)).await
+                {
                     eprintln!("Failed to insert vectors: {:?}", e);
                 }
             } else {

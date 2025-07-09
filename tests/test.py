@@ -85,9 +85,9 @@ def test_insert_texts():
     
     # Insert fast red car text
     payload = {
-        "text": "macbook pro 2019",
+        "text": "apple pie recipe",
         "database": TEXT_DATABASE,
-        "metadata": {"brand": "apple"}
+        "metadata": {"type": "recipe", "category": "apple"}
     }
     headers = {"Authorization": API_KEY, "Content-Type": "application/json"}
     
@@ -101,23 +101,6 @@ def test_insert_texts():
     except Exception as e:
         print(f"Fast red car text insert error: {e}")
     
-    # Insert slow blue car text
-    payload = {
-        "text": "windows surface pro 2020",
-        "database": TEXT_DATABASE,
-        "metadata": {"company": "microsoft"}
-    }
-    
-    try:
-        res = requests.post(f"{BASE_URL}/insert-text", headers=headers, json=payload)
-        print(f"Slow blue car text insert - Status: {res.status_code}")
-        if res.headers.get('content-type', '').startswith('application/json'):
-            print(f"Response: {json.dumps(res.json(), indent=2)}")
-        else:
-            print(f"Response: {res.text}")
-    except Exception as e:
-        print(f"Slow blue car text insert error: {e}")
-
 def test_search_image():
     """Search images by text and by image"""
     print("\n=== Testing Image Search ===")
@@ -163,9 +146,9 @@ def test_search_text():
     print("\n=== Testing Text Search ===")
     
     payload = {
-        "text": "work experience",
+        "text": "pie",
         "database": TEXT_DATABASE,
-        # "metadata": {"speed": "fast"}
+        "metadata": {"category": "banana"}
     }
     headers = {"Authorization": API_KEY, "Content-Type": "application/json"}
     

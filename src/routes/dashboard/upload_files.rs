@@ -71,7 +71,7 @@ async fn upload_image(
             "filename": file.name
         }));
 
-        insert_vectors(pool, user_id, vectors, metadata, database.clone())
+        insert_vectors(pool, user_id, vectors, metadata, database.clone(), None)
             .await
             .map_err(|_| DashboardError::Unforseen)?;
     }
@@ -93,7 +93,7 @@ async fn upload_pdfs(
         let text = extract_text_from_mem(&pdf_bytes).map_err(|_| DashboardError::Unforseen)?;
         let clean_text = text.replace('\n', " ");
 
-        let vectors = extract_text_features_multilingual(&bedrock_client, clean_text)
+        let vectors = extract_text_features_multilingual(&bedrock_client, &clean_text)
             .await
             .unwrap();
 
@@ -101,9 +101,16 @@ async fn upload_pdfs(
             "filename": file.name
         }));
 
-        insert_vectors(pool, user_id, vectors, metadata, database.clone())
-            .await
-            .map_err(|_| DashboardError::Unforseen)?;
+        insert_vectors(
+            pool,
+            user_id,
+            vectors,
+            metadata,
+            database.clone(),
+            Some(clean_text),
+        )
+        .await
+        .map_err(|_| DashboardError::Unforseen)?;
     }
     Ok(())
 }
@@ -116,7 +123,7 @@ async fn upload_text(
     database: String,
 ) -> Result<(), DashboardError> {
     for file in files {
-        let vectors = extract_text_features_multilingual(&bedrock_client, file.data)
+        let vectors = extract_text_features_multilingual(&bedrock_client, &file.data)
             .await
             .unwrap();
 
@@ -124,9 +131,16 @@ async fn upload_text(
             "filename": file.name
         }));
 
-        insert_vectors(pool, user_id, vectors, metadata, database.clone())
-            .await
-            .map_err(|_| DashboardError::Unforseen)?;
+        insert_vectors(
+            pool,
+            user_id,
+            vectors,
+            metadata,
+            database.clone(),
+            Some(file.data),
+        )
+        .await
+        .map_err(|_| DashboardError::Unforseen)?;
     }
     Ok(())
 }

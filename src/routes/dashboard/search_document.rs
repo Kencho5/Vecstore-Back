@@ -51,13 +51,13 @@ async fn search_by_id(
 ) -> Result<Json<Vec<DatabaseDocument>>, DashboardError> {
     let tenant = format!("{}-{}", user_id, database);
     let documents = sqlx::query_as::<_, DatabaseDocument>(
-        "SELECT vector_id, metadata, created_at FROM vectors WHERE tenant = $1 AND vector_id = $2 LIMIT 5",
-    )
-    .bind(&tenant)
-    .bind(&data)
-    .fetch_all(pool)
-    .await
-    .map_err(|_| DashboardError::Unforseen)?;
+       "SELECT vector_id, metadata, created_at FROM vectors WHERE tenant = $1 AND vector_id = $2 LIMIT 5",
+   )
+   .bind(&tenant)
+   .bind(&data)
+   .fetch_all(pool)
+   .await
+   .map_err(|_| DashboardError::Unforseen)?;
 
     Ok(Json(documents))
 }
@@ -72,17 +72,18 @@ async fn search_by_text(
     state: &AppState,
 ) -> Result<Json<Vec<DatabaseDocument>>, DashboardError> {
     let vectors = match db_type.as_str() {
-        "text" => extract_text_features_multilingual(&bedrock_client, data)
+        "text" => extract_text_features_multilingual(&bedrock_client, &data)
             .await
             .map_err(|_| DashboardError::Unforseen)?,
-        "image" => extract_text_features(&bedrock_client, data)
+        "image" => extract_text_features(&bedrock_client, data.clone())
             .await
             .map_err(|_| DashboardError::Unforseen)?,
         _ => return Err(DashboardError::Unforseen),
     };
 
-    let search_results = search_vectors_with_region(
+    let search_results = hybrid_search_vectors(
         state,
+        &data,
         vectors,
         user_id,
         &database,
@@ -127,8 +128,8 @@ async fn search_by_image(
         .await
         .map_err(|_| DashboardError::Unforseen)?;
 
-    let search_results = search_vectors_with_region(
-        state, vectors, user_id, &database, &region, None, None, None,
+    let search_results = hybrid_search_vectors(
+        state, "", vectors, user_id, &database, &region, None, None, None,
     )
     .await
     .map_err(|_| DashboardError::Unforseen)?;
@@ -143,7 +144,6 @@ async fn search_by_image(
                 .map(|m| serde_json::to_value(m).unwrap_or(serde_json::Value::Null))
                 .unwrap_or(serde_json::Value::Null),
             score: Some(match_result.score),
-
             created_at: chrono::Utc::now().naive_utc(),
         })
         .collect();
