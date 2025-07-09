@@ -8,7 +8,7 @@ pub async fn upload_files_handler(
 ) -> Result<StatusCode, DashboardError> {
     let file_count = payload.files.len();
 
-    deduct_credits(&state.pool, claims.user_id, file_count).await?;
+    deduct_credits(&state.pool, claims.user_id, file_count, &payload.name).await?;
 
     let pool = state
         .neon_pools

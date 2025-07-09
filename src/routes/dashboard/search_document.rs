@@ -11,7 +11,7 @@ pub async fn search_document_handler(
         .ok_or(DashboardError::Unforseen)?;
 
     if payload.search_type.as_str() != "id" {
-        deduct_credits(&state.pool, claims.user_id, 1).await?;
+        deduct_credits(&state.pool, claims.user_id, 1, &payload.name).await?;
     }
 
     match payload.search_type.as_str() {

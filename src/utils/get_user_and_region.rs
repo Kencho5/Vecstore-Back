@@ -199,15 +199,23 @@ pub async fn deduct_credits(
     pool: &PgPool,
     user_id: i32,
     file_count: usize,
+    database: &str,
 ) -> Result<i32, DashboardError> {
     let result: Option<(i32,)> = sqlx::query_as(
-        "UPDATE users 
-         SET credits = credits - $1 
-         WHERE id = $2 AND credits >= $1
-         RETURNING credits",
+        "WITH updated_user AS (
+            UPDATE users 
+            SET credits = credits - $1 
+            WHERE id = $2 AND credits >= $1
+            RETURNING id, credits
+        )
+        UPDATE databases
+        SET requests = requests + 1
+        WHERE name = $3 AND owner_id = $2
+        RETURNING (SELECT credits FROM updated_user)",
     )
     .bind(file_count as i32)
     .bind(user_id)
+    .bind(database)
     .fetch_optional(pool)
     .await
     .map_err(|_| DashboardError::Unforseen)?;
