@@ -94,7 +94,7 @@ def test_search_image():
 
 def test_search_text():
     print("\n=== Testing Text Search ===")
-    payload = {"text": "pie", "database": TEXT_DATABASE, "metadata": {"category": "banana"}}
+    payload = {"text": "developer called giorgi", "database": TEXT_DATABASE }
     headers = {"Authorization": API_KEY, "Content-Type": "application/json"}
     try:
         start = time.time()

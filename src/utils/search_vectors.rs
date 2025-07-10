@@ -57,8 +57,29 @@ fn build_hybrid_search_query(has_metadata_filter: bool) -> &'static str {
        WITH query_cache AS (
            SELECT plainto_tsquery('simple', $5) as tsquery
        ),
-       filtered_vectors AS (
-           SELECT vector_id, embedding <=> $1::vector AS distance, metadata,
+       vector_candidates AS (
+           SELECT vector_id, embedding <=> $1::vector AS distance, metadata, content, search_vector
+           FROM vectors 
+           WHERE tenant = $2 AND metadata @> $3 
+           AND embedding <=> $1::vector < $4 + 0.2
+       ),
+       text_candidates AS (
+           SELECT vector_id, embedding <=> $1::vector AS distance, metadata, content, search_vector
+           FROM vectors 
+           CROSS JOIN query_cache
+           WHERE tenant = $2 AND metadata @> $3 
+           AND (
+               content ILIKE '%' || $5 || '%' OR
+               search_vector @@ query_cache.tsquery
+           )
+       ),
+       all_candidates AS (
+           SELECT * FROM vector_candidates
+           UNION
+           SELECT * FROM text_candidates
+       ),
+       scored_results AS (
+           SELECT vector_id, distance, metadata,
                   CASE WHEN search_vector @@ query_cache.tsquery
                       THEN ts_rank_cd(search_vector, query_cache.tsquery) * 0.4
                       ELSE 0 END +
@@ -68,21 +89,15 @@ fn build_hybrid_search_query(has_metadata_filter: bool) -> &'static str {
                   CASE WHEN content ILIKE '%' || $5 || '%'
                       THEN 0.25
                       ELSE 0 END as text_score
-           FROM vectors 
+           FROM all_candidates
            CROSS JOIN query_cache
-           WHERE tenant = $2 AND metadata @> $3 
-           AND (
-               embedding <=> $1::vector < $4 + 0.2 OR
-               content ILIKE '%' || $5 || '%' OR
-               search_vector @@ query_cache.tsquery
-           )
        ),
        combined_scores AS (
            SELECT vector_id, distance, metadata,
                   (1.0 - distance) * 0.6 as vector_score,
                   text_score,
                   LEAST(1.0, (1.0 - distance) * 0.6 + text_score) as combined_score
-           FROM filtered_vectors
+           FROM scored_results
            WHERE distance < $4 OR text_score > 0.1
        )
        SELECT vector_id, distance, metadata, combined_score, vector_score, text_score
@@ -95,8 +110,29 @@ fn build_hybrid_search_query(has_metadata_filter: bool) -> &'static str {
        WITH query_cache AS (
            SELECT plainto_tsquery('simple', $4) as tsquery
        ),
-       filtered_vectors AS (
-           SELECT vector_id, embedding <=> $1::vector AS distance, metadata,
+       vector_candidates AS (
+           SELECT vector_id, embedding <=> $1::vector AS distance, metadata, content, search_vector
+           FROM vectors 
+           WHERE tenant = $2 
+           AND embedding <=> $1::vector < $3 + 0.2
+       ),
+       text_candidates AS (
+           SELECT vector_id, embedding <=> $1::vector AS distance, metadata, content, search_vector
+           FROM vectors 
+           CROSS JOIN query_cache
+           WHERE tenant = $2 
+           AND (
+               content ILIKE '%' || $4 || '%' OR
+               search_vector @@ query_cache.tsquery
+           )
+       ),
+       all_candidates AS (
+           SELECT * FROM vector_candidates
+           UNION
+           SELECT * FROM text_candidates
+       ),
+       scored_results AS (
+           SELECT vector_id, distance, metadata,
                   CASE WHEN search_vector @@ query_cache.tsquery
                       THEN ts_rank_cd(search_vector, query_cache.tsquery) * 0.4
                       ELSE 0 END +
@@ -106,21 +142,15 @@ fn build_hybrid_search_query(has_metadata_filter: bool) -> &'static str {
                   CASE WHEN content ILIKE '%' || $4 || '%'
                       THEN 0.25
                       ELSE 0 END as text_score
-           FROM vectors 
+           FROM all_candidates
            CROSS JOIN query_cache
-           WHERE tenant = $2 
-           AND (
-               embedding <=> $1::vector < $3 + 0.2 OR
-               content ILIKE '%' || $4 || '%' OR
-               search_vector @@ query_cache.tsquery
-           )
        ),
        combined_scores AS (
            SELECT vector_id, distance, metadata,
                   (1.0 - distance) * 0.6 as vector_score,
                   text_score,
                   LEAST(1.0, (1.0 - distance) * 0.6 + text_score) as combined_score
-           FROM filtered_vectors
+           FROM scored_results
            WHERE distance < $3 OR text_score > 0.1
        )
        SELECT vector_id, distance, metadata, combined_score, vector_score, text_score
@@ -209,7 +239,7 @@ async fn vector_search_query(
 ) -> Result<SearchResults, ApiError> {
     let rows = if let Some(metadata_json) = metadata_filter {
        sqlx::query(
-           "SELECT vector_id, embedding <=> $1::vector AS distance, metadata FROM vectors WHERE tenant = $2 AND metadata @> $3 AND embedding <=> $1::vector < $4 ORDER BY distance LIMIT $5 OFFSET $6"
+           "SELECT vector_id, embedding <=> $1::vector AS distance, metadata FROM vectors WHERE tenant = $2 AND metadata @> $3 AND embedding <=> $1::vector < $4 ORDER BY embedding <=> $1::vector LIMIT $5 OFFSET $6"
        )
        .bind(&vectors)
        .bind(&tenant)
@@ -221,7 +251,7 @@ async fn vector_search_query(
        .await
    } else {
        sqlx::query(
-           "SELECT vector_id, embedding <=> $1::vector AS distance, metadata FROM vectors WHERE tenant = $2 AND embedding <=> $1::vector < $3 ORDER BY distance LIMIT $4 OFFSET $5"
+           "SELECT vector_id, embedding <=> $1::vector AS distance, metadata FROM vectors WHERE tenant = $2 AND embedding <=> $1::vector < $3 ORDER BY embedding <=> $1::vector LIMIT $4 OFFSET $5"
        )
        .bind(&vectors)
        .bind(&tenant)
