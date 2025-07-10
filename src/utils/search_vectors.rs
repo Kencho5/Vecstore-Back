@@ -71,15 +71,21 @@ fn build_hybrid_search_query(has_metadata_filter: bool) -> &'static str {
            FROM vectors 
            CROSS JOIN query_cache
            WHERE tenant = $2 AND metadata @> $3 
-           AND embedding <=> $1::vector < $4
+           AND (
+               embedding <=> $1::vector < $4 + 0.2 OR
+               content ILIKE '%' || $5 || '%' OR
+               search_vector @@ query_cache.tsquery
+           )
        ),
        combined_scores AS (
            SELECT vector_id, distance, metadata,
+                  (1.0 - distance) * 0.6 as vector_score,
+                  text_score,
                   LEAST(1.0, (1.0 - distance) * 0.6 + text_score) as combined_score
            FROM filtered_vectors
            WHERE distance < $4 OR text_score > 0.1
        )
-       SELECT vector_id, distance, metadata, combined_score
+       SELECT vector_id, distance, metadata, combined_score, vector_score, text_score
        FROM combined_scores
        ORDER BY combined_score DESC
        LIMIT $6 OFFSET $7
@@ -103,15 +109,21 @@ fn build_hybrid_search_query(has_metadata_filter: bool) -> &'static str {
            FROM vectors 
            CROSS JOIN query_cache
            WHERE tenant = $2 
-           AND embedding <=> $1::vector < $3
+           AND (
+               embedding <=> $1::vector < $3 + 0.2 OR
+               content ILIKE '%' || $4 || '%' OR
+               search_vector @@ query_cache.tsquery
+           )
        ),
        combined_scores AS (
            SELECT vector_id, distance, metadata,
+                  (1.0 - distance) * 0.6 as vector_score,
+                  text_score,
                   LEAST(1.0, (1.0 - distance) * 0.6 + text_score) as combined_score
            FROM filtered_vectors
            WHERE distance < $3 OR text_score > 0.1
        )
-       SELECT vector_id, distance, metadata, combined_score
+       SELECT vector_id, distance, metadata, combined_score, vector_score, text_score
        FROM combined_scores
        ORDER BY combined_score DESC
        LIMIT $5 OFFSET $6
