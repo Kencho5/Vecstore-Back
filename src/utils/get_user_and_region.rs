@@ -211,6 +211,7 @@ pub async fn deduct_credits(
         UPDATE databases
         SET requests = requests + 1
         WHERE name = $3 AND owner_id = $2
+          AND EXISTS (SELECT 1 FROM updated_user)
         RETURNING (SELECT credits FROM updated_user)",
     )
     .bind(file_count as i32)
@@ -218,7 +219,10 @@ pub async fn deduct_credits(
     .bind(database)
     .fetch_optional(pool)
     .await
-    .map_err(|_| DashboardError::Unforseen)?;
+    .map_err(|e| {
+        dbg!(e);
+        DashboardError::Unforseen
+    })?;
 
     match result {
         Some((credits_left,)) => Ok(credits_left),
