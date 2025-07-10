@@ -82,14 +82,6 @@ pub struct ModerationLabel {
 
 //USER VALIDATION
 #[derive(Deserialize, Serialize, Clone)]
-pub struct UserValidationResult {
-    pub user_id: i32,
-    pub region: String,
-    pub credits_left: i32,
-    pub db_type: String,
-}
-
-#[derive(Deserialize, Serialize, Clone)]
 pub struct UserCacheResult {
     pub user_id: i32,
     pub region: String,
@@ -103,7 +95,6 @@ pub struct UserRegionResult {
 
 pub struct UserNsfwValidationResult {
     pub user_id: i32,
-    pub credits_left: i32,
 }
 
 #[derive(Debug)]

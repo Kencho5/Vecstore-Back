@@ -137,7 +137,7 @@ pub async fn validate_nsfw_request(
     pool: &PgPool,
     api_key: String,
 ) -> Result<UserNsfwValidationResult, ApiError> {
-    let result: Option<(i32, i32)> = sqlx::query_as(
+    let result: Option<(i32,)> = sqlx::query_as(
         "WITH validated_user AS (
            SELECT owner_id FROM api_keys WHERE key = $1
          ),
@@ -145,17 +145,17 @@ pub async fn validate_nsfw_request(
            UPDATE users 
            SET credits = credits - 1 
            WHERE id = (SELECT owner_id FROM validated_user) AND credits > 0
-           RETURNING id, credits
+           RETURNING id
          )
-         SELECT id, credits FROM updated_credits",
+         SELECT id FROM updated_credits",
     )
     .bind(&hash_api_key(&api_key))
     .fetch_optional(pool)
     .await
     .map_err(|_| ApiError::DatabaseInsert)?;
 
-    let (user_id, credits_left) = match result {
-        Some((id, credits)) => (id, credits),
+    let user_id = match result {
+        Some((id,)) => id,
         None => {
             let validation_check: Option<(i32,)> = sqlx::query_as(
                 "SELECT owner_id 
@@ -174,10 +174,7 @@ pub async fn validate_nsfw_request(
         }
     };
 
-    Ok(UserNsfwValidationResult {
-        user_id,
-        credits_left,
-    })
+    Ok(UserNsfwValidationResult { user_id })
 }
 
 pub async fn deduct_credits(
