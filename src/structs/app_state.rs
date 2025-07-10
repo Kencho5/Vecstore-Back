@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use mini_moka::sync::Cache;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -10,6 +11,7 @@ pub struct AppState {
     pub bedrock_client: BedrockClient,
     pub ses_client: SesClient,
     pub rekognition_client: RekognitionClient,
+    pub user_cache: Cache<String, UserCacheResult>,
 }
 
 #[derive(Clone)]

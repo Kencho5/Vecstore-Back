@@ -53,7 +53,6 @@ pub async fn nsfw_detector_handler(
     Ok(Json(NsfwBody {
         nsfw,
         time: total_time_ms,
-        credits_left: validation_result.credits_left,
         labels,
     }))
 }

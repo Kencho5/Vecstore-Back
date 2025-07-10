@@ -5,37 +5,34 @@ pub async fn insert_text_handler(
     State(state): State<AppState>,
     Json(payload): Json<InsertTextPayload>,
 ) -> Result<Json<InsertTextResponse>, ApiError> {
-    let validation_result =
-        validate_user_and_increment(&state.pool, api_key, &payload.database).await?;
+    let cached_user = get_cached_user(&state, api_key, &payload.database).await?;
 
     let total_start = Instant::now();
 
-    let user_id = validation_result.user_id;
-
     let insert_task = BackgroundTask::InsertTextVectors {
-        user_id,
+        user_id: cached_user.user_id,
         text: payload.text,
-        database: payload.database,
-        region: validation_result.region,
+        database: payload.database.clone(),
+        region: cached_user.region,
         metadata: payload.metadata,
     };
 
-    let logs_task = BackgroundTask::SaveUsageLogs {
-        user_id: validation_result.user_id,
+    let user_action_task = BackgroundTask::ProcessUserAction {
+        user_id: cached_user.user_id,
+        database: payload.database.clone(),
     };
 
     if state.task_queue.send(insert_task).is_err() {
         eprintln!("Failed to send insert_task");
     }
 
-    if state.task_queue.send(logs_task).is_err() {
-        eprintln!("Failed to send logs_task");
+    if state.task_queue.send(user_action_task).is_err() {
+        eprintln!("Failed to send user action task");
     }
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;
 
     Ok(Json(InsertTextResponse {
         time: format!("{}ms", total_time_ms),
-        credits_left: validation_result.credits_left,
     }))
 }

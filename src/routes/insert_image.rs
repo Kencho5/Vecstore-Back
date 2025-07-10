@@ -7,33 +7,32 @@ pub async fn insert_image_handler(
 ) -> Result<Json<InsertImageBody>, ApiError> {
     let total_start = Instant::now();
 
-    let validation_result =
-        validate_user_and_increment(&state.pool, api_key, &payload.database).await?;
+    let cached_user = get_cached_user(&state, api_key, &payload.database).await?;
 
     let insert_task = BackgroundTask::InsertImageVectors {
-        user_id: validation_result.user_id,
+        user_id: cached_user.user_id,
         base64_image: payload.image,
         metadata: payload.metadata,
-        database: payload.database,
-        region: validation_result.region,
+        database: payload.database.clone(),
+        region: cached_user.region,
     };
 
-    let logs_task = BackgroundTask::SaveUsageLogs {
-        user_id: validation_result.user_id,
+    let user_action_task = BackgroundTask::ProcessUserAction {
+        user_id: cached_user.user_id,
+        database: payload.database.clone(),
     };
 
     if state.task_queue.send(insert_task).is_err() {
         eprintln!("Failed to send insert_task");
     }
 
-    if state.task_queue.send(logs_task).is_err() {
-        eprintln!("Failed to send logs_task");
+    if state.task_queue.send(user_action_task).is_err() {
+        eprintln!("Failed to send user action task");
     }
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;
 
     Ok(Json(InsertImageBody {
         time: format!("{}ms", total_time_ms),
-        credits_left: validation_result.credits_left,
     }))
 }

@@ -11,7 +11,6 @@ pub struct InsertImagePayload {
 #[derive(Serialize)]
 pub struct InsertImageBody {
     pub time: String,
-    pub credits_left: i32,
 }
 
 //TEXT
@@ -25,7 +24,6 @@ pub struct InsertTextPayload {
 #[derive(Serialize)]
 pub struct InsertTextResponse {
     pub time: String,
-    pub credits_left: i32,
 }
 
 //SEARCH
@@ -43,7 +41,6 @@ pub struct SearchPayload {
 pub struct SearchResponse {
     pub results: Vec<SearchMatch>,
     pub time: String,
-    pub credits_left: i32,
 }
 
 #[derive(Serialize)]
@@ -74,7 +71,6 @@ pub struct NsfwFile {
 pub struct NsfwBody {
     pub nsfw: bool,
     pub time: u64,
-    pub credits_left: i32,
     pub labels: Vec<ModerationLabel>,
 }
 
@@ -82,6 +78,32 @@ pub struct NsfwBody {
 pub struct ModerationLabel {
     pub label: String,
     pub confidence: String,
+}
+
+//USER VALIDATION
+#[derive(Deserialize, Serialize, Clone)]
+pub struct UserValidationResult {
+    pub user_id: i32,
+    pub region: String,
+    pub credits_left: i32,
+    pub db_type: String,
+}
+
+#[derive(Deserialize, Serialize, Clone)]
+pub struct UserCacheResult {
+    pub user_id: i32,
+    pub region: String,
+    pub db_type: String,
+}
+
+pub struct UserRegionResult {
+    pub user_id: i32,
+    pub region: String,
+}
+
+pub struct UserNsfwValidationResult {
+    pub user_id: i32,
+    pub credits_left: i32,
 }
 
 #[derive(Debug)]

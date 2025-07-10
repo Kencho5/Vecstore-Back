@@ -1,50 +1,17 @@
 use crate::prelude::*;
 use crate::structs::dashboard_struct::DashboardError;
 
-pub struct UserValidationResult {
-    pub user_id: i32,
-    pub region: String,
-    pub credits_left: i32,
-    pub db_type: String,
-}
-
-pub struct UserRegionResult {
-    pub user_id: i32,
-    pub region: String,
-}
-
-pub struct UserNsfwValidationResult {
-    pub user_id: i32,
-    pub credits_left: i32,
-}
-
-pub async fn validate_user_and_increment(
+pub async fn validate_user_only(
     pool: &PgPool,
     api_key: String,
     database: &str,
-) -> Result<UserValidationResult, ApiError> {
+) -> Result<UserCacheResult, ApiError> {
     let result: Option<(i32, String, i32, String)> = sqlx::query_as(
-        "WITH validated_user AS (
-           SELECT ak.owner_id, d.db_type, d.region
-           FROM api_keys ak
-           JOIN databases d ON d.owner_id = ak.owner_id
-           WHERE ak.key = $1 AND d.name = $2
-         ),
-         updated_credits AS (
-           UPDATE users 
-           SET credits = credits - 1 
-           WHERE id = (SELECT owner_id FROM validated_user) AND credits > 0
-           RETURNING id, credits
-         ),
-         updated_db AS (
-           UPDATE databases 
-           SET requests = requests + 1 
-           WHERE name = $2 AND owner_id = (SELECT owner_id FROM validated_user)
-           RETURNING owner_id, region, db_type
-         )
-         SELECT ud.owner_id, ud.region, uc.credits, ud.db_type
-         FROM updated_db ud
-         JOIN updated_credits uc ON ud.owner_id = uc.id",
+        "SELECT ak.owner_id, d.region, u.credits, d.db_type
+         FROM api_keys ak
+         JOIN databases d ON d.owner_id = ak.owner_id
+         JOIN users u ON u.id = ak.owner_id
+         WHERE ak.key = $1 AND d.name = $2",
     )
     .bind(&hash_api_key(&api_key))
     .bind(database)
@@ -65,7 +32,7 @@ pub async fn validate_user_and_increment(
             match api_key_check {
                 Some(_) => {
                     let db_check: Option<(i32,)> = sqlx::query_as(
-                        "SELECT ak.owner_id 
+                        "SELECT ak.owner_id
                          FROM api_keys ak
                          JOIN databases d ON d.owner_id = ak.owner_id
                          WHERE ak.key = $1 AND d.name = $2",
@@ -86,12 +53,30 @@ pub async fn validate_user_and_increment(
         }
     };
 
-    Ok(UserValidationResult {
+    if credits_left <= 0 {
+        return Err(ApiError::RequestLimitExceeded);
+    }
+
+    Ok(UserCacheResult {
         user_id,
         region,
-        credits_left,
         db_type,
     })
+}
+
+pub async fn get_cached_user(
+    state: &AppState,
+    api_key: String,
+    database: &str,
+) -> Result<UserCacheResult, ApiError> {
+    let cache_key = format!("{}_{}", api_key, database);
+    if let Some(cached_result) = state.user_cache.get(&cache_key) {
+        Ok(cached_result)
+    } else {
+        let result = validate_user_only(&state.pool, api_key, database).await?;
+        state.user_cache.insert(cache_key, result.clone());
+        Ok(result)
+    }
 }
 
 pub async fn validate_user(

@@ -20,6 +20,10 @@ pub enum BackgroundTask {
     SaveUsageLogs {
         user_id: i32,
     },
+    ProcessUserAction {
+        user_id: i32,
+        database: String,
+    },
 }
 
 pub async fn process_task_queue(
@@ -123,6 +127,14 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
             }
         }
         BackgroundTask::SaveUsageLogs { user_id } => {
+            if let Err(e) = save_usage_logs(state.pool.clone(), user_id).await {
+                eprintln!("Failed to save logs: {:?}", e);
+            }
+        }
+        BackgroundTask::ProcessUserAction { user_id, database } => {
+            if let Err(e) = deduct_credits(&state.pool, user_id, 1, &database).await {
+                eprintln!("Failed to deduct credits: {:?}", e);
+            }
             if let Err(e) = save_usage_logs(state.pool.clone(), user_id).await {
                 eprintln!("Failed to save logs: {:?}", e);
             }

@@ -36,6 +36,11 @@ async fn main() {
 
     let neon_pools = NeonPools::new(neon_us_east, neon_us_west, neon_eu);
 
+    let user_cache = Cache::builder()
+        .max_capacity(1000)
+        .time_to_live(std::time::Duration::from_secs(300))
+        .build();
+
     let state = AppState {
         pool: pool.clone(),
         neon_pools: neon_pools.clone(),
@@ -45,6 +50,7 @@ async fn main() {
         bedrock_client: bedrock_client.clone(),
         ses_client,
         rekognition_client,
+        user_cache,
     };
 
     let worker_state = WorkerState {
