@@ -205,29 +205,19 @@ async fn hybrid_search_query(
         .map(|row| {
             let vector_id: String = row.get("vector_id");
             let combined_score: f64 = row.get("combined_score");
-            let content: String = row.get("content");
+            let content: Option<String> = row.get("content");
             let metadata: Option<serde_json::Value> = row.get("metadata");
 
             SearchMatch {
                 vector_id,
                 score: format!("{:.1}%", combined_score * 100.0),
                 content,
-                metadata: convert_metadata(metadata),
+                metadata,
             }
         })
         .collect();
 
     Ok(SearchResults { matches })
-}
-
-fn convert_metadata(
-    metadata: Option<serde_json::Value>,
-) -> Option<std::collections::HashMap<String, String>> {
-    metadata?.as_object().map(|obj| {
-        obj.iter()
-            .filter_map(|(k, v)| v.as_str().map(|s| (k.clone(), s.to_string())))
-            .collect()
-    })
 }
 
 async fn vector_search_query(
@@ -241,7 +231,7 @@ async fn vector_search_query(
 ) -> Result<SearchResults, ApiError> {
     let rows = if let Some(metadata_json) = metadata_filter {
        sqlx::query(
-           "SELECT vector_id, embedding <=> $1::vector AS distance, metadata FROM vectors WHERE tenant = $2 AND metadata @> $3 AND embedding <=> $1::vector < $4 ORDER BY embedding <=> $1::vector LIMIT $5 OFFSET $6"
+           "SELECT vector_id, content, embedding <=> $1::vector AS distance, metadata FROM vectors WHERE tenant = $2 AND metadata @> $3 AND embedding <=> $1::vector < $4 ORDER BY embedding <=> $1::vector LIMIT $5 OFFSET $6"
        )
        .bind(&vectors)
        .bind(&tenant)
@@ -253,7 +243,7 @@ async fn vector_search_query(
        .await
    } else {
        sqlx::query(
-           "SELECT vector_id, embedding <=> $1::vector AS distance, metadata FROM vectors WHERE tenant = $2 AND embedding <=> $1::vector < $3 ORDER BY embedding <=> $1::vector LIMIT $4 OFFSET $5"
+           "SELECT vector_id, content, embedding <=> $1::vector AS distance, metadata FROM vectors WHERE tenant = $2 AND embedding <=> $1::vector < $3 ORDER BY embedding <=> $1::vector LIMIT $4 OFFSET $5"
        )
        .bind(&vectors)
        .bind(&tenant)
@@ -273,7 +263,7 @@ async fn vector_search_query(
         .map(|row| {
             let vector_id: String = row.get("vector_id");
             let distance: f64 = row.get("distance");
-            let content: String = row.get("content");
+            let content: Option<String> = row.get("content");
             let metadata: Option<serde_json::Value> = row.get("metadata");
             let combined_score = ((1.0 - distance) * 0.6).max(0.0).min(1.0);
 
@@ -281,7 +271,7 @@ async fn vector_search_query(
                 vector_id,
                 score: format!("{:.1}%", combined_score * 100.0),
                 content,
-                metadata: convert_metadata(metadata),
+                metadata,
             }
         })
         .collect();

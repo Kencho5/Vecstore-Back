@@ -1,5 +1,5 @@
 // Standard library
-pub use std::{collections::HashMap, env, time::Instant};
+pub use std::{env, time::Instant};
 
 // External crates
 pub use base64::Engine;

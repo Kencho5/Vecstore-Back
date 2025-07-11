@@ -43,8 +43,8 @@ pub struct Database {
 #[derive(Deserialize, Serialize, sqlx::FromRow)]
 pub struct DatabaseDocument {
     pub vector_id: String,
-    pub content: String,
-    pub metadata: serde_json::Value,
+    pub content: Option<String>,
+    pub metadata: Option<serde_json::Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[sqlx(default)]
     pub score: Option<String>,

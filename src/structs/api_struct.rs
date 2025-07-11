@@ -52,8 +52,8 @@ pub struct SearchResults {
 pub struct SearchMatch {
     pub vector_id: String,
     pub score: String,
-    pub content: String,
-    pub metadata: Option<HashMap<String, String>>,
+    pub content: Option<String>,
+    pub metadata: Option<serde_json::Value>,
 }
 
 //NSFW

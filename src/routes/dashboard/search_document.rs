@@ -51,13 +51,15 @@ async fn search_by_id(
 ) -> Result<Json<Vec<DatabaseDocument>>, DashboardError> {
     let tenant = format!("{}-{}", user_id, database);
     let documents = sqlx::query_as::<_, DatabaseDocument>(
-        "SELECT vector_id, metadata FROM vectors WHERE tenant = $1 AND vector_id = $2 LIMIT 5",
+        "SELECT vector_id, content, metadata FROM vectors WHERE tenant = $1 AND vector_id = $2 LIMIT 5",
     )
     .bind(&tenant)
     .bind(&data)
     .fetch_all(pool)
     .await
-    .map_err(|_| DashboardError::Unforseen)?;
+    .map_err(|_| 
+        DashboardError::Unforseen
+    )?;
 
     Ok(Json(documents))
 }
@@ -101,9 +103,7 @@ async fn search_by_text(
         .map(|match_result| DatabaseDocument {
             vector_id: match_result.vector_id,
             metadata: match_result
-                .metadata
-                .map(|m| serde_json::to_value(m).unwrap_or(serde_json::Value::Null))
-                .unwrap_or(serde_json::Value::Null),
+                .metadata,
             content: match_result.content,
             score: Some(match_result.score),
         })
@@ -140,9 +140,7 @@ async fn search_by_image(
         .map(|match_result| DatabaseDocument {
             vector_id: match_result.vector_id,
             metadata: match_result
-                .metadata
-                .map(|m| serde_json::to_value(m).unwrap_or(serde_json::Value::Null))
-                .unwrap_or(serde_json::Value::Null),
+                .metadata,
             content: match_result.content,
             score: Some(match_result.score),
         })

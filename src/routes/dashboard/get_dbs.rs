@@ -78,7 +78,7 @@ pub async fn get_db_documents_handler(
 
     let tenant = format!("{}-{}", claims.user_id, result.name);
     let documents = sqlx::query_as::<_, DatabaseDocument>(
-        "SELECT vector_id, metadata, created_at FROM vectors WHERE tenant = $1 ORDER BY created_at DESC LIMIT 5 OFFSET $2",
+        "SELECT vector_id, content, metadata, created_at FROM vectors WHERE tenant = $1 ORDER BY created_at DESC LIMIT 5 OFFSET $2",
     )
     .bind(&tenant)
     .bind(&payload.page)
