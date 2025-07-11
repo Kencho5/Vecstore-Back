@@ -51,31 +51,12 @@ pub struct SearchResults {
 #[derive(Serialize, sqlx::FromRow)]
 pub struct SearchResult {
     pub vector_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub content: Option<String>,
     pub metadata: Option<serde_json::Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[sqlx(default)]
     pub score: Option<String>,
-}
-
-#[derive(Debug)]
-pub enum SearchType {
-    Text,
-    Image,
-    Hybrid,
-}
-
-pub struct SearchContext {
-    pub user_id: i32,
-    pub database: String,
-    pub region: String,
-    pub db_type: String,
-    pub search_type: SearchType,
-    pub query_text: Option<String>,
-    pub vectors: Vec<f32>,
-    pub metadata_filter: Option<serde_json::Value>,
-    pub page: u32,
-    pub limit: u32,
 }
 
 //NSFW
