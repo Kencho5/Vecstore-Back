@@ -79,7 +79,7 @@ fn build_hybrid_search_query(has_metadata_filter: bool) -> &'static str {
            SELECT * FROM text_candidates
        ),
        scored_results AS (
-           SELECT vector_id, distance, metadata,
+           SELECT vector_id, distance, metadata, content,
                   CASE WHEN search_vector @@ query_cache.tsquery
                       THEN ts_rank_cd(search_vector, query_cache.tsquery) * 0.4
                       ELSE 0 END +
@@ -93,14 +93,14 @@ fn build_hybrid_search_query(has_metadata_filter: bool) -> &'static str {
            CROSS JOIN query_cache
        ),
        combined_scores AS (
-           SELECT vector_id, distance, metadata,
+           SELECT vector_id, distance, metadata, content,
                   (1.0 - distance) * 0.6 as vector_score,
                   text_score,
                   LEAST(1.0, (1.0 - distance) * 0.6 + text_score) as combined_score
            FROM scored_results
            WHERE distance < $4 OR text_score > 0.1
        )
-       SELECT vector_id, distance, metadata, combined_score, vector_score, text_score
+       SELECT vector_id, distance, metadata, content, combined_score, vector_score, text_score
        FROM combined_scores
        ORDER BY combined_score DESC
        LIMIT $6 OFFSET $7
@@ -132,7 +132,7 @@ fn build_hybrid_search_query(has_metadata_filter: bool) -> &'static str {
            SELECT * FROM text_candidates
        ),
        scored_results AS (
-           SELECT vector_id, distance, metadata,
+           SELECT vector_id, distance, metadata, content,
                   CASE WHEN search_vector @@ query_cache.tsquery
                       THEN ts_rank_cd(search_vector, query_cache.tsquery) * 0.4
                       ELSE 0 END +
@@ -146,14 +146,14 @@ fn build_hybrid_search_query(has_metadata_filter: bool) -> &'static str {
            CROSS JOIN query_cache
        ),
        combined_scores AS (
-           SELECT vector_id, distance, metadata,
+           SELECT vector_id, distance, metadata, content,
                   (1.0 - distance) * 0.6 as vector_score,
                   text_score,
                   LEAST(1.0, (1.0 - distance) * 0.6 + text_score) as combined_score
            FROM scored_results
            WHERE distance < $3 OR text_score > 0.1
        )
-       SELECT vector_id, distance, metadata, combined_score, vector_score, text_score
+       SELECT vector_id, distance, metadata, content, combined_score, vector_score, text_score
        FROM combined_scores
        ORDER BY combined_score DESC
        LIMIT $5 OFFSET $6
@@ -205,11 +205,13 @@ async fn hybrid_search_query(
         .map(|row| {
             let vector_id: String = row.get("vector_id");
             let combined_score: f64 = row.get("combined_score");
+            let content: String = row.get("content");
             let metadata: Option<serde_json::Value> = row.get("metadata");
 
             SearchMatch {
                 vector_id,
                 score: format!("{:.1}%", combined_score * 100.0),
+                content,
                 metadata: convert_metadata(metadata),
             }
         })
@@ -271,12 +273,14 @@ async fn vector_search_query(
         .map(|row| {
             let vector_id: String = row.get("vector_id");
             let distance: f64 = row.get("distance");
+            let content: String = row.get("content");
             let metadata: Option<serde_json::Value> = row.get("metadata");
             let combined_score = ((1.0 - distance) * 0.6).max(0.0).min(1.0);
 
             SearchMatch {
                 vector_id,
                 score: format!("{:.1}%", combined_score * 100.0),
+                content,
                 metadata: convert_metadata(metadata),
             }
         })

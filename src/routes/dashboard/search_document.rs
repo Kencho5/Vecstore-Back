@@ -51,13 +51,13 @@ async fn search_by_id(
 ) -> Result<Json<Vec<DatabaseDocument>>, DashboardError> {
     let tenant = format!("{}-{}", user_id, database);
     let documents = sqlx::query_as::<_, DatabaseDocument>(
-       "SELECT vector_id, metadata, created_at FROM vectors WHERE tenant = $1 AND vector_id = $2 LIMIT 5",
-   )
-   .bind(&tenant)
-   .bind(&data)
-   .fetch_all(pool)
-   .await
-   .map_err(|_| DashboardError::Unforseen)?;
+        "SELECT vector_id, metadata FROM vectors WHERE tenant = $1 AND vector_id = $2 LIMIT 5",
+    )
+    .bind(&tenant)
+    .bind(&data)
+    .fetch_all(pool)
+    .await
+    .map_err(|_| DashboardError::Unforseen)?;
 
     Ok(Json(documents))
 }
@@ -104,8 +104,8 @@ async fn search_by_text(
                 .metadata
                 .map(|m| serde_json::to_value(m).unwrap_or(serde_json::Value::Null))
                 .unwrap_or(serde_json::Value::Null),
+            content: match_result.content,
             score: Some(match_result.score),
-            created_at: chrono::Utc::now().naive_utc(),
         })
         .collect();
 
@@ -143,8 +143,8 @@ async fn search_by_image(
                 .metadata
                 .map(|m| serde_json::to_value(m).unwrap_or(serde_json::Value::Null))
                 .unwrap_or(serde_json::Value::Null),
+            content: match_result.content,
             score: Some(match_result.score),
-            created_at: chrono::Utc::now().naive_utc(),
         })
         .collect();
 
