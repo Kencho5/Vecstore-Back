@@ -1,10 +1,10 @@
-use crate::{prelude::*, structs::dashboard_struct::*};
+use crate::{prelude::*, structs::dashboard_struct::*, utils::search_vectors::search_vectors};
 
 pub async fn search_document_handler(
     Extension(claims): Extension<Claims>,
     State(state): State<AppState>,
     Json(payload): Json<DocumentsPayload>,
-) -> Result<Json<Vec<DatabaseDocument>>, DashboardError> {
+) -> Result<Json<Vec<SearchResult>>, DashboardError> {
     let neon_pool = state
         .neon_pools
         .get_pool_by_region(&payload.region)
@@ -48,10 +48,10 @@ async fn search_by_id(
     pool: &PgPool,
     user_id: i32,
     database: String,
-) -> Result<Json<Vec<DatabaseDocument>>, DashboardError> {
+) -> Result<Json<Vec<SearchResult>>, DashboardError> {
     let tenant = format!("{}-{}", user_id, database);
-    let documents = sqlx::query_as::<_, DatabaseDocument>(
-        "SELECT vector_id, content, metadata FROM vectors WHERE tenant = $1 AND vector_id = $2 LIMIT 5",
+    let documents = sqlx::query_as::<_, SearchResult>(
+        "SELECT vector_id, content, metadata, NULL as score FROM vectors WHERE tenant = $1 AND vector_id = $2 LIMIT 5",
     )
     .bind(&tenant)
     .bind(&data)
@@ -72,7 +72,7 @@ async fn search_by_text(
     region: String,
     bedrock_client: &BedrockClient,
     state: &AppState,
-) -> Result<Json<Vec<DatabaseDocument>>, DashboardError> {
+) -> Result<Json<Vec<SearchResult>>, DashboardError> {
     let vectors = match db_type.as_str() {
         "text" => extract_text_features_multilingual(&bedrock_client, &data)
             .await
@@ -83,7 +83,7 @@ async fn search_by_text(
         _ => return Err(DashboardError::Unforseen),
     };
 
-    let search_results = hybrid_search_vectors(
+    let search_results = search_vectors(
         state,
         &data,
         vectors,
@@ -97,19 +97,7 @@ async fn search_by_text(
     .await
     .map_err(|_| DashboardError::Unforseen)?;
 
-    let documents = search_results
-        .matches
-        .into_iter()
-        .map(|match_result| DatabaseDocument {
-            vector_id: match_result.vector_id,
-            metadata: match_result
-                .metadata,
-            content: match_result.content,
-            score: Some(match_result.score),
-        })
-        .collect();
-
-    Ok(Json(documents))
+    Ok(Json(search_results.matches))
 }
 
 async fn search_by_image(
@@ -119,7 +107,7 @@ async fn search_by_image(
     region: String,
     bedrock_client: &BedrockClient,
     state: &AppState,
-) -> Result<Json<Vec<DatabaseDocument>>, DashboardError> {
+) -> Result<Json<Vec<SearchResult>>, DashboardError> {
     let image_bytes = base64::engine::general_purpose::STANDARD
         .decode(&data)
         .map_err(|_| DashboardError::Unforseen)?;
@@ -128,23 +116,11 @@ async fn search_by_image(
         .await
         .map_err(|_| DashboardError::Unforseen)?;
 
-    let search_results = hybrid_search_vectors(
+    let search_results = search_vectors(
         state, "", vectors, user_id, &database, &region, None, None, None,
     )
     .await
     .map_err(|_| DashboardError::Unforseen)?;
 
-    let documents = search_results
-        .matches
-        .into_iter()
-        .map(|match_result| DatabaseDocument {
-            vector_id: match_result.vector_id,
-            metadata: match_result
-                .metadata,
-            content: match_result.content,
-            score: Some(match_result.score),
-        })
-        .collect();
-
-    Ok(Json(documents))
+    Ok(Json(search_results.matches))
 }

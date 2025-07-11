@@ -1,7 +1,7 @@
 use crate::prelude::*;
 use sqlx::Row;
 
-pub async fn hybrid_search_vectors(
+pub async fn search_vectors(
     state: &AppState,
     query_text: &str,
     vectors: Vec<f32>,
@@ -208,11 +208,11 @@ async fn hybrid_search_query(
             let content: Option<String> = row.get("content");
             let metadata: Option<serde_json::Value> = row.get("metadata");
 
-            SearchMatch {
+            SearchResult {
                 vector_id,
-                score: format!("{:.1}%", combined_score * 100.0),
                 content,
                 metadata,
+                score: Some(format!("{:.1}%", combined_score * 100.0)),
             }
         })
         .collect();
@@ -267,11 +267,11 @@ async fn vector_search_query(
             let metadata: Option<serde_json::Value> = row.get("metadata");
             let combined_score = ((1.0 - distance) * 0.6).max(0.0).min(1.0);
 
-            SearchMatch {
+            SearchResult {
                 vector_id,
-                score: format!("{:.1}%", combined_score * 100.0),
                 content,
                 metadata,
+                score: Some(format!("{:.1}%", combined_score * 100.0)),
             }
         })
         .collect();

@@ -1,9 +1,9 @@
-use crate::prelude::*;
+use crate::{prelude::*, utils::search_vectors::search_vectors};
 
 pub async fn search_handler(
     Extension(api_key): Extension<String>,
     State(state): State<AppState>,
-    Json(payload): Json<SearchPayload>,
+    Json(payload): Json<SearchRequest>,
 ) -> Result<Json<SearchResponse>, ApiError> {
     let total_start = Instant::now();
 
@@ -25,9 +25,9 @@ pub async fn search_handler(
         return Err(ApiError::MissingData);
     };
 
-    let results = hybrid_search_vectors(
+    let results = search_vectors(
         &state,
-        &payload.text.as_deref().unwrap_or_default(),
+        &payload.text.unwrap_or_default(),
         vectors,
         cached_user.user_id,
         &payload.database,
@@ -39,7 +39,7 @@ pub async fn search_handler(
     .await?;
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;
-    
+
     let user_action_task = BackgroundTask::ProcessUserAction {
         user_id: cached_user.user_id,
         database: payload.database.clone(),
