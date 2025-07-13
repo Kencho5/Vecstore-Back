@@ -9,7 +9,7 @@ pub async fn portal_url_handler(
 ) -> Result<Json<PortalUrlBody>, DashboardError> {
     let customer_id = get_customer_id(claims.email, &state.pool)
         .await
-        .map_err(|_| DashboardError::Unauthorized)?;
+        .map_err(|_| DashboardError::NoPaymentMethods)?;
 
     let portal_url = state
         .paddle

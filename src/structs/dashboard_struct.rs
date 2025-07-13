@@ -141,6 +141,7 @@ pub enum DashboardError {
     ApiKeyCreationLimit,
     NotEnoughCredits,
     NotFound,
+    NoPaymentMethods,
 }
 
 impl IntoResponse for DashboardError {
@@ -162,6 +163,10 @@ impl IntoResponse for DashboardError {
                 "Not enough credits. Visit billing to purchase more",
             ),
             DashboardError::NotFound => (StatusCode::NOT_FOUND, "Not found"),
+            DashboardError::NoPaymentMethods => (
+                StatusCode::NOT_FOUND,
+                "No payment methods found. Purchase to continue",
+            ),
         };
 
         let body = Json(json!({
