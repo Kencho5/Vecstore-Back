@@ -10,20 +10,27 @@ pub async fn get_dbs_handler(
         .await
         .map_err(|_| DashboardError::Unforseen)?;
 
-    for db in &mut dbs {
+    let mut tasks = Vec::new();
+    
+    for db in &dbs {
         let neon_pool = state
             .neon_pools
             .get_pool_by_region(&db.region)
             .ok_or(DashboardError::Unforseen)?;
-
+        
         let tenant = format!("{}-{}", claims.user_id, db.name);
-        let record_count: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM vectors WHERE tenant = $1")
-            .bind(&tenant)
-            .fetch_one(neon_pool)
-            .await
-            .map_err(|_| DashboardError::Unforseen)?;
-
-        db.record_count = Some(record_count.0);
+        let task = sqlx::query_as::<_, (i64,)>("SELECT COUNT(*) FROM vectors WHERE tenant = $1")
+            .bind(tenant)
+            .fetch_one(neon_pool);
+        tasks.push(task);
+    }
+    
+    let results = futures::future::try_join_all(tasks)
+        .await
+        .map_err(|_| DashboardError::Unforseen)?;
+    
+    for (db, result) in dbs.iter_mut().zip(results.iter()) {
+        db.record_count = Some(result.0);
     }
 
     Ok(Json(dbs))
