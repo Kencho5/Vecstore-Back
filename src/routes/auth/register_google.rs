@@ -23,9 +23,18 @@ pub async fn register_google_handler(
         .await
         .map_err(|_| AuthError::UserExists)?;
 
-    let token = create_token(user_id, user.email, user.name)
+    let token = create_token(user_id, &user.email, user.name)
         .await
         .map_err(|_| AuthError::InvalidToken)?;
+
+    let send_feedback_email = BackgroundTask::SendFeedbackEmail {
+        client: state.ses_client,
+        recipient: user.email,
+    };
+
+    if state.task_queue.send(send_feedback_email).is_err() {
+        eprintln!("Failed to send user action task");
+    }
 
     Ok(Json(AuthResponse { token }))
 }

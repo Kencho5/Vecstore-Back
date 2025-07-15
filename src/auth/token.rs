@@ -4,12 +4,12 @@ use std::sync::LazyLock;
 static SECRET_KEY: LazyLock<String> =
     LazyLock::new(|| env::var("SECRET_KEY").expect("Secret key not set"));
 
-pub async fn create_token(user_id: i32, email: String, name: String) -> Result<String, AuthError> {
+pub async fn create_token(user_id: i32, email: &String, name: String) -> Result<String, AuthError> {
     let exp = Utc::now() + Duration::days(7);
 
     let claims = Claims {
         user_id,
-        email,
+        email: email.to_string(),
         name,
         exp: exp.timestamp_millis(),
     };

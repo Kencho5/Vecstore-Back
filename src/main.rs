@@ -48,15 +48,15 @@ async fn main() {
         task_queue: tx,
         paddle,
         bedrock_client: bedrock_client.clone(),
-        ses_client,
+        ses_client: ses_client.clone(),
         rekognition_client,
         user_cache,
     };
 
     let worker_state = WorkerState {
-        pool: pool.clone(),
-        neon_pools: neon_pools.clone(),
-        bedrock_client: bedrock_client.clone(),
+        pool,
+        neon_pools,
+        bedrock_client,
     };
 
     tokio::spawn(async move {

@@ -1,6 +1,8 @@
 use crate::prelude::*;
 use futures::stream::{FuturesUnordered, StreamExt};
 
+use super::feedback::send_feedback_email;
+
 #[derive(Debug)]
 pub enum BackgroundTask {
     InsertImageVectors {
@@ -23,6 +25,10 @@ pub enum BackgroundTask {
     ProcessUserAction {
         user_id: i32,
         database: String,
+    },
+    SendFeedbackEmail {
+        client: aws_sdk_sesv2::Client,
+        recipient: String,
     },
 }
 
@@ -137,6 +143,12 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
             }
             if let Err(e) = save_usage_logs(state.pool.clone(), user_id).await {
                 eprintln!("Failed to save logs: {:?}", e);
+            }
+        }
+        BackgroundTask::SendFeedbackEmail { client, recipient } => {
+            tokio::time::sleep(std::time::Duration::from_secs(30 * 60)).await;
+            if let Err(e) = send_feedback_email(client, recipient).await {
+                eprintln!("Failed to deduct credits: {:?}", e);
             }
         }
     }

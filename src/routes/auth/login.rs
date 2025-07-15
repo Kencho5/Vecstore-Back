@@ -10,7 +10,7 @@ pub async fn login_handler(
         .await
         .map_err(|_| AuthError::UserNotFound)?;
 
-    let token = create_token(db_user.id, db_user.email, db_user.name)
+    let token = create_token(db_user.id, &db_user.email, db_user.name)
         .await
         .map_err(|_| AuthError::InvalidToken)?;
 
@@ -31,7 +31,7 @@ pub async fn login_google_handler(
         .await
         .map_err(|_| AuthError::UserNotFound)?;
 
-    let token = create_token(db_user.id, db_user.email, db_user.name)
+    let token = create_token(db_user.id, &db_user.email, db_user.name)
         .await
         .map_err(|_| AuthError::InvalidToken)?;
 

@@ -6,14 +6,9 @@ pub async fn verify_email_handler(
     Json(payload): Json<VerifyEmailPayload>,
 ) -> Result<StatusCode, VerifyEmailError> {
     let code: u16 = rand::random_range(1000..9999);
-    send_email(
-        state.ses_client,
-        &payload.email,
-        "Verify email".to_string(),
-        Some(code.to_string()),
-    )
-    .await
-    .map_err(|_| VerifyEmailError::InvalidEmail)?;
+    send_email(state.ses_client, &payload.email, Some(code.to_string()))
+        .await
+        .map_err(|_| VerifyEmailError::InvalidEmail)?;
 
     insert_code(state.pool, payload.email, code)
         .await
@@ -74,7 +69,6 @@ async fn insert_code(pool: PgPool, email: String, code: u16) -> Result<(), sqlx:
 async fn send_email(
     client: aws_sdk_sesv2::Client,
     recipient: &String,
-    subject: String,
     code: Option<String>,
 ) -> Result<(), Error> {
     let mut html: String = include_str!("code.html").to_string();
@@ -84,7 +78,7 @@ async fn send_email(
 
     let dest: Destination = Destination::builder().to_addresses(recipient).build();
     let subject_content = Content::builder()
-        .data(subject)
+        .data("Verify Email")
         .charset("UTF-8")
         .build()
         .expect("building Content");
