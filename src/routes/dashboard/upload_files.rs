@@ -10,6 +10,14 @@ pub async fn upload_files_handler(
 
     deduct_credits(&state.pool, claims.user_id, file_count, &payload.name).await?;
 
+    let logs_task = BackgroundTask::SaveUsageLogs {
+        user_id: claims.user_id,
+    };
+
+    if state.task_queue.send(logs_task).is_err() {
+        eprintln!("Failed to send logs_task");
+    }
+
     let pool = state
         .neon_pools
         .get_pool_by_region(&payload.region)
