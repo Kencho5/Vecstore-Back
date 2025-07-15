@@ -12,6 +12,7 @@ pub async fn upload_files_handler(
 
     let logs_task = BackgroundTask::SaveUsageLogs {
         user_id: claims.user_id,
+        count: file_count as i32,
     };
 
     if state.task_queue.send(logs_task).is_err() {

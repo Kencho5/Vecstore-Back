@@ -21,6 +21,7 @@ pub enum BackgroundTask {
     },
     SaveUsageLogs {
         user_id: i32,
+        count: i32,
     },
     ProcessUserAction {
         user_id: i32,
@@ -132,8 +133,8 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
                 eprintln!("Failed to get pool for region: {}", region);
             }
         }
-        BackgroundTask::SaveUsageLogs { user_id } => {
-            if let Err(e) = save_usage_logs(state.pool.clone(), user_id).await {
+        BackgroundTask::SaveUsageLogs { user_id, count } => {
+            if let Err(e) = save_usage_logs(state.pool.clone(), user_id, count).await {
                 eprintln!("Failed to save logs: {:?}", e);
             }
         }
@@ -141,7 +142,7 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
             if let Err(e) = deduct_credits(&state.pool, user_id, 1, &database).await {
                 eprintln!("Failed to deduct credits: {:?}", e);
             }
-            if let Err(e) = save_usage_logs(state.pool.clone(), user_id).await {
+            if let Err(e) = save_usage_logs(state.pool.clone(), user_id, 1).await {
                 eprintln!("Failed to save logs: {:?}", e);
             }
         }

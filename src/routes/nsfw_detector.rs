@@ -44,6 +44,7 @@ pub async fn nsfw_detector_handler(
 
     let logs_task = BackgroundTask::SaveUsageLogs {
         user_id: validation_result.user_id,
+        count: 1,
     };
 
     if state.task_queue.send(logs_task).is_err() {
