@@ -18,10 +18,7 @@ async fn invoke_bedrock_model(
         .body(Blob::new(body_bytes))
         .send()
         .await
-        .map_err(|e| {
-            eprintln!("Bedrock error: {:?}", e);
-            ApiError::ModelInference
-        })?;
+        .map_err(|_| ApiError::ModelInference)?;
 
     let response_body = response.body().as_ref();
     let response_json: Value =

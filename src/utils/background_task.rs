@@ -99,9 +99,14 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
                         }
                     };
 
-                let vectors = extract_image_features(&state.bedrock_client, image_bytes)
-                    .await
-                    .unwrap();
+                let vectors = match extract_image_features(&state.bedrock_client, image_bytes).await
+                {
+                    Ok(vectors) => vectors,
+                    Err(e) => {
+                        eprintln!("Failed to extract image features: {:?}", e);
+                        return;
+                    }
+                };
 
                 if let Err(e) =
                     insert_vectors(pool, user_id, vectors, metadata, database, None).await
@@ -120,9 +125,14 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
             region,
         } => {
             if let Some(pool) = state.neon_pools.get_pool_by_region(&region) {
-                let vectors = extract_text_features_multilingual(&state.bedrock_client, &text)
-                    .await
-                    .unwrap();
+                let vectors =
+                    match extract_text_features_multilingual(&state.bedrock_client, &text).await {
+                        Ok(vectors) => vectors,
+                        Err(e) => {
+                            eprintln!("Failed to extract text features: {:?}", e);
+                            return;
+                        }
+                    };
 
                 if let Err(e) =
                     insert_vectors(pool, user_id, vectors, metadata, database, Some(text)).await

@@ -4,16 +4,16 @@ import base64
 import time
 from io import BytesIO
 
-API_KEY = "fc5d11c93d23207c35636a3b92c43b555e6a5950e9690e0c3e48e86d6d3c4ffc"
-BASE_URL = "http://localhost:3000"
-# API_KEY = "f18718512e82150f1c813d750ebd0340a6198635a7b3650ed3077b69fc97725f"
-# BASE_URL = "https://api.vecstore.app"
+# API_KEY = "fc5d11c93d23207c35636a3b92c43b555e6a5950e9690e0c3e48e86d6d3c4ffc"
+# BASE_URL = "http://localhost:3000"
+API_KEY = "f18718512e82150f1c813d750ebd0340a6198635a7b3650ed3077b69fc97725f"
+BASE_URL = "https://api.vecstore.app"
 
 RED_CAR_IMAGE_URL = "https://robbreport.com/wp-content/uploads/2016/09/lamborghini_huracan_slideshow_lead.jpg?w=772"
 BLUE_CAR_IMAGE_URL = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/2019_Toyota_Corolla_Icon_Tech_VVT-i_Hybrid_1.8.jpg/960px-2019_Toyota_Corolla_Icon_Tech_VVT-i_Hybrid_1.8.jpg"
 NSFW_IMAGE_URL = BLUE_CAR_IMAGE_URL
-DATABASE = "test"
-TEXT_DATABASE = "vecstore-text"
+DATABASE = "vecstore"
+TEXT_DATABASE = "test-db"
 
 def get_image_base64(url):
     try:
@@ -70,7 +70,7 @@ def test_search_image():
     print("\n=== Testing Image Search ===")
     headers = {"Authorization": API_KEY, "Content-Type": "application/json"}
     
-    payload = {"text": "mountain", "database": DATABASE }
+    payload = {"text": "mountain", "database": DATABASE, "limit": 1 }
     try:
         start = time.time()
         res = requests.post(f"{BASE_URL}/search", headers=headers, json=payload)
@@ -82,7 +82,7 @@ def test_search_image():
     
     red_car_base64 = get_image_base64(RED_CAR_IMAGE_URL)
     if red_car_base64:
-        payload = {"image": red_car_base64, "database": DATABASE}
+        payload = {"image": red_car_base64, "database": DATABASE, 'limit': 1}
         try:
             start = time.time()
             res = requests.post(f"{BASE_URL}/search", headers=headers, json=payload)

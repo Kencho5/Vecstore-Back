@@ -1,5 +1,4 @@
 use crate::prelude::*;
-use crate::structs::dashboard_struct::DashboardError;
 
 pub async fn validate_user_only(
     pool: &PgPool,
@@ -44,7 +43,7 @@ pub async fn validate_user_only(
                     .map_err(|_| ApiError::DatabaseInsert)?;
 
                     match db_check {
-                        Some(_) => return Err(ApiError::RequestLimitExceeded),
+                        Some(_) => return Err(ApiError::NotEnoughCredits),
                         None => return Err(ApiError::DatabaseNotFound),
                     }
                 }
@@ -54,7 +53,7 @@ pub async fn validate_user_only(
     };
 
     if credits_left <= 0 {
-        return Err(ApiError::RequestLimitExceeded);
+        return Err(ApiError::NotEnoughCredits);
     }
 
     Ok(UserCacheResult {
@@ -121,7 +120,7 @@ pub async fn validate_user(
                     .map_err(|_| ApiError::DatabaseInsert)?;
 
                     match db_check {
-                        Some(_) => return Err(ApiError::RequestLimitExceeded),
+                        Some(_) => return Err(ApiError::NotEnoughCredits),
                         None => return Err(ApiError::DatabaseNotFound),
                     }
                 }
@@ -168,7 +167,7 @@ pub async fn validate_nsfw_request(
             .map_err(|_| ApiError::InvalidApiKey)?;
 
             match validation_check {
-                Some(_) => return Err(ApiError::RequestLimitExceeded),
+                Some(_) => return Err(ApiError::NotEnoughCredits),
                 None => return Err(ApiError::InvalidApiKey),
             }
         }
@@ -182,7 +181,7 @@ pub async fn deduct_credits(
     user_id: i32,
     file_count: usize,
     database: &str,
-) -> Result<i32, DashboardError> {
+) -> Result<i32, ApiError> {
     let result: Option<(i32,)> = sqlx::query_as(
         "WITH updated_user AS (
             UPDATE users 
@@ -201,13 +200,10 @@ pub async fn deduct_credits(
     .bind(database)
     .fetch_optional(pool)
     .await
-    .map_err(|e| {
-        dbg!(e);
-        DashboardError::Unforseen
-    })?;
+    .map_err(|_| ApiError::Unforseen)?;
 
     match result {
         Some((credits_left,)) => Ok(credits_left),
-        None => Err(DashboardError::NotEnoughCredits),
+        None => Err(ApiError::NotEnoughCredits),
     }
 }

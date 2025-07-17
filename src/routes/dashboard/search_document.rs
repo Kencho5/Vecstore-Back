@@ -4,11 +4,11 @@ pub async fn search_document_handler(
     Extension(claims): Extension<Claims>,
     State(state): State<AppState>,
     Json(payload): Json<DocumentsPayload>,
-) -> Result<Json<Vec<SearchResult>>, DashboardError> {
+) -> Result<Json<Vec<SearchResult>>, ApiError> {
     let neon_pool = state
         .neon_pools
         .get_pool_by_region(&payload.region)
-        .ok_or(DashboardError::Unforseen)?;
+        .ok_or(ApiError::Unforseen)?;
 
     if payload.search_type.as_str() != "id" {
         deduct_credits(&state.pool, claims.user_id, 1, &payload.name).await?;
@@ -39,7 +39,7 @@ pub async fn search_document_handler(
             )
             .await
         }
-        _ => Err(DashboardError::Unforseen),
+        _ => Err(ApiError::Unforseen),
     }
 }
 
@@ -48,7 +48,7 @@ async fn search_by_id(
     pool: &PgPool,
     user_id: i32,
     database: String,
-) -> Result<Json<Vec<SearchResult>>, DashboardError> {
+) -> Result<Json<Vec<SearchResult>>, ApiError> {
     let tenant = format!("{}-{}", user_id, database);
     let documents = sqlx::query_as::<_, SearchResult>(
         "SELECT vector_id, content, metadata, NULL as score FROM vectors WHERE tenant = $1 AND vector_id = $2 LIMIT 5",
@@ -58,7 +58,7 @@ async fn search_by_id(
     .fetch_all(pool)
     .await
     .map_err(|_| 
-        DashboardError::Unforseen
+        ApiError::Unforseen
     )?;
 
     Ok(Json(documents))
@@ -72,15 +72,15 @@ async fn search_by_text(
     region: String,
     bedrock_client: &BedrockClient,
     state: &AppState,
-) -> Result<Json<Vec<SearchResult>>, DashboardError> {
+) -> Result<Json<Vec<SearchResult>>, ApiError> {
     let vectors = match db_type.as_str() {
         "text" => extract_text_features_multilingual(&bedrock_client, &data)
             .await
-            .map_err(|_| DashboardError::Unforseen)?,
+            .map_err(|_| ApiError::Unforseen)?,
         "image" => extract_text_features(&bedrock_client, data.clone())
             .await
-            .map_err(|_| DashboardError::Unforseen)?,
-        _ => return Err(DashboardError::Unforseen),
+            .map_err(|_| ApiError::Unforseen)?,
+        _ => return Err(ApiError::Unforseen),
     };
 
     let search_results = search_vectors(
@@ -95,7 +95,7 @@ async fn search_by_text(
         Some(3),
     )
     .await
-    .map_err(|_| DashboardError::Unforseen)?;
+    .map_err(|_| ApiError::Unforseen)?;
 
     Ok(Json(search_results.matches))
 }
@@ -107,20 +107,20 @@ async fn search_by_image(
     region: String,
     bedrock_client: &BedrockClient,
     state: &AppState,
-) -> Result<Json<Vec<SearchResult>>, DashboardError> {
+) -> Result<Json<Vec<SearchResult>>, ApiError> {
     let image_bytes = base64::engine::general_purpose::STANDARD
         .decode(&data)
-        .map_err(|_| DashboardError::Unforseen)?;
+        .map_err(|_| ApiError::Unforseen)?;
 
     let vectors = extract_image_features(&bedrock_client, image_bytes)
         .await
-        .map_err(|_| DashboardError::Unforseen)?;
+        .map_err(|_| ApiError::Unforseen)?;
 
     let search_results = search_vectors(
         state, "", vectors, user_id, &database, &region, None, None, None,
     )
     .await
-    .map_err(|_| DashboardError::Unforseen)?;
+    .map_err(|_| ApiError::Unforseen)?;
 
     Ok(Json(search_results.matches))
 }

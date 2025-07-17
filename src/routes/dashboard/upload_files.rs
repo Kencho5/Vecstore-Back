@@ -5,7 +5,7 @@ pub async fn upload_files_handler(
     Extension(claims): Extension<Claims>,
     State(state): State<AppState>,
     Json(payload): Json<UploadFilesPayload>,
-) -> Result<StatusCode, DashboardError> {
+) -> Result<StatusCode, ApiError> {
     let file_count = payload.files.len();
 
     deduct_credits(&state.pool, claims.user_id, file_count, &payload.name).await?;
@@ -67,11 +67,11 @@ async fn upload_image(
     user_id: i32,
     bedrock_client: BedrockClient,
     database: String,
-) -> Result<(), DashboardError> {
+) -> Result<(), ApiError> {
     for file in files {
         let image_bytes = base64::engine::general_purpose::STANDARD
             .decode(&file.data)
-            .map_err(|_| DashboardError::Unforseen)?;
+            .map_err(|_| ApiError::Unforseen)?;
         let vectors = extract_image_features(&bedrock_client, image_bytes)
             .await
             .unwrap();
@@ -82,7 +82,7 @@ async fn upload_image(
 
         insert_vectors(pool, user_id, vectors, metadata, database.clone(), None)
             .await
-            .map_err(|_| DashboardError::Unforseen)?;
+            .map_err(|_| ApiError::Unforseen)?;
     }
     Ok(())
 }
@@ -93,13 +93,13 @@ async fn upload_pdfs(
     user_id: i32,
     bedrock_client: BedrockClient,
     database: String,
-) -> Result<(), DashboardError> {
+) -> Result<(), ApiError> {
     for file in files {
         let pdf_bytes = base64::engine::general_purpose::STANDARD
             .decode(&file.data)
-            .map_err(|_| DashboardError::Unforseen)?;
+            .map_err(|_| ApiError::Unforseen)?;
 
-        let text = extract_text_from_mem(&pdf_bytes).map_err(|_| DashboardError::Unforseen)?;
+        let text = extract_text_from_mem(&pdf_bytes).map_err(|_| ApiError::Unforseen)?;
         let clean_text = text.replace('\n', " ");
 
         let vectors = extract_text_features_multilingual(&bedrock_client, &clean_text)
@@ -119,7 +119,7 @@ async fn upload_pdfs(
             Some(clean_text),
         )
         .await
-        .map_err(|_| DashboardError::Unforseen)?;
+        .map_err(|_| ApiError::Unforseen)?;
     }
     Ok(())
 }
@@ -130,11 +130,11 @@ async fn upload_text(
     user_id: i32,
     bedrock_client: BedrockClient,
     database: String,
-) -> Result<(), DashboardError> {
+) -> Result<(), ApiError> {
     for file in files {
         let vectors = extract_text_features_multilingual(&bedrock_client, &file.data)
             .await
-            .unwrap();
+            .map_err(|_| ApiError::Unforseen)?;
 
         let metadata = Some(serde_json::json!({
             "filename": file.name
@@ -149,7 +149,7 @@ async fn upload_text(
             Some(file.data),
         )
         .await
-        .map_err(|_| DashboardError::Unforseen)?;
+        .map_err(|_| ApiError::Unforseen)?;
     }
     Ok(())
 }

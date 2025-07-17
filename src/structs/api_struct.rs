@@ -111,40 +111,28 @@ pub enum ApiError {
     DatabaseInsert,
     MissingData,
     InvalidApiKey,
-    RequestLimitExceeded,
+    NotEnoughCredits,
 }
 
 impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
         let (status, error_message) = match self {
-            ApiError::Unforseen => {
-                (StatusCode::BAD_REQUEST, "Unforseen error. Contact support")
-            }
-            ApiError::ImageProcessing => {
-                (StatusCode::BAD_REQUEST, "Failed to process image")
-            }
+            ApiError::Unforseen => (StatusCode::BAD_REQUEST, "Unforseen error. Contact support"),
+            ApiError::ImageProcessing => (StatusCode::BAD_REQUEST, "Failed to process image"),
             ApiError::ModelInference => {
                 (StatusCode::INTERNAL_SERVER_ERROR, "Model inference failed")
             }
-            ApiError::DatabaseError=> (
-                StatusCode::BAD_REQUEST,
-                "Database error",
-            ),
-            ApiError::DatabaseNotFound => (
-                StatusCode::SERVICE_UNAVAILABLE,
-                "Database not found",
-            ),
+            ApiError::DatabaseError => (StatusCode::BAD_REQUEST, "Database error"),
+            ApiError::DatabaseNotFound => (StatusCode::SERVICE_UNAVAILABLE, "Database not found"),
             ApiError::DatabaseInsert => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "Failed to insert into database",
             ),
-            ApiError::MissingData => {
-                (StatusCode::INTERNAL_SERVER_ERROR, "Missing api data")
-            }
+            ApiError::MissingData => (StatusCode::INTERNAL_SERVER_ERROR, "Missing api data"),
             ApiError::InvalidApiKey => (StatusCode::UNAUTHORIZED, "Invalid API key"),
-            ApiError::RequestLimitExceeded => (
+            ApiError::NotEnoughCredits => (
                 StatusCode::UNAUTHORIZED,
-                "Monthly API request limit exceeded. Upgrade your plan or contact sales to increase your limit.",
+                "Not enough credits. Visit billing to purchase more",
             ),
         };
 

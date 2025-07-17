@@ -10,7 +10,7 @@ opt-level = 1
 codegen-units = 1
 lto = "thin"
 opt-level = 3
-panic = "abort"
+# panic = "abort"
 strip = true
 
 [dependencies]

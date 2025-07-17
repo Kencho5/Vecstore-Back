@@ -134,12 +134,11 @@ pub struct File {
 #[derive(Debug)]
 pub enum DashboardError {
     Unforseen,
-    Unauthorized,
+    //Unauthorized,
     MissingData,
     DatabaseExists,
     ApiKeyExists,
     ApiKeyCreationLimit,
-    NotEnoughCredits,
     NotFound,
     NoPaymentMethods,
 }
@@ -150,17 +149,13 @@ impl IntoResponse for DashboardError {
             DashboardError::Unforseen => {
                 (StatusCode::BAD_REQUEST, "Unforseen error. Contact support")
             }
-            DashboardError::Unauthorized => (StatusCode::UNAUTHORIZED, "Unauthorized"),
+            //DashboardError::Unauthorized => (StatusCode::UNAUTHORIZED, "Unauthorized"),
             DashboardError::MissingData => (StatusCode::BAD_REQUEST, "Missing form data"),
             DashboardError::DatabaseExists => (StatusCode::BAD_REQUEST, "Database already exists"),
             DashboardError::ApiKeyExists => (StatusCode::BAD_REQUEST, "Api key already exists"),
             DashboardError::ApiKeyCreationLimit => (
                 StatusCode::TOO_MANY_REQUESTS,
                 "Maximum limit of 10 api keys reached",
-            ),
-            DashboardError::NotEnoughCredits => (
-                StatusCode::UNAUTHORIZED,
-                "Not enough credits. Visit billing to purchase more",
             ),
             DashboardError::NotFound => (StatusCode::NOT_FOUND, "Not found"),
             DashboardError::NoPaymentMethods => (
