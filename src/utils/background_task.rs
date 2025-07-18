@@ -157,7 +157,7 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
             }
         }
         BackgroundTask::SendFeedbackEmail { client, recipient } => {
-            tokio::time::sleep(std::time::Duration::from_secs(30 * 60)).await;
+            tokio::time::sleep(std::time::Duration::from_secs(10 * 60)).await;
             if let Err(e) = send_feedback_email(client, recipient).await {
                 eprintln!("Failed to deduct credits: {:?}", e);
             }
