@@ -14,6 +14,15 @@ pub async fn search_document_handler(
         deduct_credits(&state.pool, claims.user_id, 1, &payload.name).await?;
     }
 
+    let logs_task = BackgroundTask::SaveUsageLogs {
+        user_id: claims.user_id,
+        count: 1,
+    };
+
+    if state.task_queue.send(logs_task).is_err() {
+        eprintln!("Failed to send logs_task");
+    }
+
     match payload.search_type.as_str() {
         "id" => search_by_id(payload.data, neon_pool, claims.user_id, payload.name).await,
         "text" => {
