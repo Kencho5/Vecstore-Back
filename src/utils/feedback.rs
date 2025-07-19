@@ -2,7 +2,7 @@ use crate::prelude::*;
 
 pub async fn send_feedback_email(
     client: aws_sdk_sesv2::Client,
-    recipient: String,
+    recipient: &String,
 ) -> Result<(), Error> {
     let html: String = include_str!("feedback.html").to_string();
 

@@ -94,27 +94,25 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
                     match base64::engine::general_purpose::STANDARD.decode(&base64_image) {
                         Ok(bytes) => bytes,
                         Err(e) => {
-                            eprintln!("Failed to decode base64 image: {:?}", e);
+                            tracing::error!("Failed to decode base64 image: {:?}", e);
                             return;
                         }
                     };
-
                 let vectors = match extract_image_features(&state.bedrock_client, image_bytes).await
                 {
                     Ok(vectors) => vectors,
                     Err(e) => {
-                        eprintln!("Failed to extract image features: {:?}", e);
+                        tracing::error!("Failed to extract image features: {:?}", e);
                         return;
                     }
                 };
-
                 if let Err(e) =
                     insert_vectors(pool, user_id, vectors, metadata, database, None).await
                 {
-                    eprintln!("Failed to insert vectors: {:?}", e);
+                    tracing::error!("Failed to insert vectors: {:?}", e);
                 }
             } else {
-                eprintln!("Failed to get pool for region: {}", region);
+                tracing::error!("Failed to get pool for region: {}", region);
             }
         }
         BackgroundTask::InsertTextVectors {
@@ -129,37 +127,37 @@ async fn process_single_task(task: BackgroundTask, state: WorkerState) {
                     match extract_text_features_multilingual(&state.bedrock_client, &text).await {
                         Ok(vectors) => vectors,
                         Err(e) => {
-                            eprintln!("Failed to extract text features: {:?}", e);
+                            tracing::error!("Failed to extract text features: {:?}", e);
                             return;
                         }
                     };
-
                 if let Err(e) =
                     insert_vectors(pool, user_id, vectors, metadata, database, Some(text)).await
                 {
-                    eprintln!("Failed to insert vectors: {:?}", e);
+                    tracing::error!("Failed to insert vectors: {:?}", e);
                 }
             } else {
-                eprintln!("Failed to get pool for region: {}", region);
+                tracing::error!("Failed to get pool for region: {}", region);
             }
         }
         BackgroundTask::SaveUsageLogs { user_id, count } => {
             if let Err(e) = save_usage_logs(state.pool.clone(), user_id, count).await {
-                eprintln!("Failed to save logs: {:?}", e);
+                tracing::error!("Failed to save logs: {:?}", e);
             }
         }
         BackgroundTask::ProcessUserAction { user_id, database } => {
             if let Err(e) = deduct_credits(&state.pool, user_id, 1, &database).await {
-                eprintln!("Failed to deduct credits: {:?}", e);
+                tracing::error!("Failed to deduct credits: {:?}", e);
             }
             if let Err(e) = save_usage_logs(state.pool.clone(), user_id, 1).await {
-                eprintln!("Failed to save logs: {:?}", e);
+                tracing::error!("Failed to save logs: {:?}", e);
             }
         }
         BackgroundTask::SendFeedbackEmail { client, recipient } => {
-            tokio::time::sleep(std::time::Duration::from_secs(10 * 60)).await;
-            if let Err(e) = send_feedback_email(client, recipient).await {
-                eprintln!("Failed to deduct credits: {:?}", e);
+            tokio::time::sleep(std::time::Duration::from_secs(5 * 60)).await;
+            match send_feedback_email(client, &recipient).await {
+                Ok(_) => tracing::info!("Feedback email sent successfully to {}", recipient),
+                Err(e) => tracing::error!("Failed to send feedback email: {:?}", e),
             }
         }
     }
