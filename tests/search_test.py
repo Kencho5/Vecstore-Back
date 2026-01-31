@@ -11,7 +11,7 @@ def search_image_by_text(api_key, database, text_query, limit):
     payload = {
         "text": text_query,
         "database": database,
-        "limit": limit
+        "limit": limit,
     }
     
     headers = {

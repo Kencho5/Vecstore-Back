@@ -21,6 +21,8 @@ pub async fn search_vectors(
     let page = page.unwrap_or(1);
     let limit = limit.unwrap_or(10).min(100) as i64;
     let offset = ((page - 1) * (limit as u32)) as i64;
+
+    let oversample_limit = (limit * 4).min(400);
     let distance_threshold = 0.8;
 
     let use_hybrid = !query_text.trim().is_empty();
@@ -28,22 +30,23 @@ pub async fn search_vectors(
     if use_hybrid {
         hybrid_search_query(
             query_text,
-            vectors,
-            tenant,
+            &vectors,
+            &tenant,
             pool,
             metadata_filter,
-            distance_threshold,
+            oversample_limit,
             limit,
             offset,
         )
         .await
     } else {
         vector_search_query(
-            vectors,
-            tenant,
+            &vectors,
+            &tenant,
             pool,
             metadata_filter,
             distance_threshold,
+            oversample_limit,
             limit,
             offset,
         )
@@ -54,142 +57,154 @@ pub async fn search_vectors(
 fn build_hybrid_search_query(has_metadata_filter: bool) -> &'static str {
     if has_metadata_filter {
         r#"
-       WITH query_cache AS (
-           SELECT plainto_tsquery('simple', $5) as tsquery
-       ),
-       vector_candidates AS (
-           SELECT vector_id, embedding <=> $1::vector AS distance, metadata, content, search_vector
-           FROM vectors 
-           WHERE tenant = $2 AND metadata @> $3 
-           AND embedding <=> $1::vector < $4 + 0.2
-       ),
-       text_candidates AS (
-           SELECT vector_id, embedding <=> $1::vector AS distance, metadata, content, search_vector
-           FROM vectors 
-           CROSS JOIN query_cache
-           WHERE tenant = $2 AND metadata @> $3 
-           AND (
-               content ILIKE '%' || $5 || '%' OR
-               search_vector @@ query_cache.tsquery
-           )
-       ),
-       all_candidates AS (
-           SELECT * FROM vector_candidates
-           UNION
-           SELECT * FROM text_candidates
-       ),
-       scored_results AS (
-           SELECT vector_id, distance, metadata, content,
-                  CASE WHEN search_vector @@ query_cache.tsquery
-                      THEN ts_rank_cd(search_vector, query_cache.tsquery) * 0.4
-                      ELSE 0 END +
-                  CASE WHEN word_similarity($5, content) > 0.1
-                      THEN word_similarity($5, content) * 0.3
-                      ELSE 0 END +
-                  CASE WHEN content ILIKE '%' || $5 || '%'
-                      THEN 0.25
-                      ELSE 0 END as text_score
-           FROM all_candidates
-           CROSS JOIN query_cache
-       ),
-       combined_scores AS (
-           SELECT vector_id, distance, metadata, content,
-                  (1.0 - distance) * 0.6 as vector_score,
-                  text_score,
-                  LEAST(1.0, (1.0 - distance) * 0.6 + text_score) as combined_score
-           FROM scored_results
-           WHERE distance < $4 OR text_score > 0.1
-       )
-       SELECT vector_id, distance, metadata, content, combined_score, vector_score, text_score
-       FROM combined_scores
-       ORDER BY combined_score DESC
-       LIMIT $6 OFFSET $7
-       "#
+        WITH query_parser AS (
+            SELECT to_tsquery('simple',
+                COALESCE(
+                    NULLIF(
+                        regexp_replace(
+                            regexp_replace(
+                                trim(regexp_replace($4, '[^\w\s]', ' ', 'g')),
+                                '\s+', ' & ', 'g'
+                            ),
+                            '([^ ]+)$',
+                            '\1:*'
+                        ),
+                        ''
+                    ),
+                    'EMPTY_QUERY_MARKER'
+                )
+            ) as tsquery
+        ),
+        vector_candidates AS (
+            SELECT vector_id,
+                   ROW_NUMBER() OVER (ORDER BY embedding <=> $1::vector) as vrank
+            FROM vectors
+            WHERE tenant = $2 AND metadata @> $3
+            ORDER BY embedding <=> $1::vector
+            LIMIT $5
+        ),
+        text_candidates AS (
+            SELECT vector_id,
+                   ROW_NUMBER() OVER (
+                       ORDER BY ts_rank_cd(search_vector, query_parser.tsquery) DESC
+                   ) as trank
+            FROM vectors
+            CROSS JOIN query_parser
+            WHERE tenant = $2 AND metadata @> $3
+            AND search_vector @@ query_parser.tsquery
+            LIMIT $5
+        ),
+        rrf_scores AS (
+            SELECT
+                COALESCE(v.vector_id, t.vector_id) as vector_id,
+                (COALESCE(1.0 / (60.0 + v.vrank), 0.0) +
+                 COALESCE(1.0 / (60.0 + t.trank), 0.0))::FLOAT8 as score
+            FROM vector_candidates v
+            FULL OUTER JOIN text_candidates t ON v.vector_id = t.vector_id
+        ),
+        final_ids AS (
+            SELECT vector_id, score
+            FROM rrf_scores
+            ORDER BY score DESC
+            LIMIT $6 OFFSET $7
+        )
+        SELECT v.vector_id, v.content, v.metadata, f.score
+        FROM final_ids f
+        JOIN vectors v ON v.vector_id = f.vector_id
+        ORDER BY f.score DESC
+        "#
     } else {
         r#"
-       WITH query_cache AS (
-           SELECT plainto_tsquery('simple', $4) as tsquery
-       ),
-       vector_candidates AS (
-           SELECT vector_id, embedding <=> $1::vector AS distance, metadata, content, search_vector
-           FROM vectors 
-           WHERE tenant = $2 
-           AND embedding <=> $1::vector < $3 + 0.2
-       ),
-       text_candidates AS (
-           SELECT vector_id, embedding <=> $1::vector AS distance, metadata, content, search_vector
-           FROM vectors 
-           CROSS JOIN query_cache
-           WHERE tenant = $2 
-           AND (
-               content ILIKE '%' || $4 || '%' OR
-               search_vector @@ query_cache.tsquery
-           )
-       ),
-       all_candidates AS (
-           SELECT * FROM vector_candidates
-           UNION
-           SELECT * FROM text_candidates
-       ),
-       scored_results AS (
-           SELECT vector_id, distance, metadata, content,
-                  CASE WHEN search_vector @@ query_cache.tsquery
-                      THEN ts_rank_cd(search_vector, query_cache.tsquery) * 0.4
-                      ELSE 0 END +
-                  CASE WHEN word_similarity($4, content) > 0.1
-                      THEN word_similarity($4, content) * 0.3
-                      ELSE 0 END +
-                  CASE WHEN content ILIKE '%' || $4 || '%'
-                      THEN 0.25
-                      ELSE 0 END as text_score
-           FROM all_candidates
-           CROSS JOIN query_cache
-       ),
-       combined_scores AS (
-           SELECT vector_id, distance, metadata, content,
-                  (1.0 - distance) * 0.6 as vector_score,
-                  text_score,
-                  LEAST(1.0, (1.0 - distance) * 0.6 + text_score) as combined_score
-           FROM scored_results
-           WHERE distance < $3 OR text_score > 0.1
-       )
-       SELECT vector_id, distance, metadata, content, combined_score, vector_score, text_score
-       FROM combined_scores
-       ORDER BY combined_score DESC
-       LIMIT $5 OFFSET $6
-       "#
+        WITH query_parser AS (
+            SELECT to_tsquery('simple',
+                COALESCE(
+                    NULLIF(
+                        regexp_replace(
+                            regexp_replace(
+                                trim(regexp_replace($3, '[^\w\s]', ' ', 'g')),
+                                '\s+', ' & ', 'g'
+                            ),
+                            '([^ ]+)$',
+                            '\1:*'
+                        ),
+                        ''
+                    ),
+                    'EMPTY_QUERY_MARKER'
+                )
+            ) as tsquery
+        ),
+        vector_candidates AS (
+            SELECT vector_id,
+                   ROW_NUMBER() OVER (ORDER BY embedding <=> $1::vector) as vrank
+            FROM vectors
+            WHERE tenant = $2
+            ORDER BY embedding <=> $1::vector
+            LIMIT $4
+        ),
+        text_candidates AS (
+            SELECT vector_id,
+                   ROW_NUMBER() OVER (
+                       ORDER BY ts_rank_cd(search_vector, query_parser.tsquery) DESC
+                   ) as trank
+            FROM vectors
+            CROSS JOIN query_parser
+            WHERE tenant = $2
+            AND search_vector @@ query_parser.tsquery
+            LIMIT $4
+        ),
+        rrf_scores AS (
+            SELECT
+                COALESCE(v.vector_id, t.vector_id) as vector_id,
+                (COALESCE(1.0 / (60.0 + v.vrank), 0.0) +
+                 COALESCE(1.0 / (60.0 + t.trank), 0.0))::FLOAT8 as score
+            FROM vector_candidates v
+            FULL OUTER JOIN text_candidates t ON v.vector_id = t.vector_id
+        ),
+        final_ids AS (
+            SELECT vector_id, score
+            FROM rrf_scores
+            ORDER BY score DESC
+            LIMIT $5 OFFSET $6
+        )
+        SELECT v.vector_id, v.content, v.metadata, f.score
+        FROM final_ids f
+        JOIN vectors v ON v.vector_id = f.vector_id
+        ORDER BY f.score DESC
+        "#
     }
 }
 
 async fn hybrid_search_query(
     query_text: &str,
-    vectors: Vec<f32>,
-    tenant: String,
+    vectors: &[f32],
+    tenant: &str,
     pool: &PgPool,
     metadata_filter: Option<serde_json::Value>,
-    distance_threshold: f64,
+    oversample_limit: i64,
     limit: i64,
     offset: i64,
 ) -> Result<SearchResults, ApiError> {
     let sql = build_hybrid_search_query(metadata_filter.is_some());
 
+    let query = sqlx::query(sql);
+
     let rows = if let Some(metadata_json) = metadata_filter {
-        sqlx::query(sql)
-            .bind(&vectors)
-            .bind(&tenant)
-            .bind(&metadata_json)
-            .bind(distance_threshold)
+        query
+            .bind(vectors)
+            .bind(tenant)
+            .bind(metadata_json)
             .bind(query_text)
+            .bind(oversample_limit)
             .bind(limit)
             .bind(offset)
             .fetch_all(pool)
             .await
     } else {
-        sqlx::query(sql)
-            .bind(&vectors)
-            .bind(&tenant)
-            .bind(distance_threshold)
+        query
+            .bind(vectors)
+            .bind(tenant)
             .bind(query_text)
+            .bind(oversample_limit)
             .bind(limit)
             .bind(offset)
             .fetch_all(pool)
@@ -204,15 +219,18 @@ async fn hybrid_search_query(
         .into_iter()
         .map(|row| {
             let vector_id: String = row.get("vector_id");
-            let combined_score: f64 = row.get("combined_score");
+            let score: f64 = row.get("score");
             let content: Option<String> = row.get("content");
             let metadata: Option<serde_json::Value> = row.get("metadata");
+
+            let max_rrf = 2.0 / 61.0;
+            let normalized = (score / max_rrf * 100.0).min(100.0);
 
             SearchResult {
                 vector_id,
                 content,
                 metadata,
-                score: Some(format!("{:.1}%", combined_score * 100.0)),
+                score: Some(format!("{:.1}%", normalized)),
             }
         })
         .collect();
@@ -220,43 +238,91 @@ async fn hybrid_search_query(
     Ok(SearchResults { matches })
 }
 
+fn build_vector_search_query(has_metadata_filter: bool) -> &'static str {
+    if has_metadata_filter {
+        r#"
+        WITH candidates AS (
+            SELECT vector_id, embedding <=> $1::vector AS distance
+            FROM vectors
+            WHERE tenant = $2 AND metadata @> $3
+            ORDER BY embedding <=> $1::vector
+            LIMIT $4
+        ),
+        final_ids AS (
+            SELECT vector_id, distance
+            FROM candidates
+            WHERE distance < $5
+            ORDER BY distance
+            LIMIT $6 OFFSET $7
+        )
+        SELECT v.vector_id, v.content, v.metadata, f.distance
+        FROM final_ids f
+        JOIN vectors v ON v.vector_id = f.vector_id
+        ORDER BY f.distance
+        "#
+    } else {
+        r#"
+        WITH candidates AS (
+            SELECT vector_id, embedding <=> $1::vector AS distance
+            FROM vectors
+            WHERE tenant = $2
+            ORDER BY embedding <=> $1::vector
+            LIMIT $3
+        ),
+        final_ids AS (
+            SELECT vector_id, distance
+            FROM candidates
+            WHERE distance < $4
+            ORDER BY distance
+            LIMIT $5 OFFSET $6
+        )
+        SELECT v.vector_id, v.content, v.metadata, f.distance
+        FROM final_ids f
+        JOIN vectors v ON v.vector_id = f.vector_id
+        ORDER BY f.distance
+        "#
+    }
+}
+
 async fn vector_search_query(
-    vectors: Vec<f32>,
-    tenant: String,
+    vectors: &[f32],
+    tenant: &str,
     pool: &PgPool,
     metadata_filter: Option<serde_json::Value>,
     distance_threshold: f64,
+    oversample_limit: i64,
     limit: i64,
     offset: i64,
 ) -> Result<SearchResults, ApiError> {
+    let sql = build_vector_search_query(metadata_filter.is_some());
+    let query = sqlx::query(sql);
+
     let rows = if let Some(metadata_json) = metadata_filter {
-       sqlx::query(
-           "SELECT vector_id, content, embedding <=> $1::vector AS distance, metadata FROM vectors WHERE tenant = $2 AND metadata @> $3 AND embedding <=> $1::vector < $4 ORDER BY embedding <=> $1::vector LIMIT $5 OFFSET $6"
-       )
-       .bind(&vectors)
-       .bind(&tenant)
-       .bind(&metadata_json)
-       .bind(distance_threshold)
-       .bind(limit)
-       .bind(offset)
-       .fetch_all(pool)
-       .await
-   } else {
-       sqlx::query(
-           "SELECT vector_id, content, embedding <=> $1::vector AS distance, metadata FROM vectors WHERE tenant = $2 AND embedding <=> $1::vector < $3 ORDER BY embedding <=> $1::vector LIMIT $4 OFFSET $5"
-       )
-       .bind(&vectors)
-       .bind(&tenant)
-       .bind(distance_threshold)
-       .bind(limit)
-       .bind(offset)
-       .fetch_all(pool)
-       .await
-   }
-   .map_err(|e| {
-       eprintln!("Database error in vector search: {}", e);
-       ApiError::DatabaseError
-   })?;
+        query
+            .bind(vectors)
+            .bind(tenant)
+            .bind(metadata_json)
+            .bind(oversample_limit)
+            .bind(distance_threshold)
+            .bind(limit)
+            .bind(offset)
+            .fetch_all(pool)
+            .await
+    } else {
+        query
+            .bind(vectors)
+            .bind(tenant)
+            .bind(oversample_limit)
+            .bind(distance_threshold)
+            .bind(limit)
+            .bind(offset)
+            .fetch_all(pool)
+            .await
+    }
+    .map_err(|e| {
+        eprintln!("Database error in vector search: {}", e);
+        ApiError::DatabaseError
+    })?;
 
     let matches = rows
         .into_iter()
@@ -265,13 +331,13 @@ async fn vector_search_query(
             let distance: f64 = row.get("distance");
             let content: Option<String> = row.get("content");
             let metadata: Option<serde_json::Value> = row.get("metadata");
-            let combined_score = ((1.0 - distance) * 0.6).max(0.0).min(1.0);
+            let score = ((1.0 - distance) * 100.0).max(0.0).min(100.0);
 
             SearchResult {
                 vector_id,
                 content,
                 metadata,
-                score: Some(format!("{:.1}%", combined_score * 100.0)),
+                score: Some(format!("{:.1}%", score)),
             }
         })
         .collect();

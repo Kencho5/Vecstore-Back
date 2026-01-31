@@ -30,7 +30,7 @@ pub async fn insert_vectors(
    .bind(&content) 
    .execute(pool)
    .await
-   .map_err(|_| ApiError::DatabaseInsert)?;
+   .map_err(|e| {dbg!(e); ApiError::DatabaseInsert})?;
 
     Ok(())
 }

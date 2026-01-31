@@ -4,6 +4,7 @@ import time
 import random
 import argparse
 import base64
+import uuid
 
 async def get_image_data(session, url):
     try:
@@ -15,11 +16,13 @@ async def get_image_data(session, url):
         return None
 
 def get_random_image_url():
+    # Picsum has images with IDs 0-1084 (real photos, no rate limits)
+    image_id = random.randint(0, 1084)
     width = random.randint(400, 800)
     height = random.randint(400, 800)
-    seed = random.randint(1, 1000000)
-    url = f"https://picsum.photos/seed/{seed}/{width}/{height}"
-    filename = f"image_{seed}_{width}x{height}.jpeg"
+    unique_id = uuid.uuid4()
+    url = f"https://picsum.photos/id/{image_id}/{width}/{height}"
+    filename = f"picsum_{image_id}_{unique_id}.jpeg"
     return url, filename
 
 async def insert_image(session, sem, api_key, database, image_id, total_images):
@@ -51,8 +54,6 @@ async def insert_image(session, sem, api_key, database, image_id, total_images):
         }
         
         BATCH_REPORT_SIZE = 500 # Constant for reporting frequency
-
-        # ... (rest of the function remains the same until the try-except block)
         
         vecstore_url = "https://api.vecstore.app/insert-image"
         try:
@@ -76,14 +77,25 @@ async def main():
     args = parser.parse_args()
 
     print(f"Starting async stress test with concurrency {args.concurrency}, inserting {args.total_images} images into database '{args.database}'...")
-    
+
     start_time = time.time()
     sem = asyncio.Semaphore(args.concurrency)
 
     connector = aiohttp.TCPConnector(ssl=False)
     async with aiohttp.ClientSession(connector=connector) as session:
         tasks = [insert_image(session, sem, args.api_key, args.database, i, args.total_images) for i in range(1, args.total_images + 1)]
-        await asyncio.gather(*tasks)
+
+        try:
+            await asyncio.gather(*tasks)
+        except KeyboardInterrupt:
+            print("\n\nCtrl+C detected! Cancelling all pending tasks...")
+            for task in tasks:
+                task.cancel()
+            # Wait briefly for cancellations to complete
+            await asyncio.gather(*tasks, return_exceptions=True)
+            final_duration = time.time() - start_time
+            print(f"Interrupted after {final_duration:.2f} seconds")
+            return
 
     final_duration = time.time() - start_time
     print(f"\ninserted {args.total_images} images in {final_duration:.2f} seconds")
