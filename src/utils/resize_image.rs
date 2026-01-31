@@ -1,33 +1,32 @@
 use crate::prelude::*;
-use image::{GenericImageView, ImageFormat, ImageReader};
+use image::{codecs::jpeg::JpegEncoder, ImageReader};
 use std::io::Cursor;
 
-pub fn _resize_image(image_data: Vec<u8>) -> Result<Vec<u8>, ApiError> {
-    let reader = ImageReader::new(Cursor::new(&image_data))
+pub fn normalize_image(image_data: Vec<u8>) -> Result<Vec<u8>, ApiError> {
+    let img = ImageReader::new(Cursor::new(&image_data))
         .with_guessed_format()
+        .map_err(|_| ApiError::ImageProcessing)?
+        .decode()
         .map_err(|_| ApiError::ImageProcessing)?;
 
-    let original_format = reader.format().unwrap_or(ImageFormat::Jpeg);
+    let (width, height) = (img.width(), img.height());
+    let max_dim = 2000;
 
-    let img = reader.decode().map_err(|_| ApiError::ImageProcessing)?;
-
-    let (width, height) = img.dimensions();
-    let max_dimension = 768;
-
-    // Only resize if image is larger than target
-    let resized = if width > max_dimension || height > max_dimension {
-        let scale = (max_dimension as f32) / (width.max(height) as f32);
-        let new_width = (width as f32 * scale) as u32;
-        let new_height = (height as f32 * scale) as u32;
-
-        img.resize(new_width, new_height, image::imageops::FilterType::Triangle)
+    let img = if width > max_dim || height > max_dim {
+        img.thumbnail(max_dim, max_dim)
     } else {
         img
     };
 
+    let (width, height) = (img.width(), img.height());
     let mut buffer = Vec::new();
-    resized
-        .write_to(&mut Cursor::new(&mut buffer), original_format)
+
+    let mut encoder = JpegEncoder::new_with_quality(&mut buffer, 90);
+
+    let rgb = img.to_rgb8();
+
+    encoder
+        .encode(rgb.as_raw(), width, height, image::ExtendedColorType::Rgb8)
         .map_err(|_| ApiError::ImageProcessing)?;
 
     Ok(buffer)

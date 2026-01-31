@@ -41,8 +41,16 @@ pub async fn extract_image_features(
         return Err(ApiError::ImageProcessing);
     }
 
+    let image_data = base64::engine::general_purpose::STANDARD
+        .decode(base64_image)
+        .map_err(|_| ApiError::ImageProcessing)?;
+
+    let normalized_data = crate::utils::resize_image::normalize_image(image_data)?;
+
+    let normalized_base64 = base64::engine::general_purpose::STANDARD.encode(normalized_data);
+
     let body = json!({
-        "inputImage": base64_image,
+        "inputImage": normalized_base64,
         "embeddingConfig": {
             "outputEmbeddingLength": EMBEDDING_DIMENSIONS
         }

@@ -16,13 +16,12 @@ async def get_image_data(session, url):
         return None
 
 def get_random_image_url():
-    # Picsum has images with IDs 0-1084 (real photos, no rate limits)
-    image_id = random.randint(0, 1084)
+    # Use Picsum's random endpoint with seed for variety (no 404s)
     width = random.randint(400, 800)
     height = random.randint(400, 800)
-    unique_id = uuid.uuid4()
-    url = f"https://picsum.photos/id/{image_id}/{width}/{height}"
-    filename = f"picsum_{image_id}_{unique_id}.jpeg"
+    seed = random.randint(1, 1000000)
+    url = f"https://picsum.photos/seed/{seed}/{width}/{height}"
+    filename = f"picsum_seed_{seed}.jpeg"
     return url, filename
 
 async def insert_image(session, sem, api_key, database, image_id, total_images):
