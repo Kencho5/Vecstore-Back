@@ -12,11 +12,9 @@ def search_image(api_key, database, image_path=None, image_url=None, limit=5):
 
     # Get image data
     if image_path:
-        print(f"Reading local image: {image_path}")
         with open(image_path, 'rb') as f:
             img_data = f.read()
     elif image_url:
-        print(f"Downloading image from: {image_url}")
         # Add browser headers to avoid 403 errors
         download_headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -30,13 +28,8 @@ def search_image(api_key, database, image_path=None, image_url=None, limit=5):
     else:
         raise ValueError("Must provide either image_path or image_url")
 
-    print(f"Image size: {len(img_data)} bytes")
-
     # Encode to base64
     base64_image = base64.b64encode(img_data).decode('utf-8')
-
-    print(f"Base64 length: {len(base64_image)} characters")
-    print(f"Base64 prefix: {base64_image[:50]}...\n")
 
     # Prepare request
     payload = {
@@ -51,7 +44,6 @@ def search_image(api_key, database, image_path=None, image_url=None, limit=5):
     }
 
     # Make request
-    print(f"Searching in database: {database}\n")
     response = requests.post(url, headers=headers, json=payload)
 
     if response.status_code != 200:

@@ -65,17 +65,24 @@ async def search_image(session, sem, api_key, database, search_id, total_searche
         try:
             async with session.post(vecstore_url, headers=headers, json=payload) as res:
                 request_time = time.time() - start_time
-                search_times.append(request_time * 1000)  # Convert to ms
 
                 if res.status == 200:
                     response_json = await res.json()
                     results_count = len(response_json.get('results', []))
-                    server_time = response_json.get('time', 'N/A')
+                    server_time_str = response_json.get('time', '0ms')
+                    
+                    # Extract numeric value from "123ms" string
+                    try:
+                        server_time_ms = float(server_time_str.replace('ms', ''))
+                    except (ValueError, AttributeError):
+                        server_time_ms = 0.0
+
+                    search_times.append(server_time_ms)
 
                     if search_id % 50 == 0 or search_id == total_searches:
                         print(f"[{search_id}/{total_searches}] Status: {res.status} | "
-                              f"Results: {results_count} | Server: {server_time} | "
-                              f"Total: {request_time*1000:.0f}ms")
+                              f"Results: {results_count} | Server: {server_time_str} | "
+                              f"Network/Download: {(request_time*1000) - server_time_ms:.0f}ms")
                 else:
                     response_text = await res.text()
                     print(f"[{search_id}/{total_searches}] ERROR: Status {res.status} | Response: {response_text[:100]}")

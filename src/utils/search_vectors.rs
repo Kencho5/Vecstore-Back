@@ -22,8 +22,8 @@ pub async fn search_vectors(
     let limit = limit.unwrap_or(10).min(100) as i64;
     let offset = ((page - 1) * (limit as u32)) as i64;
 
-    let oversample_limit = (limit * 4).min(400);
-    let distance_threshold = 0.8;
+    let oversample_limit = ((limit + offset) * 8).max(150).min(800);
+    let distance_threshold = 0.72;
 
     let use_hybrid = !query_text.trim().is_empty();
 
@@ -34,6 +34,7 @@ pub async fn search_vectors(
             &tenant,
             pool,
             metadata_filter,
+            distance_threshold,
             oversample_limit,
             limit,
             offset,
@@ -80,8 +81,9 @@ fn build_hybrid_search_query(has_metadata_filter: bool) -> &'static str {
                    ROW_NUMBER() OVER (ORDER BY embedding <=> $1::vector) as vrank
             FROM vectors
             WHERE tenant = $2 AND metadata @> $3
+              AND embedding <=> $1::vector < $5
             ORDER BY embedding <=> $1::vector
-            LIMIT $5
+            LIMIT $6
         ),
         text_candidates AS (
             SELECT vector_id,
@@ -92,7 +94,7 @@ fn build_hybrid_search_query(has_metadata_filter: bool) -> &'static str {
             CROSS JOIN query_parser
             WHERE tenant = $2 AND metadata @> $3
             AND search_vector @@ query_parser.tsquery
-            LIMIT $5
+            LIMIT $6
         ),
         rrf_scores AS (
             SELECT
@@ -106,7 +108,7 @@ fn build_hybrid_search_query(has_metadata_filter: bool) -> &'static str {
             SELECT vector_id, score
             FROM rrf_scores
             ORDER BY score DESC
-            LIMIT $6 OFFSET $7
+            LIMIT $7 OFFSET $8
         )
         SELECT v.vector_id, v.content, v.metadata, f.score
         FROM final_ids f
@@ -138,8 +140,9 @@ fn build_hybrid_search_query(has_metadata_filter: bool) -> &'static str {
                    ROW_NUMBER() OVER (ORDER BY embedding <=> $1::vector) as vrank
             FROM vectors
             WHERE tenant = $2
+              AND embedding <=> $1::vector < $4
             ORDER BY embedding <=> $1::vector
-            LIMIT $4
+            LIMIT $5
         ),
         text_candidates AS (
             SELECT vector_id,
@@ -150,7 +153,7 @@ fn build_hybrid_search_query(has_metadata_filter: bool) -> &'static str {
             CROSS JOIN query_parser
             WHERE tenant = $2
             AND search_vector @@ query_parser.tsquery
-            LIMIT $4
+            LIMIT $5
         ),
         rrf_scores AS (
             SELECT
@@ -164,7 +167,7 @@ fn build_hybrid_search_query(has_metadata_filter: bool) -> &'static str {
             SELECT vector_id, score
             FROM rrf_scores
             ORDER BY score DESC
-            LIMIT $5 OFFSET $6
+            LIMIT $6 OFFSET $7
         )
         SELECT v.vector_id, v.content, v.metadata, f.score
         FROM final_ids f
@@ -180,6 +183,7 @@ async fn hybrid_search_query(
     tenant: &str,
     pool: &PgPool,
     metadata_filter: Option<serde_json::Value>,
+    distance_threshold: f64,
     oversample_limit: i64,
     limit: i64,
     offset: i64,
@@ -194,6 +198,7 @@ async fn hybrid_search_query(
             .bind(tenant)
             .bind(metadata_json)
             .bind(query_text)
+            .bind(distance_threshold)
             .bind(oversample_limit)
             .bind(limit)
             .bind(offset)
@@ -204,6 +209,7 @@ async fn hybrid_search_query(
             .bind(vectors)
             .bind(tenant)
             .bind(query_text)
+            .bind(distance_threshold)
             .bind(oversample_limit)
             .bind(limit)
             .bind(offset)
