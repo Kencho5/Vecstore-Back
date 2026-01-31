@@ -37,8 +37,13 @@ pub async fn extract_image_features(
     bedrock_client: &BedrockClient,
     image_bytes: Vec<u8>,
 ) -> Result<Vec<f32>, ApiError> {
-    let resized_image_data = resize_image(image_bytes)?;
-    let final_base64 = base64::engine::general_purpose::STANDARD.encode(&resized_image_data);
+    // Validate image size (10 MB limit)
+    const MAX_IMAGE_SIZE: usize = 10 * 1024 * 1024; // 10 MB
+    if image_bytes.len() > MAX_IMAGE_SIZE {
+        return Err(ApiError::ImageProcessing);
+    }
+
+    let final_base64 = base64::engine::general_purpose::STANDARD.encode(&image_bytes);
 
     let body = json!({
         "inputImage": final_base64,

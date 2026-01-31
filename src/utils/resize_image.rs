@@ -2,7 +2,7 @@ use crate::prelude::*;
 use image::{GenericImageView, ImageFormat, ImageReader};
 use std::io::Cursor;
 
-pub fn resize_image(image_data: Vec<u8>) -> Result<Vec<u8>, ApiError> {
+pub fn _resize_image(image_data: Vec<u8>) -> Result<Vec<u8>, ApiError> {
     let reader = ImageReader::new(Cursor::new(&image_data))
         .with_guessed_format()
         .map_err(|_| ApiError::ImageProcessing)?;
