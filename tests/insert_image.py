@@ -1,80 +1,71 @@
 import requests
-import time
-from multiprocessing import Process, Value, Lock
-import random
+import argparse
+import base64
+import os
 
-def get_image_data(url):
+def download_image(url):
+    """
+    Downloads image data from a URL, pretending to be a browser
+    by sending a common User-Agent header.
+    """
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
     try:
-        r = requests.get(url)
+        print(f"Downloading image from: {url}")
+        r = requests.get(url, headers=headers)
         r.raise_for_status()
+        print("Download successful.")
         return r.content
-    except:
+    except requests.exceptions.RequestException as e:
+        print(f"Failed to download image: {e}")
         return None
 
-API_KEY = "62d80151c294f137be9cf22a932dbb9c59e72a651a123641263ef45c5d2eb201"
-DATABASE = "vecstore"
+def main():
+    parser = argparse.ArgumentParser(description="Insert a single image into Vecstore from a URL.")
+    parser.add_argument("--api_key", required=True, help="Your Vecstore API Key.")
+    parser.add_argument("--database", default="vecstore", help="The database name to insert into.")
+    parser.add_argument("--url", required=True, help="The URL of the image to insert.")
+    args = parser.parse_args()
 
-def get_random_image():
-    """Get a random image from Lorem Picsum"""
-    # Random dimensions between 400-800 pixels
-    width = random.randint(400, 800)
-    height = random.randint(400, 800)
-    
-    # Random seed for different images
-    seed = random.randint(1, 1000)
-    
-    url = f"https://picsum.photos/seed/{seed}/{width}/{height}"
-    filename = url
-    
-    return url, filename
-
-def insert_image_loop(counter, limit, lock, start_time):
-    while True:
-        with lock:
-            if counter.value >= limit:
-                return
-            counter.value += 1
-            current = counter.value
+    # 1. Download the image
+    img_data = download_image(args.url)
+    if not img_data:
+        return
         
-        # Get random image URL and filename
-        image_url, filename = get_random_image()
-        
-        # Download the random image
-        img_data = get_image_data(image_url)
-        if img_data is None:
-            print(f"Failed to download random image {current}: {filename}")
-            continue
-        
-        data = {
-            'filename': filename, 
-            'database': DATABASE, 
-            'metadata': f'{{"category": "random", "image_id": {current}, "source": "picsum"}}'
+    # 2. Base64-encode the image for the JSON payload
+    base64_image = base64.b64encode(img_data).decode('utf-8')
+    filename = os.path.basename(args.url)
+    
+    # 3. Construct the JSON payload
+    payload = {
+        'image': base64_image,
+        'database': args.database,
+        'metadata': {
+            "source_url": args.url,
+            "filename": filename
         }
-        files = {'image': (filename, img_data, 'image/jpeg')}
-        headers = {"Authorization": API_KEY}
+    }
+
+    headers = {
+        "Authorization": args.api_key,
+        "Content-Type": "application/json"
+    }
+    
+    # 4. POST the data to the API
+    vecstore_url = "https://api.vecstore.app/insert-image"
+    print(f"Inserting image into database '{args.database}'...")
+    try:
+        res = requests.post(vecstore_url, headers=headers, json=payload)
         
-        try:
-            res = requests.post("http://localhost:3000/insert-image", headers=headers, data=data, files=files)
-            print(f"{current}/{limit} | {filename} | Response: {res.json()}")
-        except Exception as e:
-            print(f"{current}/{limit} | {filename} | ERROR: {e}")
-        
-        if current == limit:
-            duration = time.time() - start_time.value
-            print(f"\nInserted {limit} random images in {duration:.2f} seconds")
+        if res.status_code == 200:
+            print(f"Success! Response: {res.json()}")
+        else:
+            print(f"Error: Server returned status {res.status_code}")
+            print(f"Response: {res.text}")
+            
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred during the request to Vecstore API: {e}")
 
 if __name__ == "__main__":
-    num_processes = 4  # Adjust based on your needs
-    total_images = 100  # Change this to however many random images you want
-    
-    counter = Value('i', 0)
-    lock = Lock()
-    start_time = Value('d', time.time())
-    
-    processes = [Process(target=insert_image_loop, args=(counter, total_images, lock, start_time)) for _ in range(num_processes)]
-    
-    for p in processes:
-        p.start()
-        
-    for p in processes:
-        p.join()
+    main()
