@@ -1,99 +1,108 @@
-import asyncio
-import aiohttp
+import requests
 import argparse
 import base64
-import random
 import json
 
-async def get_image_data(session, url):
-    """Asynchronously downloads image data from a URL."""
-    try:
-        async with session.get(url) as response:
-            response.raise_for_status()
-            return await response.read()
-    except aiohttp.ClientError as e:
-        print(f"Error downloading image from {url}: {e}")
-        return None
+def search_image(api_key, database, image_path=None, image_url=None, limit=5):
+    """
+    Search for similar images in Vecstore using an image query.
+    Either provide image_path (local file) or image_url (download from URL).
+    """
+    url = "https://api.vecstore.app/search"
 
-def get_random_image_url():
-    """Generates a random URL from picsum.photos."""
-    width = random.randint(400, 800)
-    height = random.randint(400, 800)
-    seed = random.randint(1, 1000000)
-    url = f"https://picsum.photos/seed/{seed}/{width}/{height}"
-    return url
-
-async def main():
-    parser = argparse.ArgumentParser(description="Search for an image in Vecstore using a random image query.")
-    parser.add_argument("--api_key", required=True, help="Your Vecstore API Key.")
-    parser.add_argument("--database", default="vecstore", help="The database name to search in.")
-    parser.add_argument("--limit", type=int, default=3, help="Number of results to return.")
-    parser.add_argument("--url", type=str, help="Optional: URL of the image to use for the search query. If not provided, a random image from Picsum will be used.")
-    args = parser.parse_args()
-
-    # Disable SSL verification - adjust if your environment has a proper certificate store
-    connector = aiohttp.TCPConnector(ssl=False)
-    async with aiohttp.ClientSession(connector=connector) as session:
-        # 1. Get an image to use as the query
-        if args.url:
-            input_image_url = args.url
-            print(f"Using provided image as input: {input_image_url}\n")
-        else:
-            input_image_url = get_random_image_url()
-            print(f"Using random image as input: {input_image_url}\n")
-        
-        img_data = await get_image_data(session, input_image_url)
-        if not img_data:
-            print("Could not download image to use for the search query. Exiting.")
-            return
-            
-        # 2. Prepare the payload for the search API
-        base64_image = base64.b64encode(img_data).decode('utf-8')
-        
-        payload = {
-            "image": base64_image,
-            "database": args.database,
-            "limit": args.limit
+    # Get image data
+    if image_path:
+        print(f"Reading local image: {image_path}")
+        with open(image_path, 'rb') as f:
+            img_data = f.read()
+    elif image_url:
+        print(f"Downloading image from: {image_url}")
+        # Add browser headers to avoid 403 errors
+        download_headers = {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Referer': image_url,
         }
-        
-        headers = {
-            "Authorization": args.api_key,
-            "Content-Type": "application/json"
-        }
-        
-        # 3. Call the search API
-        search_url = "https://api.vecstore.app/search"
-        try:
-            async with session.post(search_url, headers=headers, json=payload) as res:
-                if res.status != 200:
-                    print(f"Error: Server returned status {res.status}")
-                    print(f"Response: {await res.text()}")
-                    return
+        response = requests.get(image_url, headers=download_headers, timeout=10)
+        response.raise_for_status()
+        img_data = response.content
+    else:
+        raise ValueError("Must provide either image_path or image_url")
 
-                response_data = await res.json()
-                results = response_data.get("results", [])
-                
-                search_time = response_data.get('time', 'N/A')
-                print(f"Search completed in: {search_time}")
-                print(f"Found {len(results)} results:")
-                
-                if not results:
-                    return
+    # Encode to base64
+    base64_image = base64.b64encode(img_data).decode('utf-8')
 
-                # 4. Print results
-                for i, result in enumerate(results):
-                    score = result.get('score', 'N/A')
-                    metadata = result.get('metadata', {})
-                    result_image_url = metadata.get('picsum_url', 'No URL found in metadata')
+    print(f"Image size: {len(img_data)} bytes")
+    print(f"Base64 length: {len(base64_image)} characters")
+    print(f"Base64 prefix: {base64_image[:50]}...\n")
 
-                    print(f"  {i+1}. Score: {score}")
-                    print(f"     Result URL: {result_image_url}\n")
+    # Prepare request
+    payload = {
+        "image": base64_image,
+        "database": database,
+        "limit": limit
+    }
 
-        except aiohttp.ClientError as e:
-            print(f"An error occurred during the request: {e}")
-        except json.JSONDecodeError:
-            print("Failed to decode the server's JSON response.")
-            print(f"Raw response: {await res.text()}")
+    headers = {
+        "Authorization": api_key,
+        "Content-Type": "application/json"
+    }
+
+    # Make request
+    print(f"Searching in database: {database}\n")
+    response = requests.post(url, headers=headers, json=payload)
+
+    if response.status_code != 200:
+        print(f"Error: {response.status_code}")
+        print(f"Response: {response.text}")
+        return
+
+    # Parse response
+    data = response.json()
+    results = data.get("results", [])
+    search_time = data.get("time", "N/A")
+
+    print(f"Search completed in: {search_time}")
+    print(f"Found {len(results)} results:\n")
+
+    # Print results
+    for i, result in enumerate(results, 1):
+        vector_id = result.get("vector_id", "N/A")
+        score = result.get("score", "N/A")
+        content = result.get("content", "")
+        metadata = result.get("metadata", {})
+
+        print(f"{i}. Vector ID: {vector_id}")
+        print(f"   Score: {score}")
+        if content:
+            print(f"   Content: {content[:100]}...")
+        print(f"   Metadata: {json.dumps(metadata, indent=3)}")
+        print()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    parser = argparse.ArgumentParser(description="Search for similar images in Vecstore")
+    parser.add_argument("--api_key", required=True, help="Your Vecstore API Key")
+    parser.add_argument("--database", default="vecstore", help="Database name")
+    parser.add_argument("--limit", type=int, default=5, help="Number of results")
+    parser.add_argument("--image", help="Path to local image file")
+    parser.add_argument("--url", help="URL to download image from")
+
+    args = parser.parse_args()
+
+    if not args.image and not args.url:
+        print("Error: Must provide either --image (local file) or --url (download)")
+        exit(1)
+
+    try:
+        search_image(
+            api_key=args.api_key,
+            database=args.database,
+            image_path=args.image,
+            image_url=args.url,
+            limit=args.limit
+        )
+    except Exception as e:
+        print(f"Error: {e}")
+        import traceback
+        traceback.print_exc()
