@@ -1,6 +1,5 @@
 use crate::prelude::*;
 use aws_sdk_bedrockruntime::primitives::Blob;
-use base64::Engine;
 use serde_json::{json, Value};
 
 const EMBEDDING_DIMENSIONS: u32 = 1024;
