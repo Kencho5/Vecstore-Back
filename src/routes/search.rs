@@ -10,10 +10,7 @@ pub async fn search_handler(
     let cached_user = get_cached_user(&state, api_key, &payload.database).await?;
 
     let vectors = if let Some(base64_image) = &payload.image {
-        let image_bytes = base64::engine::general_purpose::STANDARD
-            .decode(base64_image)
-            .map_err(|_| ApiError::ImageProcessing)?;
-        extract_image_features(&state.bedrock_client, image_bytes)
+        extract_image_features(&state.bedrock_client, base64_image)
             .await
             .map_err(|_| ApiError::ModelInference)?
     } else if cached_user.db_type == "image" {

@@ -69,10 +69,7 @@ async fn upload_image(
     database: String,
 ) -> Result<(), ApiError> {
     for file in files {
-        let image_bytes = base64::engine::general_purpose::STANDARD
-            .decode(&file.data)
-            .map_err(|_| ApiError::Unforseen)?;
-        let vectors = extract_image_features(&bedrock_client, image_bytes)
+        let vectors = extract_image_features(&bedrock_client, &file.data)
             .await
             .unwrap();
 

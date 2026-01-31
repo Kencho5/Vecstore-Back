@@ -35,18 +35,15 @@ async fn invoke_bedrock_model(
 
 pub async fn extract_image_features(
     bedrock_client: &BedrockClient,
-    image_bytes: Vec<u8>,
+    base64_image: &str,
 ) -> Result<Vec<f32>, ApiError> {
-    // Validate image size (10 MB limit)
-    const MAX_IMAGE_SIZE: usize = 10 * 1024 * 1024; // 10 MB
-    if image_bytes.len() > MAX_IMAGE_SIZE {
+    const MAX_BASE64_SIZE: usize = 14 * 1024 * 1024; // ~10 MB decoded
+    if base64_image.len() > MAX_BASE64_SIZE {
         return Err(ApiError::ImageProcessing);
     }
 
-    let final_base64 = base64::engine::general_purpose::STANDARD.encode(&image_bytes);
-
     let body = json!({
-        "inputImage": final_base64,
+        "inputImage": base64_image,
         "embeddingConfig": {
             "outputEmbeddingLength": EMBEDDING_DIMENSIONS
         }

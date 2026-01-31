@@ -117,11 +117,7 @@ async fn search_by_image(
     bedrock_client: &BedrockClient,
     state: &AppState,
 ) -> Result<Json<Vec<SearchResult>>, ApiError> {
-    let image_bytes = base64::engine::general_purpose::STANDARD
-        .decode(&data)
-        .map_err(|_| ApiError::Unforseen)?;
-
-    let vectors = extract_image_features(&bedrock_client, image_bytes)
+    let vectors = extract_image_features(&bedrock_client, &data)
         .await
         .map_err(|_| ApiError::Unforseen)?;
 
