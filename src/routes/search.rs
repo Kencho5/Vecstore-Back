@@ -7,8 +7,11 @@ pub async fn search_handler(
 ) -> Result<Json<SearchResponse>, ApiError> {
     let total_start = Instant::now();
 
+    let auth_start = Instant::now();
     let cached_user = get_cached_user(&state, api_key, &payload.database).await?;
+    let auth_time = auth_start.elapsed().as_millis();
 
+    let inference_start = Instant::now();
     let vectors = if let Some(base64_image) = &payload.image {
         extract_image_features(&state.bedrock_client, base64_image)
             .await
@@ -21,7 +24,9 @@ pub async fn search_handler(
     } else {
         return Err(ApiError::MissingData);
     };
+    let inference_time = inference_start.elapsed().as_millis();
 
+    let db_start = Instant::now();
     let results = search_vectors(
         &state,
         &payload.text.unwrap_or_default(),
@@ -34,8 +39,17 @@ pub async fn search_handler(
         payload.limit,
     )
     .await?;
+    let db_time = db_start.elapsed().as_millis();
 
     let total_time_ms = total_start.elapsed().as_millis() as u64;
+
+    tracing::info!(
+        "Search Performance: Total {}ms | Auth {}ms | Bedrock {}ms | DB {}ms",
+        total_time_ms,
+        auth_time,
+        inference_time,
+        db_time
+    );
 
     let user_action_task = BackgroundTask::ProcessUserAction {
         user_id: cached_user.user_id,

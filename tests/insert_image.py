@@ -2,6 +2,7 @@ import requests
 import argparse
 import base64
 import os
+from config import get_config, add_env_argument
 
 def download_image(url):
     """
@@ -23,10 +24,17 @@ def download_image(url):
 
 def main():
     parser = argparse.ArgumentParser(description="Insert a single image into Vecstore from a URL.")
-    parser.add_argument("--api_key", required=True, help="Your Vecstore API Key.")
+    add_env_argument(parser)
     parser.add_argument("--database", default="vecstore", help="The database name to insert into.")
     parser.add_argument("--url", required=True, help="The URL of the image to insert.")
     args = parser.parse_args()
+
+    # Get configuration based on environment
+    config = get_config(args.env)
+    api_key = config["api_key"]
+    base_url = config["base_url"]
+
+    print(f"Environment: {args.env} ({base_url})")
 
     # 1. Download the image
     img_data = download_image(args.url)
@@ -48,12 +56,12 @@ def main():
     }
 
     headers = {
-        "Authorization": args.api_key,
+        "Authorization": api_key,
         "Content-Type": "application/json"
     }
-    
+
     # 4. POST the data to the API
-    vecstore_url = "https://api.vecstore.app/insert-image"
+    vecstore_url = f"{base_url}/insert-image"
     print(f"Inserting image into database '{args.database}'...")
     try:
         res = requests.post(vecstore_url, headers=headers, json=payload)

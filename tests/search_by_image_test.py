@@ -2,13 +2,14 @@ import requests
 import argparse
 import base64
 import json
+from config import get_config, add_env_argument
 
-def search_image(api_key, database, image_path=None, image_url=None, limit=5):
+def search_image(api_key, database, base_url, image_path=None, image_url=None, limit=5):
     """
     Search for similar images in Vecstore using an image query.
     Either provide image_path (local file) or image_url (download from URL).
     """
-    url = "https://api.vecstore.app/search"
+    url = f"{base_url}/search"
 
     # Get image data
     if image_path:
@@ -75,7 +76,7 @@ def search_image(api_key, database, image_path=None, image_url=None, limit=5):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Search for similar images in Vecstore")
-    parser.add_argument("--api_key", required=True, help="Your Vecstore API Key")
+    add_env_argument(parser)
     parser.add_argument("--database", default="vecstore", help="Database name")
     parser.add_argument("--limit", type=int, default=5, help="Number of results")
     parser.add_argument("--image", help="Path to local image file")
@@ -83,14 +84,22 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    # Get configuration based on environment
+    config = get_config(args.env)
+    api_key = config["api_key"]
+    base_url = config["base_url"]
+
     if not args.image and not args.url:
         print("Error: Must provide either --image (local file) or --url (download)")
         exit(1)
 
+    print(f"Environment: {args.env} ({base_url})")
+
     try:
         search_image(
-            api_key=args.api_key,
+            api_key=api_key,
             database=args.database,
+            base_url=base_url,
             image_path=args.image,
             image_url=args.url,
             limit=args.limit

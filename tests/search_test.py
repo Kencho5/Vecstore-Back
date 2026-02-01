@@ -1,12 +1,13 @@
 import requests
 import argparse
 import json
+from config import get_config, add_env_argument
 
-def search_image_by_text(api_key, database, text_query, limit):
+def search_image_by_text(api_key, database, base_url, text_query, limit):
     """
     Searches for images in Vecstore using a text query.
     """
-    url = "https://api.vecstore.app/search"
+    url = f"{base_url}/search"
     
     payload = {
         "text": text_query,
@@ -59,10 +60,17 @@ def search_image_by_text(api_key, database, text_query, limit):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Search for an image in Vecstore using a text query.")
-    parser.add_argument("--api_key", required=True, help="Your Vecstore API Key.")
+    add_env_argument(parser)
     parser.add_argument("--database", default="vecstore", help="The database name to search in.")
     parser.add_argument("--query", required=True, help="The text query to search for (e.g., 'a dog on a beach').")
     parser.add_argument("--limit", type=int, default=3, help="Number of results to return.")
 
     args = parser.parse_args()
-    search_image_by_text(args.api_key, args.database, args.query, args.limit)
+
+    # Get configuration based on environment
+    config = get_config(args.env)
+    api_key = config["api_key"]
+    base_url = config["base_url"]
+
+    print(f"Environment: {args.env} ({base_url})")
+    search_image_by_text(api_key, args.database, base_url, args.query, args.limit)

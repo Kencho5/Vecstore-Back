@@ -5,6 +5,7 @@ import random
 import argparse
 import base64
 import statistics
+from config import get_config, add_env_argument
 
 async def get_image_data(session, url):
     """Download image from URL"""
@@ -24,7 +25,7 @@ def get_random_image_url():
     url = f"https://picsum.photos/seed/{seed}/{width}/{height}"
     return url
 
-async def search_image(session, sem, api_key, database, search_id, total_searches, search_times, use_text=False):
+async def search_image(session, sem, api_key, database, search_id, total_searches, search_times, base_url, use_text=False):
     """Perform a single search request"""
     async with sem:
         start_time = time.time()
@@ -61,7 +62,7 @@ async def search_image(session, sem, api_key, database, search_id, total_searche
             "Content-Type": "application/json"
         }
 
-        vecstore_url = "https://api.vecstore.app/search"
+        vecstore_url = f"{base_url}/search"
         try:
             async with session.post(vecstore_url, headers=headers, json=payload) as res:
                 request_time = time.time() - start_time
@@ -93,14 +94,20 @@ async def search_image(session, sem, api_key, database, search_id, total_searche
 
 async def main():
     parser = argparse.ArgumentParser(description="Search stress test for Vecstore API")
-    parser.add_argument("--api_key", required=True, help="Your Vecstore API Key")
+    add_env_argument(parser)
     parser.add_argument("--database", default="vecstore", help="The database name to search")
     parser.add_argument("--concurrency", type=int, default=10, help="Number of concurrent requests")
     parser.add_argument("--total_searches", type=int, default=1000, help="Total number of searches to perform")
     parser.add_argument("--hybrid", action="store_true", help="Use hybrid search (image + text)")
     args = parser.parse_args()
 
+    # Get configuration based on environment
+    config = get_config(args.env)
+    api_key = config["api_key"]
+    base_url = config["base_url"]
+
     search_type = "hybrid (image + text)" if args.hybrid else "image-only"
+    print(f"Environment: {args.env} ({base_url})")
     print(f"Starting search stress test with concurrency {args.concurrency}")
     print(f"Performing {args.total_searches} {search_type} searches in database '{args.database}'...\n")
 
@@ -111,7 +118,7 @@ async def main():
     connector = aiohttp.TCPConnector(ssl=False)
     async with aiohttp.ClientSession(connector=connector) as session:
         tasks = [
-            search_image(session, sem, args.api_key, args.database, i, args.total_searches, search_times, args.hybrid)
+            search_image(session, sem, api_key, args.database, i, args.total_searches, search_times, base_url, args.hybrid)
             for i in range(1, args.total_searches + 1)
         ]
 
