@@ -23,7 +23,7 @@ pub async fn search_vectors(
     let offset = ((page - 1) * (limit as u32)) as i64;
 
     let oversample_limit = ((limit + offset) * 8).max(150).min(800);
-    let distance_threshold = 0.6;
+    let distance_threshold = 0.7;
 
     let use_hybrid = !query_text.trim().is_empty();
 
